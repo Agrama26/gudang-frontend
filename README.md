@@ -1,70 +1,196 @@
-# Getting Started with Create React App
+# Warehouse Management System
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Sistem manajemen stok gudang modern yang menggantikan pencatatan Excel dengan database yang powerful dan user-friendly.
 
-## Available Scripts
+## 🚀 Fitur Utama
 
-In the project directory, you can run:
+### 1. Landing Page
+- Hero Section dengan judul "Warehouse Management System"
+- Tombol "Get Started" menuju Dashboard
+- Penjelasan fitur lengkap
+- Footer dengan copyright
 
-### `npm start`
+### 2. Dashboard
+- Tabel daftar barang dengan informasi lengkap
+- Data real-time dari database MySQL
+- Status dengan color coding:
+  - **READY** = hijau
+  - **TERPAKAI** = biru  
+  - **RUSAK** = merah
+- Statistik dashboard
+- Tombol akses ke detail barang dan form tambah barang
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### 3. Detail Barang
+- Informasi lengkap barang
+- Riwayat penggunaan barang dengan timeline
+- Update status barang real-time
+- Generate QR code otomatis
+- Scan QR code (fitur kamera)
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### 4. Input Data Barang
+- Form input lengkap dengan validasi
+- Otomatis generate QR code setelah simpan
+- Data langsung tersimpan ke database
 
-### `npm test`
+### 5. Authentication System
+- Multi-user authentication (admin/staff)
+- JWT-based authentication
+- Role-based access control
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## 🛠️ Tech Stack
 
-### `npm run build`
+### Frontend
+- **React.js 18** - Modern UI framework
+- **TailwindCSS** - Utility-first CSS framework
+- **React Router** - Client-side routing
+- **React QR Code** - QR code generation & scanning
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Backend
+- **Node.js** - JavaScript runtime
+- **Express.js** - Web framework
+- **MySQL** - Relational database
+- **JWT** - Authentication tokens
+- **bcryptjs** - Password hashing
+- **QRCode** - Server-side QR generation
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## 🎨 Design System
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- **Warna Utama**: Biru (#1D4ED8), Cyan (#06B6D4), Putih (#FFFFFF)
+- **Typography**: Inter font family
+- **UI**: Clean, modern, responsive design
+- **Animations**: Smooth hover effects dan transitions
 
-### `npm run eject`
+## 📱 Demo Accounts
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+Untuk testing aplikasi:
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+- **Admin**: `admin` / `admin123`
+- **Staff**: `staff` / `staff123`
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## 🗄️ Database Schema
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### Table: users
+```sql
+CREATE TABLE users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(50) UNIQUE NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  role ENUM('admin', 'staff') NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
 
-## Learn More
+### Table: barang
+```sql
+CREATE TABLE barang (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nama VARCHAR(255) NOT NULL,
+  type VARCHAR(255) NOT NULL,
+  mac_address VARCHAR(17),
+  serial_number VARCHAR(255) UNIQUE NOT NULL,
+  kondisi VARCHAR(50) NOT NULL,
+  status ENUM('READY', 'TERPAKAI', 'RUSAK') NOT NULL,
+  keterangan TEXT,
+  lokasi VARCHAR(255) NOT NULL,
+  qr_code TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### Table: riwayat_barang
+```sql
+CREATE TABLE riwayat_barang (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  barang_id INT NOT NULL,
+  status VARCHAR(50) NOT NULL,
+  lokasi VARCHAR(255) NOT NULL,
+  keterangan TEXT,
+  tanggal TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (barang_id) REFERENCES barang(id) ON DELETE CASCADE
+);
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## 🚀 Instalasi & Setup
 
-### Code Splitting
+### Frontend Setup
+```bash
+cd frontend
+pnpm install
+pnpm run dev
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+### Backend Setup
+```bash
+cd backend
+npm install
 
-### Analyzing the Bundle Size
+# Setup database
+cp .env.example .env
+# Edit .env dengan konfigurasi database Anda
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+# Jalankan server
+npm run dev
+```
 
-### Making a Progressive Web App
+### Database Setup
+1. Buat database MySQL: `warehouse_db`
+2. Konfigurasi koneksi di file `.env`
+3. Tables akan dibuat otomatis saat server pertama kali dijalankan
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## 📋 API Endpoints
 
-### Advanced Configuration
+### Authentication
+- `POST /api/auth/login` - Login user
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+### Barang Management
+- `GET /api/barang` - Get all items
+- `GET /api/barang/:id` - Get item detail + history
+- `POST /api/barang` - Add new item
+- `PUT /api/barang/:id/status` - Update item status
+- `DELETE /api/barang/:id` - Delete item (admin only)
 
-### Deployment
+### QR Code & Stats
+- `GET /api/qr/:id` - Get QR code
+- `GET /api/stats` - Dashboard statistics
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+## 🔧 Development
 
-### `npm run build` fails to minify
+### Frontend Development
+- Modify components di `src/components/`
+- Styling menggunakan TailwindCSS
+- State management dengan React hooks
+- Routing dengan React Router
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+### Backend Development
+- REST API dengan Express.js
+- MySQL dengan mysql2 driver
+- JWT authentication middleware
+- Automatic QR code generation
+
+## 📈 Future Enhancements
+
+- [ ] Barcode scanning integration
+- [ ] Export data to Excel/PDF
+- [ ] Email notifications
+- [ ] Advanced search & filtering
+- [ ] Mobile responsive improvements
+- [ ] Real-time notifications
+- [ ] Inventory alerts
+- [ ] Multi-warehouse support
+
+## 📄 License
+
+MIT License - Lihat file LICENSE untuk detail lengkap.
+
+## 🤝 Contributing
+
+1. Fork repository
+2. Create feature branch
+3. Commit changes
+4. Push to branch
+5. Create Pull Request
+
+---
+
+**Warehouse Management System** - Solusi modern untuk manajemen inventori gudang Anda! 🏭📦

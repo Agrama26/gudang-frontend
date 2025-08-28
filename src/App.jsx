@@ -60,7 +60,7 @@ function App() {
       <div className="App">
         {/* Logout button for authenticated users */}
         {user && (
-          <div className="fixed top-4 right-4 z-50">
+          <div className="absolute bottom-4 right-4 z-50">
             <div className="bg-white rounded-lg shadow-md p-2 flex items-center space-x-2">
               <span className="text-sm text-gray-600">
                 Welcome, {user.username} ({user.role})
