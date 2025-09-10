@@ -25,12 +25,12 @@ const Login = ({ onLogin }) => {
     try {
       const { authAPI } = await import('../utils/api');
       const response = await authAPI.login(formData.username, formData.password);
-      
+
       const userData = {
         ...response.user,
         token: response.token
       };
-      
+
       localStorage.setItem('user', JSON.stringify(userData));
       onLogin(userData);
       navigate('/dashboard');
@@ -42,94 +42,332 @@ const Login = ({ onLogin }) => {
     }
   };
 
+  const handleBackToHome = () => {
+    navigate('/landingpage');
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50 flex items-center justify-center relative overflow-hidden">
+    <div className="min-h-screen bg-black text-white relative overflow-hidden flex items-center justify-center">
       {/* Animated Background */}
-      <div className="geometric-bg">
-        <div className="geometric-shape shape-1"></div>
-        <div className="geometric-shape shape-2"></div>
-        <div className="geometric-shape shape-3"></div>
-        <div className="particle"></div>
-        <div className="particle"></div>
-        <div className="particle"></div>
-      </div>
-      <div className="floating-shapes"></div>
-      
-      <div className="bg-white/90 backdrop-blur-md p-8 rounded-xl shadow-lg w-full max-w-md animate-fade-in-up hover:shadow-xl transition-all duration-500 relative z-10">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent animate-fade-in-up">
-            WMS Login
-          </h1>
-          <p className="text-gray-600 mt-2 animate-fade-in-up delay-200">Warehouse Management System</p>
+      <div className="absolute inset-0 overflow-hidden">
+        {/* Neural Network Pattern */}
+        <div className="absolute inset-0 opacity-20">
+          <svg className="w-full h-full" viewBox="0 0 1000 1000">
+            <defs>
+              <linearGradient id="networkGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#00ffff" />
+                <stop offset="100%" stopColor="#0080ff" />
+              </linearGradient>
+            </defs>
+            {/* Network nodes and connections */}
+            <circle cx="100" cy="100" r="3" fill="url(#networkGradient)" className="animate-pulse" />
+            <circle cx="300" cy="200" r="3" fill="url(#networkGradient)" className="animate-pulse" style={{ animationDelay: '1s' }} />
+            <circle cx="500" cy="150" r="3" fill="url(#networkGradient)" className="animate-pulse" style={{ animationDelay: '2s' }} />
+            <circle cx="700" cy="300" r="3" fill="url(#networkGradient)" className="animate-pulse" style={{ animationDelay: '0.5s' }} />
+            <circle cx="200" cy="400" r="3" fill="url(#networkGradient)" className="animate-pulse" style={{ animationDelay: '1.5s' }} />
+            <circle cx="600" cy="500" r="3" fill="url(#networkGradient)" className="animate-pulse" style={{ animationDelay: '2.5s' }} />
+
+            <line x1="100" y1="100" x2="300" y2="200" stroke="url(#networkGradient)" strokeWidth="1" opacity="0.6" />
+            <line x1="300" y1="200" x2="500" y2="150" stroke="url(#networkGradient)" strokeWidth="1" opacity="0.6" />
+            <line x1="500" y1="150" x2="700" y2="300" stroke="url(#networkGradient)" strokeWidth="1" opacity="0.6" />
+            <line x1="200" y1="400" x2="600" y2="500" stroke="url(#networkGradient)" strokeWidth="1" opacity="0.6" />
+          </svg>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-              Username
-            </label>
-            <input
-              type="text"
-              id="username"
-              name="username"
-              required
-              value={formData.username}
-              onChange={handleChange}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Masukkan username"
-            />
-          </div>
+        {/* Floating Data Streams */}
+        {[...Array(8)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-px bg-gradient-to-b from-transparent via-cyan-400 to-transparent opacity-40"
+            style={{
+              left: `${(i * 12) + 10}%`,
+              height: '100vh',
+              animationDelay: `${i * 0.5}s`,
+              animation: `dataStream ${4 + (i % 3)}s linear infinite`
+            }}
+          ></div>
+        ))}
 
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              required
-              value={formData.password}
-              onChange={handleChange}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Masukkan password"
-            />
+        {/* Matrix Rain Effect */}
+        {[...Array(15)].map((_, i) => (
+          <div
+            key={`matrix-${i}`}
+            className="absolute text-cyan-400 text-xs font-mono opacity-30 select-none"
+            style={{
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 5}s`,
+              animation: `matrixRain ${8 + Math.random() * 4}s linear infinite`
+            }}
+          >
+            {Math.random().toString(36).substring(2, 8)}
           </div>
+        ))}
 
-          {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-              {error}
+        {/* Holographic Grid */}
+        <div
+          className="absolute inset-0 opacity-10"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(0, 255, 255, 0.3) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(0, 255, 255, 0.3) 1px, transparent 1px)
+            `,
+            backgroundSize: '40px 40px',
+            animation: 'gridFlow 15s linear infinite'
+          }}
+        ></div>
+
+        {/* Scanning Beams */}
+        <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-80 animate-scanHorizontal"></div>
+        <div className="absolute top-0 left-0 w-0.5 h-full bg-gradient-to-b from-transparent via-cyan-400 to-transparent opacity-80 animate-scanVertical"></div>
+      </div>
+
+      {/* Login Container */}
+      <div className="relative z-10 w-full max-w-md mx-4">
+        {/* Hologram Effect Container */}
+        <div className="relative">
+          {/* Outer Glow */}
+          <div className="absolute -inset-4 bg-gradient-to-r from-cyan-400/20 via-blue-500/20 to-cyan-400/20 rounded-2xl blur-xl animate-pulse"></div>
+
+          {/* Main Login Panel */}
+          <div className="relative bg-gray-900/80 backdrop-blur-xl border border-cyan-400/30 rounded-2xl shadow-2xl shadow-cyan-500/20 p-8 overflow-hidden">
+            {/* Internal Scanning Lines */}
+            <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-cyan-400 to-transparent animate-scanInternal"></div>
+
+            {/* Header Section */}
+            <div className="text-center mb-8 relative">
+              {/* Logo/Icon */}
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg mb-4 animate-float">
+                <div className="w-8 h-8 border-2 border-black rounded-sm animate-spin"></div>
+              </div>
+
+              <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent animate-shimmer">
+                SYSTEM ACCESS
+              </h1>
+              <p className="text-cyan-400/80 font-mono text-sm uppercase tracking-[0.2em]">
+                PT. Medianusa Permana
+              </p>
+
+              {/* Status Indicators */}
+              <div className="flex justify-center space-x-2 mt-4">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-ping"></div>
+                <div className="w-2 h-2 bg-cyan-400 rounded-full animate-ping" style={{ animationDelay: '0.5s' }}></div>
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-ping" style={{ animationDelay: '1s' }}></div>
+              </div>
             </div>
-          )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className={`w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-3 px-6 rounded-lg font-semibold transition-all ${
-              loading 
-                ? 'opacity-50 cursor-not-allowed' 
-                : 'hover:from-blue-700 hover:to-cyan-700 transform hover:scale-105'
-            }`}
-          >
-            {loading ? 'Logging in...' : 'Login'}
-          </button>
-        </form>
+            {/* Login Form */}
+            <div className="space-y-6">
+              {/* Username Input */}
+              <div className="group">
+                <label className="block text-cyan-400 text-sm font-mono uppercase tracking-wider mb-3">
+                  <span className="flex items-center">
+                    <div className="w-2 h-2 bg-cyan-400 rounded-full mr-2 animate-pulse"></div>
+                    User Identification
+                  </span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    name="username"
+                    required
+                    value={formData.username}
+                    onChange={handleChange}
+                    className="w-full bg-black/50 border border-gray-600 text-white p-4 rounded-sm font-mono focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 hover:border-gray-400"
+                    placeholder="Enter username..."
+                  />
+                  <div className="absolute inset-0 border border-cyan-400/20 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <div className="w-2 h-2 bg-cyan-400 rounded-full animate-ping opacity-50"></div>
+                  </div>
+                </div>
+              </div>
 
-        <div className="mt-6 p-4 bg-gray-100 rounded-lg">
-          <p className="text-sm text-gray-600 font-semibold">Demo Accounts:</p>
-          <p className="text-sm text-gray-600">Admin: admin / admin123</p>
-          <p className="text-sm text-gray-600">Staff: staff / staff123</p>
-        </div>
+              {/* Password Input */}
+              <div className="group">
+                <label className="block text-cyan-400 text-sm font-mono uppercase tracking-wider mb-3">
+                  <span className="flex items-center">
+                    <div className="w-2 h-2 bg-cyan-400 rounded-full mr-2 animate-pulse"></div>
+                    Security Key
+                  </span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="password"
+                    name="password"
+                    required
+                    value={formData.password}
+                    onChange={handleChange}
+                    className="w-full bg-black/50 border border-gray-600 text-white p-4 rounded-sm font-mono focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 hover:border-gray-400"
+                    placeholder="Enter security key..."
+                  />
+                  <div className="absolute inset-0 border border-cyan-400/20 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <div className="w-2 h-2 bg-cyan-400 rounded-full animate-ping opacity-50"></div>
+                  </div>
+                </div>
+              </div>
 
-        <div className="mt-6 text-center">
-          <button
-            onClick={() => navigate('/')}
-            className="text-blue-600 hover:text-blue-800 text-sm"
-          >
-            Back to Home
-          </button>
+              {/* Error Display */}
+              {error && (
+                <div className="bg-red-900/50 border border-red-500/50 text-red-400 px-4 py-3 rounded-sm font-mono text-sm animate-shake">
+                  <span className="flex items-center">
+                    <div className="w-2 h-2 bg-red-400 rounded-full mr-2 animate-ping"></div>
+                    ACCESS DENIED: {error}
+                  </span>
+                </div>
+              )}
+
+              {/* Login Button */}
+              <button
+                onClick={handleSubmit}
+                disabled={loading}
+                className={`w-full group relative overflow-hidden bg-gradient-to-r from-cyan-500 to-blue-500 text-black py-4 px-6 rounded-sm font-mono uppercase tracking-wider font-bold transition-all duration-300 ${loading
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'hover:from-cyan-400 hover:to-blue-400 hover:shadow-2xl hover:shadow-cyan-500/30 transform hover:scale-[1.02]'
+                  }`}
+              >
+                <span className="absolute inset-0 bg-white/20 transform translate-x-full group-hover:translate-x-0 transition-transform duration-500"></span>
+                <span className="relative z-10 flex items-center justify-center">
+                  {loading ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin mr-3"></div>
+                      Authenticating...
+                    </>
+                  ) : (
+                    <>
+                      <span className="mr-2">►</span>
+                      Initialize Access
+                    </>
+                  )}
+                </span>
+              </button>
+            </div>
+
+            {/* Demo Accounts Section */}
+            <div className="mt-8 p-4 bg-black/30 border border-gray-600/50 rounded-sm">
+              <p className="text-cyan-400 font-mono text-xs uppercase tracking-wider mb-3">
+                Demo Access Credentials:
+              </p>
+              <div className="space-y-1 text-gray-300 font-mono text-xs">
+                <p className="flex justify-between">
+                  <span>ADMIN:</span>
+                  <span className="text-cyan-400">admin / admin123</span>
+                </p>
+                <p className="flex justify-between">
+                  <span>STAFF:</span>
+                  <span className="text-cyan-400">staff / staff123</span>
+                </p>
+              </div>
+            </div>
+
+            {/* Back to Home */}
+            <div className="mt-6 text-center">
+              <button
+                onClick={handleBackToHome}
+                className="text-cyan-400/80 hover:text-cyan-400 font-mono text-sm uppercase tracking-wider transition-colors duration-300"
+              >
+                ← Return to Main System
+              </button>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* CSS Animations */}
+      <style jsx>{`
+        @keyframes dataStream {
+          0% { transform: translateY(-100vh); }
+          100% { transform: translateY(100vh); }
+        }
+        
+        @keyframes matrixRain {
+          0% { transform: translateY(-100vh); opacity: 0; }
+          10% { opacity: 1; }
+          90% { opacity: 1; }
+          100% { transform: translateY(100vh); opacity: 0; }
+        }
+        
+        @keyframes gridFlow {
+          0% { transform: translate(0, 0); }
+          100% { transform: translate(40px, 40px); }
+        }
+        
+        @keyframes scanHorizontal {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100vw); }
+        }
+        
+        @keyframes scanVertical {
+          0% { transform: translateY(-100%); }
+          100% { transform: translateY(100vh); }
+        }
+        
+        @keyframes scanInternal {
+          0% { transform: translateX(-100%); opacity: 0; }
+          50% { opacity: 1; }
+          100% { transform: translateX(100%); opacity: 0; }
+        }
+        
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-10px) rotate(5deg); }
+        }
+        
+        @keyframes shimmer {
+          0% { background-position: -200% center; }
+          100% { background-position: 200% center; }
+        }
+        
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-5px); }
+          75% { transform: translateX(5px); }
+        }
+        
+        .animate-scanHorizontal {
+          animation: scanHorizontal 4s ease-in-out infinite;
+        }
+        
+        .animate-scanVertical {
+          animation: scanVertical 6s ease-in-out infinite;
+          animation-delay: 2s;
+        }
+        
+        .animate-scanInternal {
+          animation: scanInternal 3s ease-in-out infinite;
+        }
+        
+        .animate-float {
+          animation: float 3s ease-in-out infinite;
+        }
+        
+        .animate-shimmer {
+          background-size: 200% auto;
+          animation: shimmer 3s linear infinite;
+        }
+        
+        .animate-shake {
+          animation: shake 0.5s ease-in-out;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+          width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+          background: rgba(0, 0, 0, 0.3);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+          background: rgba(0, 255, 255, 0.5);
+          border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+          background: rgba(0, 255, 255, 0.8);
+        }
+      `}</style>
     </div>
   );
 };
