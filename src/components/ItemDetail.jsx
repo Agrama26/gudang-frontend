@@ -11,52 +11,71 @@ const ItemDetail = () => {
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [newStatus, setNewStatus] = useState('');
   const [newLokasi, setNewLokasi] = useState('');
+  const [newKondisi, setNewKondisi] = useState('');
+  const [newKeterangan, setNewKeterangan] = useState('');
 
   // Fetch data from API
-  useEffect(() => {
-    const fetchItemDetails = async () => {
-      try {
-        const { barangAPI } = await import('../utils/api');
-        const data = await barangAPI.getById(id);
-        setItem(data.barang);
-        setHistory(data.riwayat);
-        setNewStatus(data.barang.status);
-        setNewLokasi(data.barang.lokasi);
-      } catch (error) {
-        console.error('Error fetching item details:', error);
-        setItem(null);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchItemDetails = async () => {
+    setLoading(true); // Mulai loading lagi
+    try {
+      const { barangAPI } = await import('../utils/api');
+      const data = await barangAPI.getById(id);
+      setItem(data.barang);
+      setHistory(data.riwayat);
+      // Update input fields with the latest data
+      setNewStatus(data.barang.status);
+      setNewLokasi(data.barang.lokasi);
+      setNewKondisi(data.barang.kondisi);
+      setNewKeterangan(data.barang.keterangan);
+    } catch (error) {
+      console.error('Error fetching item details:', error);
+      setItem(null);
+    } finally {
+      setLoading(false); // Selesai loading
+    }
+  };
 
+  useEffect(() => {
     fetchItemDetails();
-  }, [id]);
+  }, [id] );
 
   const handleStatusUpdate = async () => {
-    if (newStatus !== item.status || newLokasi !== item.lokasi) {
+    // Periksa apakah ada perubahan pada salah satu field
+    if (
+      newStatus !== item.status ||
+      newLokasi !== item.lokasi ||
+      newKondisi !== item.kondisi ||
+      newKeterangan !== item.keterangan
+    ) {
       try {
         const { barangAPI } = await import('../utils/api');
-        
-        let keterangan = '';
-        if (newStatus !== item.status && newLokasi !== item.lokasi) {
-          keterangan = `Status diubah dari ${item.status} ke ${newStatus}, lokasi dipindah dari ${item.lokasi} ke ${newLokasi}`;
-        } else if (newStatus !== item.status) {
-          keterangan = `Status diubah dari ${item.status} ke ${newStatus}`;
-        } else if (newLokasi !== item.lokasi) {
-          keterangan = `Lokasi dipindah dari ${item.lokasi} ke ${newLokasi}`;
+
+        // Buat pesan log secara dinamis
+        const changes = [];
+        if (newStatus !== item.status) {
+          changes.push(`Status diubah dari ${item.status} ke ${newStatus}`);
         }
+        if (newLokasi !== item.lokasi) {
+          changes.push(`Lokasi dipindah dari ${item.lokasi} ke ${newLokasi}`);
+        }
+        if (newKondisi !== item.kondisi) {
+          changes.push(`Kondisi diubah dari ${item.kondisi} ke ${newKondisi}`);
+        }
+        if (newKeterangan !== item.keterangan) {
+          changes.push(`Keterangan diubah dari ${item.keterangan} ke ${newKeterangan}`);
+        }
+        const Info = changes.join(', ');
 
         await barangAPI.updateStatus(id, {
           status: newStatus,
           lokasi: newLokasi,
-          keterangan
+          kondisi: newKondisi,
+          keterangan: newKeterangan,
+          info: Info
         });
 
-        // Refresh data
-        const data = await barangAPI.getById(id);
-        setItem(data.barang);
-        setHistory(data.riwayat);
+        // Panggil ulang fungsi fetch untuk memuat data terbaru dan memperbarui semua state
+        await fetchItemDetails();
         alert('Status dan lokasi berhasil diupdate!');
       } catch (error) {
         console.error('Error updating status:', error);
@@ -64,55 +83,6 @@ const ItemDetail = () => {
       }
     }
   };
-
-//   const getStatusColor = (status) => {
-//     switch (status) {
-//       case 'READY':
-//         return 'bg-green-100 text-green-800';
-//       case 'TERPAKAI':
-//         return 'bg-blue-100 text-blue-800';
-//       case 'RUSAK':
-//         return 'bg-red-100 text-red-800';
-//       default:
-//         return 'bg-gray-100 text-gray-800';
-//     }
-//   };
-
-  // const handleStatusUpdate = async () => {
-  //   if (newStatus !== item.status || newLokasi !== item.lokasi) {
-  //     try {
-  //       // Simulate API call
-  //       await new Promise(resolve => setTimeout(resolve, 1000));
-        
-  //       let keterangan = '';
-  //       if (newStatus !== item.status && newLokasi !== item.lokasi) {
-  //         keterangan = `Status diubah dari ${item.status} ke ${newStatus}, lokasi dipindah dari ${item.lokasi} ke ${newLokasi}`;
-  //       } else if (newStatus !== item.status) {
-  //         keterangan = `Status diubah dari ${item.status} ke ${newStatus}`;
-  //       } else if (newLokasi !== item.lokasi) {
-  //         keterangan = `Lokasi dipindah dari ${item.lokasi} ke ${newLokasi}`;
-  //       }
-
-  //       // Update item
-  //       setItem({...item, status: newStatus, lokasi: newLokasi});
-        
-  //       // Add to history
-  //       const newHistoryEntry = {
-  //         id: history.length + 1,
-  //         status: newStatus,
-  //         lokasi: newLokasi,
-  //         keterangan,
-  //         tanggal: new Date().toLocaleString()
-  //       };
-  //       setHistory([newHistoryEntry, ...history]);
-        
-  //       alert('Status dan lokasi berhasil diupdate!');
-  //     } catch (error) {
-  //       console.error('Error updating status:', error);
-  //       alert('Gagal mengupdate status. Silakan coba lagi.');
-  //     }
-  //   }
-  // };
 
   const handleBack = () => {
     navigate('/dashboard');
@@ -133,14 +103,14 @@ const ItemDetail = () => {
 
   // Mock QR Code component
   const MockQRCode = ({ value, size }) => (
-    <div 
+    <div
       className="bg-white flex items-center justify-center font-mono text-xs text-center p-2 rounded"
       style={{ width: size, height: size }}
     >
       <div className="grid grid-cols-8 gap-px">
         {[...Array(64)].map((_, i) => (
-          <div 
-            key={i} 
+          <div
+            key={i}
             className={`w-2 h-2 ${Math.random() > 0.5 ? 'bg-black' : 'bg-white'}`}
           />
         ))}
@@ -154,7 +124,7 @@ const ItemDetail = () => {
         {/* Loading Background */}
         <div className="absolute inset-0">
           {/* Scanning Grid */}
-          <div 
+          <div
             className="absolute inset-0 opacity-20"
             style={{
               backgroundImage: `
@@ -165,7 +135,7 @@ const ItemDetail = () => {
               animation: 'gridScan 3s linear infinite'
             }}
           />
-          
+
           {/* Loading Particles */}
           {[...Array(8)].map((_, i) => (
             <div
@@ -188,7 +158,7 @@ const ItemDetail = () => {
           <p className="text-cyan-400 font-mono uppercase tracking-wider">Scanning Item Data...</p>
           <div className="mt-4 flex justify-center space-x-1">
             {[...Array(3)].map((_, i) => (
-              <div 
+              <div
                 key={i}
                 className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce"
                 style={{ animationDelay: `${i * 0.2}s` }}
@@ -233,10 +203,10 @@ const ItemDetail = () => {
           <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
             <defs>
               <pattern id="hexPattern" x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
-                <polygon points="5,1 8.66,3 8.66,7 5,9 1.34,7 1.34,3" fill="none" stroke="#00ffff" strokeWidth="0.2"/>
+                <polygon points="5,1 8.66,3 8.66,7 5,9 1.34,7 1.34,3" fill="none" stroke="#00ffff" strokeWidth="0.2" />
               </pattern>
             </defs>
-            <rect width="100" height="100" fill="url(#hexPattern)" className="animate-pulse"/>
+            <rect width="100" height="100" fill="url(#hexPattern)" className="animate-pulse" />
           </svg>
         </div>
 
@@ -298,31 +268,31 @@ const ItemDetail = () => {
               <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-cyan-400 to-transparent animate-scanInternal"></div>
 
               <div className="grid md:grid-cols-2 gap-6">
-                {[
-                  { label: 'Device Name', value: item.nama },
-                  { label: 'Type/Model', value: item.type },
-                  { label: 'MAC Address', value: item.mac_address, mono: true },
-                  { label: 'Serial Number', value: item.serial_number, mono: true },
-                  { label: 'Condition', value: item.kondisi },
-                  { label: 'Current Location', value: item.lokasi },
-                  { label: 'Notes', value: item.keterangan, span: true }
-                ].map((field, index) => (
-                  <div key={index} className={`group ${field.span ? 'md:col-span-2' : ''}`}>
-                    <label className="block text-sm font-mono uppercase tracking-wider text-cyan-400/80 mb-2">
-                      <span className="flex items-center">
-                        <div className="w-2 h-2 bg-cyan-400 rounded-full mr-2 animate-pulse"></div>
-                        {field.label}
-                      </span>
-                    </label>
-                    <div className="relative">
-                      <p className={`p-3 bg-black/50 border border-gray-600 rounded-sm text-white transition-all duration-300 group-hover:border-cyan-400/50 ${field.mono ? 'font-mono' : ''}`}>
-                        {field.value || 'N/A'}
-                      </p>
-                      <div className="absolute inset-0 border border-cyan-400/20 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                {[{ label: 'Device Name', value: item.nama },
+                { label: 'Type/Model', value: item.type },
+                { label: 'MAC Address', value: item.mac_address, mono: true },
+                { label: 'Serial Number', value: item.serial_number, mono: true },
+                { label: 'Condition', value: item.kondisi, mono: true },
+                { label: 'Kota', value: item.kota, mono: true },
+                { label: 'Current Location', value: item.lokasi },
+                { label: 'Notes', value: item.keterangan, span: true }]
+                  .map((field, index) => (
+                    <div key={index} className={`group ${field.span ? 'md:col-span-2' : ''}`}>
+                      <label className="block text-sm font-mono uppercase tracking-wider text-cyan-400/80 mb-2">
+                        <span className="flex items-center">
+                          <div className="w-2 h-2 bg-cyan-400 rounded-full mr-2 animate-pulse"></div>
+                          {field.label}
+                        </span>
+                      </label>
+                      <div className="relative">
+                        <p className={`p-3 bg-black/50 border border-gray-600 rounded-sm text-white transition-all duration-300 group-hover:border-cyan-400/50 ${field.mono ? 'font-mono' : ''}`}>
+                          {field.value || 'N/A'}
+                        </p>
+                        <div className="absolute inset-0 border border-cyan-400/20 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                      </div>
                     </div>
-                  </div>
-                ))}
-                
+                  ))}
+
                 {/* Status with special styling */}
                 <div className="group">
                   <label className="block text-sm font-mono uppercase tracking-wider text-cyan-400/80 mb-2">
@@ -391,24 +361,67 @@ const ItemDetail = () => {
                       <div className="absolute inset-0 border border-cyan-400/20 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                     </div>
                   </div>
+
+                  <div className="group">
+                    <label className="block text-sm font-mono uppercase tracking-wider text-cyan-400 mb-3">
+                      <span className="flex items-center">
+                        <div className="w-2 h-2 bg-cyan-400 rounded-full mr-2 animate-pulse"></div>
+                        Kondisi
+                      </span>
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={newKondisi}
+                        onChange={(e) => setNewKondisi(e.target.value)}
+                        className="w-full p-4 bg-black/50 border border-gray-600 rounded-sm text-white font-mono focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 hover:border-gray-400"
+                      >
+                        <option value="Baik" className="bg-gray-900">Baik</option>
+                        <option value="Rusak Ringan" className="bg-gray-900">Rusak Ringan</option>
+                        <option value="Rusak Berat" className="bg-gray-900">Rusak Berat</option>
+                      </select>
+                      <div className="absolute inset-0 border border-cyan-400/20 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                    </div>
+                  </div>
+
+                  <div className="group">
+                    <label className="block text-sm font-mono uppercase tracking-wider text-cyan-400 mb-3">
+                      <span className="flex items-center">
+                        <div className="w-2 h-2 bg-cyan-400 rounded-full mr-2 animate-pulse"></div>
+                        Notes
+                      </span>
+                    </label>
+                    <div className="relative">
+                      <textarea
+                        id="Notes"
+                        name="Notes"
+                        rows="1"
+                        value={newKeterangan}
+                        onChange={(e) => setNewKeterangan(e.target.value)}
+                        className="w-full p-4 bg-black/50 border border-gray-600 rounded-sm text-white font-mono focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 hover:border-gray-400"
+
+                        // className="w-full p-4 bg-black/50 border border-gray-600 rounded-sm focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 text-white font-mono transition-all duration-300 hover:border-gray-400 resize-none"
+                        placeholder="Enter additional notes (optional)..."
+                      ></textarea>
+                      <div className="absolute inset-0 border border-cyan-400/20 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                    </div>
+                  </div>
                 </div>
 
                 <button
                   onClick={handleStatusUpdate}
-                  disabled={newStatus === item.status && newLokasi === item.lokasi}
-                  className={`w-full group relative overflow-hidden py-4 px-6 rounded-sm font-mono uppercase tracking-wider font-bold transition-all duration-300 ${
-                    newStatus !== item.status || newLokasi !== item.lokasi
-                      ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-black hover:from-cyan-400 hover:to-blue-400 hover:shadow-2xl hover:shadow-cyan-500/30'
-                      : 'bg-gray-700 text-gray-400 cursor-not-allowed'
-                  }`}
+                  disabled={newStatus === item.status && newLokasi === item.lokasi && newKondisi === item.kondisi && newKeterangan === item.keterangan}
+                  className={`w-full group relative overflow-hidden py-4 px-6 rounded-sm font-mono uppercase tracking-wider font-bold transition-all duration-300 ${newStatus !== item.status || newLokasi !== item.lokasi || newKondisi !== item.kondisi || newKeterangan !== item.keterangan
+                    ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-black hover:from-cyan-400 hover:to-blue-400 hover:shadow-2xl hover:shadow-cyan-500/30'
+                    : 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                    }`}
                 >
                   <span className="absolute inset-0 bg-white/20 transform translate-x-full group-hover:translate-x-0 transition-transform duration-500"></span>
                   <span className="relative z-10">
-                    {newStatus !== item.status || newLokasi !== item.lokasi ? '► Execute Update' : '✓ No Changes Detected'}
+                    {newStatus !== item.status || newLokasi !== item.lokasi || newKondisi !== item.kondisi || newKeterangan !== item.keterangan ? '► Execute Update' : '✓ No Changes Detected'}
                   </span>
                 </button>
 
-                {(newStatus !== item.status || newLokasi !== item.lokasi) && (
+                {(newStatus !== item.status || newLokasi !== item.lokasi || newKondisi !== item.kondisi || newKeterangan !== item.keterangan) && (
                   <div className="p-4 bg-blue-900/30 border border-blue-400/30 rounded-sm">
                     <p className="text-blue-400 font-mono text-sm uppercase tracking-wider mb-2">
                       <span className="flex items-center">
@@ -426,6 +439,16 @@ const ItemDetail = () => {
                         • Location: {item.lokasi} → {newLokasi}
                       </p>
                     )}
+                    {newKondisi !== item.kondisi && (
+                      <p className="text-blue-300 font-mono text-sm">
+                        • Kondisi: {item.kondisi} → {newKondisi}
+                      </p>
+                    )}
+                    {newKeterangan !== item.keterangan && (
+                      <p className="text-blue-300 font-mono text-sm">
+                        • Notes: {item.keterangan || 'N/A'} → {newKeterangan || 'N/A'}
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
@@ -440,7 +463,7 @@ const ItemDetail = () => {
                   <span className="text-cyan-400 text-xs font-mono">TRACKING</span>
                 </div>
               </div>
-              
+
               <div className="space-y-4">
                 {history.map((entry, index) => (
                   <div key={entry.id} className="relative group">
@@ -483,13 +506,13 @@ const ItemDetail = () => {
                   <span className="text-green-400 text-xs font-mono">ENCODED</span>
                 </div>
               </div>
-              
+
               <div className="text-center">
                 <div className="bg-white p-6 rounded-sm inline-block relative">
                   <div className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-black"></div>
                   <div className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-black"></div>
                   <div className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-black"></div>
-                  
+
                   <MockQRCode
                     value={JSON.stringify({
                       id: item.id,
@@ -516,33 +539,32 @@ const ItemDetail = () => {
                   </span>
                 </div>
               </div>
-              
+
               <button
                 onClick={() => setShowQRScanner(!showQRScanner)}
-                className={`w-full group relative overflow-hidden py-4 px-6 rounded-sm font-mono uppercase tracking-wider font-bold transition-all duration-300 ${
-                  showQRScanner 
-                    ? 'bg-gradient-to-r from-red-500 to-orange-500 text-white hover:from-red-400 hover:to-orange-400'
-                    : 'bg-gradient-to-r from-cyan-500 to-blue-500 text-black hover:from-cyan-400 hover:to-blue-400'
-                } hover:shadow-2xl`}
+                className={`w-full group relative overflow-hidden py-4 px-6 rounded-sm font-mono uppercase tracking-wider font-bold transition-all duration-300 ${showQRScanner
+                  ? 'bg-gradient-to-r from-red-500 to-orange-500 text-white hover:from-red-400 hover:to-orange-400'
+                  : 'bg-gradient-to-r from-cyan-500 to-blue-500 text-black hover:from-cyan-400 hover:to-blue-400'
+                  } hover:shadow-2xl`}
               >
                 <span className="absolute inset-0 bg-white/20 transform translate-x-full group-hover:translate-x-0 transition-transform duration-500"></span>
                 <span className="relative z-10">
                   {showQRScanner ? '■ Deactivate Scanner' : '► Activate Scanner'}
                 </span>
               </button>
-              
+
               {showQRScanner && (
                 <div className="mt-6 p-6 bg-black/50 border border-red-400/30 rounded-sm text-center relative">
                   <div className="absolute top-4 left-4 w-8 h-8 border-t-2 border-l-2 border-red-400 animate-pulse"></div>
                   <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-red-400 animate-pulse"></div>
                   <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-red-400 animate-pulse"></div>
                   <div className="absolute bottom-4 right-4 w-8 h-8 border-b-2 border-r-2 border-red-400 animate-pulse"></div>
-                  
+
                   <div className="w-32 h-32 border-2 border-red-400/50 rounded-sm mx-auto mb-4 relative">
                     <div className="absolute inset-0 border border-red-400 animate-pulse"></div>
                     <div className="absolute top-1/2 left-0 w-full h-0.5 bg-red-400 animate-scanBeam"></div>
                   </div>
-                  
+
                   <p className="text-red-400 font-mono text-sm uppercase tracking-wider">
                     Camera Module Required
                   </p>

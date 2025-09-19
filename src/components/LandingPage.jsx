@@ -587,26 +587,6 @@ const LandingPage = () => {
             </div>
           </div>
         </div>
-
-        {/* CTA Section */}
-        {/* <div className="mt-32 text-center">
-          <div className="bg-gradient-to-r from-teal-50 to-teal-200/30 backdrop-blur-md border border-teal-400/30 rounded-2xl p-12 shadow-2xl">
-            <h3 className="text-3xl font-bold text-black mb-4">
-              Siap untuk Memulai?
-            </h3>
-            <p className="text-black/80 text-lg mb-8 max-w-2xl mx-auto">
-              Bergabunglah dengan ribuan perusahaan yang telah mempercayakan
-              manajemen inventori mereka kepada sistem kami
-            </p>
-            <button
-              onClick={() => navigate('/login')}
-              className="group bg-gradient-to-r from-blue-900 to-teal-500 text-white px-12 py-4 rounded-xl text-xl font-bold shadow-2xl hover:shadow-blue-900/50 transition-all duration-300 hover:from-blue-700 hover:to-teal-400 transform hover:scale-105 relative overflow-hidden"
-            >
-              <span className="absolute inset-0 bg-white/20 transform skew-x-12 translate-x-full group-hover:translate-x-0 transition-transform duration-500"></span>
-              <span className="relative z-10">Mulai Gratis</span>
-            </button>
-          </div>
-        </div> */}
       </div>
 
       {/* Footer */}
