@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { DarkModeProvider } from './contexts/DarkModeContext';
 import LandingPage from './components/LandingPage';
 import Dashboard from './components/Dashboard';
 import ItemDetail from './components/ItemDetail';
@@ -25,6 +26,7 @@ function App() {
 
   const handleLogout = () => {
     localStorage.removeItem('user');
+    localStorage.removeItem('token');
     setUser(null);
   };
 
@@ -32,10 +34,10 @@ function App() {
   const ProtectedRoute = ({ children }) => {
     if (loading) {
       return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 dark:border-teal-400 mx-auto"></div>
+            <p className="mt-4 text-gray-600 dark:text-gray-300">Loading...</p>
           </div>
         </div>
       );
@@ -46,76 +48,62 @@ function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading application...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 dark:border-teal-400 mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading application...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <Router>
-      <div className="App">
-        {/* Logout button for authenticated users */}
-        {user && (
-          <div className="fixed top-4 right-4 z-50">
-            <div className="bg-white rounded-lg shadow-md p-2 flex items-center space-x-2">
-              <span className="text-sm text-gray-600">
-                Welcome, {user.username} ({user.role})
-              </span>
-              <button
-                onClick={handleLogout}
-                className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition-colors"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        )}
+    <DarkModeProvider>
+      <Router>
+        <div className="App min-h-screen bg-gradient-to-br from-teal-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 transition-colors duration-300">
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/landingpage" element={<LandingPage />} />
+            <Route 
+              path="/login" 
+              element={
+                user ? <Navigate to="/dashboard" /> : <Login onLogin={handleLogin} />
+              } 
+            />
 
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<LandingPage />} />
-          <Route 
-            path="/login" 
-            element={
-              user ? <Navigate to="/dashboard" /> : <Login onLogin={handleLogin} />
-            } 
-          />
+            {/* Protected Routes */}
+            <Route 
+              path="/dashboard" 
+              element={
+                <ProtectedRoute>
+                  <Dashboard user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/item/:id" 
+              element={
+                <ProtectedRoute>
+                  <ItemDetail />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/add-item" 
+              element={
+                <ProtectedRoute>
+                  <AddItem />
+                </ProtectedRoute>
+              } 
+            />
 
-          {/* Protected Routes */}
-          <Route 
-            path="/dashboard" 
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/item/:id" 
-            element={
-              <ProtectedRoute>
-                <ItemDetail />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/add-item" 
-            element={
-              <ProtectedRoute>
-                <AddItem />
-              </ProtectedRoute>
-            } 
-          />
-
-          {/* Catch all route */}
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-      </div>
-    </Router>
+            {/* Catch all route */}
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </div>
+      </Router>
+    </DarkModeProvider>
   );
 }
 

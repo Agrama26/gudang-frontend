@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { barangAPI } from '../utils/api'; // Sesuaikan path
-// import { newKondisi } from './ItemDetail';
+import { barangAPI } from '../utils/api';
 import logo from '../assets/logo.png';
+import { useDarkMode } from '../contexts/DarkModeContext';
+import DarkModeToggle from './DarkModeToggle';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -34,21 +35,20 @@ ChartJS.register(
 
 const Dashboard = ({ user, onLogout }) => {
   const navigate = useNavigate();
-  const [items, setItems] = useState([]); // Data barang
-  const [filteredItems, setFilteredItems] = useState([]); // Barang yang sudah difilter
-  const [loading, setLoading] = useState(true); // Status loading
-  const [error, setError] = useState(null); // Status error
+  const { isDarkMode } = useDarkMode();
+  const [items, setItems] = useState([]);
+  const [filteredItems, setFilteredItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const [searchQuery, setSearchQuery] = useState(''); // Query pencarian
-  const [statusFilter, setStatusFilter] = useState(''); // Filter status
-  const [kotaFilter, setKotaFilter] = useState(''); // Filter kota
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [kotaFilter, setKotaFilter] = useState('');
 
   // Animation states
   const [isVisible, setIsVisible] = useState({});
   const [chartAnimated, setChartAnimated] = useState(false);
   const observerRef = useRef();
-
-  // const [newKondisi, setNewKondisi] = useState('');
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
@@ -63,25 +63,21 @@ const Dashboard = ({ user, onLogout }) => {
   };
 
   // Intersection Observer for scroll animations
-  // Intersection Observer for scroll animations (IN and OUT)
   useEffect(() => {
     observerRef.current = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           const id = entry.target.getAttribute('data-animate');
           if (entry.isIntersecting) {
-            // Elemen masuk ke layar, jalankan animasi 'IN'
             setIsVisible(prev => ({ ...prev, [id]: true }));
           } else {
-            // Elemen keluar dari layar, jalankan animasi 'OUT'
             setIsVisible(prev => ({ ...prev, [id]: false }));
           }
         });
       },
-      { threshold: 0.1 } // threshold 0.1 berarti callback akan jalan saat 10% elemen terlihat/hilang
+      { threshold: 0.1 }
     );
 
-    // Observe all elements with data-animate attribute
     const elements = document.querySelectorAll('[data-animate]');
     elements.forEach(el => observerRef.current.observe(el));
 
@@ -90,30 +86,29 @@ const Dashboard = ({ user, onLogout }) => {
         observerRef.current.disconnect();
       }
     };
-  }, [filteredItems]); // Dependensi [filteredItems] dipertahankan jika jumlah item bisa mengubah layout secara drastis
+  }, [filteredItems]);
 
   // Fetch data barang
   useEffect(() => {
     const fetchItems = async () => {
       try {
-        const data = await barangAPI.getAll(); // Memanggil API untuk mendapatkan barang
-        setItems(data); // Menyimpan data barang ke state
+        const data = await barangAPI.getAll();
+        setItems(data);
       } catch (err) {
-        setError('Gagal memuat data barang'); // Menangani error jika API gagal
+        setError('Gagal memuat data barang');
         console.error(err);
       } finally {
-        setLoading(false); // Menghentikan loading
+        setLoading(false);
       }
     };
 
     fetchItems();
-  }, []); // Efek dijalankan hanya sekali saat pertama kali komponen dimuat
+  }, []);
 
   // Filter berdasarkan pencarian, status, dan kota
   useEffect(() => {
     let result = items;
 
-    // Filter berdasarkan nama, serial number, dan lokasi
     if (searchQuery) {
       result = result.filter((item) =>
         item.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -122,18 +117,16 @@ const Dashboard = ({ user, onLogout }) => {
       );
     }
 
-    // Filter berdasarkan status
     if (statusFilter) {
       result = result.filter((item) => item.status === statusFilter);
     }
 
-    // Filter berdasarkan kota
     if (kotaFilter) {
       result = result.filter((item) => item.kota === kotaFilter);
     }
 
-    setFilteredItems(result); // Set filtered items
-    setChartAnimated(true); // Reset chart animation when data changes
+    setFilteredItems(result);
+    setChartAnimated(true);
   }, [chartAnimated, searchQuery, statusFilter, kotaFilter, items]);
 
   const getStatusColor = (status) => {
@@ -149,7 +142,7 @@ const Dashboard = ({ user, onLogout }) => {
     }
   };
 
-   // Data untuk PolarArea Chart
+  // Data untuk PolarArea Chart
   const statusCounts = useMemo(() => {
     return {
       READY: filteredItems.filter(item => item.status === 'READY').length,
@@ -183,9 +176,9 @@ const Dashboard = ({ user, onLogout }) => {
       {
         data: [statusCounts.READY, statusCounts.TERPAKAI, statusCounts.RUSAK],
         backgroundColor: [
-          '#22C55E', // Green for READY
-          '#3B82F6', // Blue for TERPAKAI
-          '#EF4444', // Red for RUSAK
+          '#22C55E',
+          '#3B82F6',
+          '#EF4444',
         ],
         borderColor: [
           '#16A34A',
@@ -212,10 +205,11 @@ const Dashboard = ({ user, onLogout }) => {
             size: 12,
             weight: 'bold',
           },
+          color: isDarkMode ? '#e5e7eb' : '#374151',
         },
       },
       tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.9)' : 'rgba(0, 0, 0, 0.8)',
         titleColor: 'white',
         bodyColor: 'white',
         borderColor: '#22C55E',
@@ -225,10 +219,7 @@ const Dashboard = ({ user, onLogout }) => {
             const label = context.label || '';
             const value = context.parsed;
             const total = context.dataset.data.reduce((sum, current) => sum + current, 0);
-
-            // Hindari pembagian dengan nol
             const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
-
             return `${label}: ${value} (${percentage}%)`;
           }
         }
@@ -244,12 +235,13 @@ const Dashboard = ({ user, onLogout }) => {
 
   // Radar Chart Data
   const radarChartData = {
-    labels: ['Medan', 'Pekan Baru', 'Jakarta', 'Tarutung'],
+    labels: ['Medan', 'Batam', 'Pekan Baru', 'Jakarta', 'Tarutung'],
     datasets: [
       {
         label: 'Items by City',
         data: [
           kotaCounts['Medan'] || 0,
+          kotaCounts['Batam'] || 0,
           kotaCounts['Pekan Baru'] || 0,
           kotaCounts['Jakarta'] || 0,
           kotaCounts['Tarutung'] || 0,
@@ -269,6 +261,7 @@ const Dashboard = ({ user, onLogout }) => {
         label: 'Ready Items',
         data: [
           filteredItems.filter(item => item.kota === 'Medan' && item.status === 'READY').length,
+          filteredItems.filter(item => item.kota === 'Batam' && item.status === 'READY').length,
           filteredItems.filter(item => item.kota === 'Pekan Baru' && item.status === 'READY').length,
           filteredItems.filter(item => item.kota === 'Jakarta' && item.status === 'READY').length,
           filteredItems.filter(item => item.kota === 'Tarutung' && item.status === 'READY').length,
@@ -289,7 +282,7 @@ const Dashboard = ({ user, onLogout }) => {
         data: [
           kondisiCounts['Baru'] || 0,
           kondisiCounts['Baik'] || 0,
-          kondisiCounts['Rusak'] || 0,
+          kondisiCounts['Rusak Ringan'] || 0,
           kondisiCounts['Rusak Berat'] || 0,
         ],
         fill: true,
@@ -319,10 +312,11 @@ const Dashboard = ({ user, onLogout }) => {
             size: 12,
             weight: 'bold',
           },
+          color: isDarkMode ? '#e5e7eb' : '#374151',
         },
       },
       tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.9)' : 'rgba(0, 0, 0, 0.8)',
         titleColor: 'white',
         bodyColor: 'white',
         borderColor: '#22C55E',
@@ -333,23 +327,24 @@ const Dashboard = ({ user, onLogout }) => {
       r: {
         beginAtZero: true,
         grid: {
-          color: 'rgba(0, 0, 0, 0.1)',
+          color: isDarkMode ? 'rgba(75, 85, 99, 0.3)' : 'rgba(0, 0, 0, 0.1)',
         },
         angleLines: {
-          color: 'rgba(0, 0, 0, 0.1)',
+          color: isDarkMode ? 'rgba(75, 85, 99, 0.3)' : 'rgba(0, 0, 0, 0.1)',
         },
         ticks: {
           font: {
             size: 12,
           },
-          backdropColor: 'rgba(255, 255, 255, 0.8)',
+          color: isDarkMode ? '#9ca3af' : '#374151',
+          backdropColor: isDarkMode ? 'rgba(31, 41, 55, 0.8)' : 'rgba(255, 255, 255, 0.8)',
         },
         pointLabels: {
           font: {
             size: 14,
             weight: 'bold',
           },
-          color: '#374151',
+          color: isDarkMode ? '#e5e7eb' : '#374151',
         },
       },
     },
@@ -361,12 +356,12 @@ const Dashboard = ({ user, onLogout }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center transition-colors duration-300">
         <div className="text-center">
           <div className="relative">
-            <div className="animate-spin h-16 w-16 border-4 border-teal-200 border-t-teal-600 rounded-full"></div>
+            <div className="animate-spin h-16 w-16 border-4 border-teal-200 dark:border-gray-600 border-t-teal-600 dark:border-t-teal-400 rounded-full"></div>
           </div>
-          <p className="mt-6 text-gray-700 font-medium">Loading dashboard...</p>
+          <p className="mt-6 text-gray-700 dark:text-gray-300 font-medium">Loading dashboard...</p>
         </div>
       </div>
     );
@@ -374,15 +369,15 @@ const Dashboard = ({ user, onLogout }) => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center transition-colors duration-300">
         <div className="text-center">
-          <div className="bg-white border border-red-200 rounded-2xl p-8 shadow-xl">
+          <div className="bg-white dark:bg-gray-800 border border-red-200 dark:border-red-800 rounded-2xl p-8 shadow-xl">
             <div className="w-16 h-16 mx-auto mb-4 bg-red-500 rounded-2xl flex items-center justify-center">
               <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd"></path>
               </svg>
             </div>
-            <p className="text-red-600 font-semibold text-lg">{error}</p>
+            <p className="text-red-600 dark:text-red-400 font-semibold text-lg">{error}</p>
           </div>
         </div>
       </div>
@@ -390,34 +385,34 @@ const Dashboard = ({ user, onLogout }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 transition-colors duration-300">
       {/* Animated Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-teal-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse"></div>
-        <div className="absolute top-40 left-1/2 w-80 h-80 bg-emerald-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-teal-200 dark:bg-teal-800 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-30 animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-200 dark:bg-blue-800 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-30 animate-pulse"></div>
+        <div className="absolute top-40 left-1/2 w-80 h-80 bg-emerald-200 dark:bg-emerald-800 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-30 animate-pulse"></div>
       </div>
 
       {/* Header */}
       <div
-        className={`relative backdrop-blur-xl bg-white/80 border-b border-teal-200 shadow-lg transition-all duration-1000 ${isVisible.header ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-8'
+        className={`relative backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 border-b border-teal-200 dark:border-gray-700 shadow-lg transition-all duration-1000 ${isVisible.header ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-8'
           }`}
         data-animate="header"
       >
         <div className="container mx-auto px-6 py-6">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
-              <div className="w-100 h-100 group relative bg-teal-600 px-3 py-2 rounded-xl shadow-lg hover:shadow-teal-300 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1">
+              <div className="w-100 h-100 group relative bg-teal-600 dark:bg-teal-700 px-3 py-2 rounded-xl shadow-lg hover:shadow-teal-300 dark:hover:shadow-teal-600 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1">
                 <img src={logo} alt="Logo" width="150" height="150" className="w-100 h-100 object-contain drop-shadow-lg" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-teal-600">
+                <h1 className="text-3xl font-bold text-teal-600 dark:text-teal-400">
                   Dashboard
                 </h1>
                 {user && (
-                  <p className="text-sm text-gray-600 mt-1">
-                    Welcome back, <span className="font-semibold text-teal-600">{user.username}</span>
-                    <span className="ml-2 px-2 py-1 bg-teal-100 rounded-full text-xs border border-teal-200">
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                    Welcome back, <span className="font-semibold text-teal-600 dark:text-teal-400">{user.username}</span>
+                    <span className="ml-2 px-2 py-1 bg-teal-100 dark:bg-teal-900 text-teal-800 dark:text-teal-200 rounded-full text-xs border border-teal-200 dark:border-teal-700">
                       {user.role}
                     </span>
                   </p>
@@ -425,18 +420,20 @@ const Dashboard = ({ user, onLogout }) => {
               </div>
             </div>
 
-            <div className="flex space-x-3">
+            <div className="flex items-center space-x-3">
+              <DarkModeToggle />
+
               <button
                 onClick={() => navigate('/add-item')}
-                className="group relative bg-teal-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-teal-500/50 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
+                className="group relative bg-teal-600 dark:bg-teal-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-teal-500/50 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
               >
                 <span className="relative z-10">+ Tambah Barang</span>
-                <div className="absolute inset-0 bg-teal-700 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="absolute inset-0 bg-teal-700 dark:bg-teal-600 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </button>
 
               <button
                 onClick={() => navigate('/')}
-                className="bg-white text-gray-700 px-6 py-3 rounded-xl font-semibold border border-gray-200 hover:bg-gray-50 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
+                className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-6 py-3 rounded-xl font-semibold border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
               >
                 Home
               </button>
@@ -444,7 +441,7 @@ const Dashboard = ({ user, onLogout }) => {
               {user && onLogout && (
                 <button
                   onClick={onLogout}
-                  className="bg-red-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-red-500/50 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 border border-red-400"
+                  className="bg-red-500 dark:bg-red-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-red-500/50 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 border border-red-400 dark:border-red-500"
                 >
                   <div className="flex items-center space-x-2">
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -465,11 +462,12 @@ const Dashboard = ({ user, onLogout }) => {
         <div className="grid lg:grid-cols-3 gap-8 mb-8">
           {/* Polar Area Chart */}
           <div
-            className={`transition-all duration-1000 ${isVisible['pie-chart'] ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-12'}`}
+            className={`transition-all duration-1000 ${isVisible['pie-chart'] ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-12'
+              }`}
             data-animate="pie-chart"
           >
-            <div className="group bg-white p-6 rounded-2xl shadow-xl border border-teal-100 h-full hover:bg-teal-50 transition-all duration-300 transform hover:scale-105 hover:-translate-y-2">
-              <h3 className="text-lg font-semibold text-gray-800 mb-6 text-center">Status Distribution</h3>
+            <div className="group bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border border-teal-100 dark:border-gray-700 h-full hover:bg-teal-50 dark:hover:bg-gray-750 transition-all duration-300 transform hover:scale-105 hover:-translate-y-2">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-6 text-center">Status Distribution</h3>
               <div className="h-80">
                 <PolarArea data={PolarAreaData} options={PolarOptions} />
               </div>
@@ -482,8 +480,8 @@ const Dashboard = ({ user, onLogout }) => {
               }`}
             data-animate="radar-chart"
           >
-            <div className="group bg-white p-6 rounded-2xl shadow-xl border border-teal-100 h-full hover:bg-teal-50 transition-all duration-300 transform hover:scale-105 hover:-translate-y-2">
-              <h3 className="text-lg font-semibold text-gray-800 mb-6 text-center">Distribution by City</h3>
+            <div className="group bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border border-teal-100 dark:border-gray-700 h-full hover:bg-teal-50 dark:hover:bg-gray-750 transition-all duration-300 transform hover:scale-105 hover:-translate-y-2">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-6 text-center">Distribution by City</h3>
               <div className="h-80">
                 <Radar data={radarChartData} options={radarChartOptions} />
               </div>
@@ -494,7 +492,7 @@ const Dashboard = ({ user, onLogout }) => {
           <div className="grid md:grid-cols-2 xl:grid-cols-2 gap-6 mb-8">
             {/* Total Items Card */}
             <div
-              className={`group bg-white p-6 rounded-2xl shadow-xl border border-teal-100 hover:bg-teal-50 transition-all duration-1000 transform hover:scale-105 hover:-translate-y-2 ${isVisible['stat-total'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+              className={`group bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border border-teal-100 dark:border-gray-700 hover:bg-teal-50 dark:hover:bg-gray-750 transition-all duration-1000 transform hover:scale-105 hover:-translate-y-2 ${isVisible['stat-total'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
                 }`}
               data-animate="stat-total"
             >
@@ -505,15 +503,15 @@ const Dashboard = ({ user, onLogout }) => {
                   </svg>
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600 mb-1">Total Items</p>
-                  <p className="text-3xl font-bold text-gray-800">{filteredItems.length}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Total Items</p>
+                  <p className="text-3xl font-bold text-gray-800 dark:text-gray-200">{filteredItems.length}</p>
                 </div>
               </div>
             </div>
 
             {/* Ready Card */}
             <div
-              className={`group bg-white p-6 rounded-2xl shadow-xl border border-teal-100 hover:bg-teal-50 transition-all duration-1000 transform hover:scale-105 hover:-translate-y-2 ${isVisible['stat-ready'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+              className={`group bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border border-teal-100 dark:border-gray-700 hover:bg-teal-50 dark:hover:bg-gray-750 transition-all duration-1000 transform hover:scale-105 hover:-translate-y-2 ${isVisible['stat-ready'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
                 }`}
               data-animate="stat-ready"
               style={{ transitionDelay: '100ms' }}
@@ -525,18 +523,18 @@ const Dashboard = ({ user, onLogout }) => {
                   </svg>
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600 mb-1">Ready</p>
-                  <p className="text-3xl font-bold text-gray-800">{statusCounts.READY}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Ready</p>
+                  <p className="text-3xl font-bold text-gray-800 dark:text-gray-200">{statusCounts.READY}</p>
                 </div>
               </div>
             </div>
 
             {/* Terpakai Card */}
             <div
-              className={`group bg-white p-6 rounded-2xl shadow-xl border border-teal-100 hover:bg-teal-50 transition-all duration-1000 transform hover:scale-105 hover:-translate-y-2 ${isVisible['stat-terpakai'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+              className={`group bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border border-teal-100 dark:border-gray-700 hover:bg-teal-50 dark:hover:bg-gray-750 transition-all duration-1000 transform hover:scale-105 hover:-translate-y-2 ${isVisible['stat-terpakai'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
                 }`}
               data-animate="stat-terpakai"
-              style={{ transitionDelay: '200ms' }}
+              style={{ transitionDelay: '100ms' }}
             >
               <div className="flex items-center">
                 <div className="transform hover:rotate-12 hover:-translate-y-1 p-3 rounded-xl bg-blue-500 shadow-lg transition-all duration-300">
@@ -545,18 +543,18 @@ const Dashboard = ({ user, onLogout }) => {
                   </svg>
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600 mb-1">Terpakai</p>
-                  <p className="text-3xl font-bold text-gray-800">{statusCounts.TERPAKAI}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Terpakai</p>
+                  <p className="text-3xl font-bold text-gray-800 dark:text-gray-200">{statusCounts.TERPAKAI}</p>
                 </div>
               </div>
             </div>
 
             {/* Rusak Card */}
             <div
-              className={`group bg-white p-6 rounded-2xl shadow-xl border border-teal-100 hover:bg-teal-50 transition-all duration-1000 transform hover:scale-105 hover:-translate-y-2 ${isVisible['stat-rusak'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+              className={`group bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border border-teal-100 dark:border-gray-700 hover:bg-teal-50 dark:hover:bg-gray-750 transition-all duration-1000 transform hover:scale-105 hover:-translate-y-2 ${isVisible['stat-rusak'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
                 }`}
               data-animate="stat-rusak"
-              style={{ transitionDelay: '300ms' }}
+              style={{ transitionDelay: '100ms' }}
             >
               <div className="flex items-center">
                 <div className="transform hover:rotate-12 hover:-translate-y-1 p-3 rounded-xl bg-red-500 shadow-lg transition-all duration-300">
@@ -565,8 +563,8 @@ const Dashboard = ({ user, onLogout }) => {
                   </svg>
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600 mb-1">Rusak</p>
-                  <p className="text-3xl font-bold text-gray-800">{statusCounts.RUSAK}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Rusak</p>
+                  <p className="text-3xl font-bold text-gray-800 dark:text-gray-200">{statusCounts.RUSAK}</p>
                 </div>
               </div>
             </div>
@@ -575,7 +573,7 @@ const Dashboard = ({ user, onLogout }) => {
 
         {/* Search and Filter */}
         <div
-          className={`bg-white p-6 rounded-2xl shadow-xl border border-teal-100 mb-8 transition-all duration-1000 ${isVisible.filters ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          className={`bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border border-teal-100 dark:border-gray-700 mb-8 transition-all duration-1000 ${isVisible.filters ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
             }`}
           data-animate="filters"
         >
@@ -583,13 +581,13 @@ const Dashboard = ({ user, onLogout }) => {
             {/* Search Input */}
             <div className="relative flex-1">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-5 h-5 text-gray-400 dark:text-gray-500" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd"></path>
                 </svg>
               </div>
               <input
                 type="text"
-                className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-300"
+                className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-300"
                 placeholder="Cari barang..."
                 value={searchQuery}
                 onChange={handleSearchChange}
@@ -601,10 +599,11 @@ const Dashboard = ({ user, onLogout }) => {
               <select
                 value={kotaFilter}
                 onChange={handleKotaFilterChange}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-300 appearance-none cursor-pointer"
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-300 appearance-none cursor-pointer"
               >
                 <option value="">Semua Kota</option>
                 <option value="Medan">Medan</option>
+                <option value="Batam">Batam</option>
                 <option value="Pekan Baru">Pekan Baru</option>
                 <option value="Jakarta">Jakarta</option>
                 <option value="Tarutung">Tarutung</option>
@@ -616,7 +615,7 @@ const Dashboard = ({ user, onLogout }) => {
               <select
                 value={statusFilter}
                 onChange={handleStatusFilterChange}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-300 appearance-none cursor-pointer"
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-300 appearance-none cursor-pointer"
               >
                 <option value="">Semua Status</option>
                 <option value="READY">READY</option>
@@ -629,71 +628,71 @@ const Dashboard = ({ user, onLogout }) => {
 
         {/* Items Table */}
         <div
-          className={`bg-white rounded-2xl shadow-xl border border-teal-100 overflow-hidden transition-all duration-1000 ${isVisible.table ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          className={`bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-teal-100 dark:border-gray-700 overflow-hidden transition-all duration-1000 ${isVisible.table ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
             }`}
           data-animate="table"
         >
-          <div className="px-8 py-6 border-b border-gray-100">
-            <h2 className="text-2xl font-bold text-gray-800">Daftar Barang</h2>
-            <p className="text-gray-500 mt-1">Menampilkan {filteredItems.length} dari {items.length} item</p>
+          <div className="px-8 py-6 border-b border-gray-100 dark:border-gray-700">
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">Daftar Barang</h2>
+            <p className="text-gray-500 dark:text-gray-400 mt-1">Menampilkan {filteredItems.length} dari {items.length} item</p>
           </div>
 
           <div className="overflow-x-auto">
             <table className="min-w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                     Nama Barang
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                     Type/Model
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                     MAC Address
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                     Serial Number
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                     Kondisi
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                     Lokasi
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                     Action
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {filteredItems.length > 0 ? (
                   filteredItems.map((item, index) => (
                     <tr
                       key={item.id}
-                      className={`hover:bg-gray-50 transition-all duration-300 group ${isVisible.table ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4'
+                      className={`hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 group ${isVisible.table ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4'
                         }`}
                       style={{ transitionDelay: `${index * 50}ms` }}
                     >
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800 dark:text-gray-200">
                         {item.nama}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
                         {item.type}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-mono">
-                        <span className="bg-gray-100 px-2 py-1 rounded-lg border border-gray-200">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400 font-mono">
+                        <span className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-lg border border-gray-200 dark:border-gray-600">
                           {item.mac_address}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-mono">
-                        <span className="bg-gray-100 px-2 py-1 rounded-lg border border-gray-200">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400 font-mono">
+                        <span className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-lg border border-gray-200 dark:border-gray-600">
                           {item.serial_number}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
                         {item.kondisi}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -701,13 +700,13 @@ const Dashboard = ({ user, onLogout }) => {
                           {item.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
                         {item.lokasi}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button
                           onClick={() => navigate(`/item/${item.id}`)}
-                          className="text-teal-600 hover:text-teal-700 font-semibold hover:bg-teal-50 px-3 py-2 rounded-lg transition-all duration-300 transform hover:scale-105"
+                          className="text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 font-semibold hover:bg-teal-50 dark:hover:bg-teal-900/30 px-3 py-2 rounded-lg transition-all duration-300 transform hover:scale-105"
                         >
                           Detail
                         </button>
@@ -716,9 +715,9 @@ const Dashboard = ({ user, onLogout }) => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan={8} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
                       <div className="flex flex-col items-center">
-                        <svg className="w-12 h-12 mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-12 h-12 mb-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.47.908-6.06 2.39l-.993-.993A9.953 9.953 0 0112 13c2.59 0 4.973.982 6.76 2.593l-.993.993A7.962 7.962 0 0112 15z" />
                         </svg>
                         <p className="text-lg font-medium">Tidak ada data yang ditemukan</p>
@@ -731,25 +730,24 @@ const Dashboard = ({ user, onLogout }) => {
             </table>
           </div>
         </div>
-
       </div>
 
       {/* Footer */}
       <footer
-        className={`relative mt-20 backdrop-blur-xl bg-white/80 border-t border-teal-200 transition-all duration-1000 ${isVisible.footer ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+        className={`relative mt-20 backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 border-t border-teal-200 dark:border-gray-700 transition-all duration-1000 ${isVisible.footer ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`}
         data-animate="footer"
       >
         <div className="container mx-auto px-6 py-12">
           <div className="text-center">
             <div className="flex items-center justify-center space-x-3 mb-4">
-              <div className="w-100 h-100 px-3 py-2 bg-teal-600 rounded-lg flex items-center justify-center transform hover:scale-105 transition-all duration-300">
+              <div className="w-100 h-100 px-3 py-2 bg-teal-600 dark:bg-teal-700 rounded-lg flex items-center justify-center transform hover:scale-105 transition-all duration-300">
                 <div className="w-100 h-100">
                   <img src={logo} alt="Logo" width="150" height="150" className="w-100 h-100 object-contain drop-shadow-lg" />
                 </div>
               </div>
             </div>
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-400">
               &copy; 2025 PT. Medianusa Permana. All rights reserved.
             </p>
           </div>

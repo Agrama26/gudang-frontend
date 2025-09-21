@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDarkMode } from '../contexts/DarkModeContext';
+import DarkModeToggle from './DarkModeToggle';
 
 const Login = ({ onLogin }) => {
   const navigate = useNavigate();
+  const { isDarkMode } = useDarkMode();
   const [formData, setFormData] = useState({
     username: '',
     password: ''
@@ -43,11 +46,16 @@ const Login = ({ onLogin }) => {
   };
 
   const handleBackToHome = () => {
-    navigate('/landingpage');
+    navigate('/');
   };
 
   return (
-    <div className="min-h-screen bg-black text-white relative overflow-hidden flex items-center justify-center">
+    <div className="min-h-screen bg-black dark:bg-gray-900 text-white relative overflow-hidden flex items-center justify-center transition-colors duration-300">
+      {/* Dark Mode Toggle - Fixed Position */}
+      <div className="fixed top-6 right-6 z-50">
+        <DarkModeToggle />
+      </div>
+
       {/* Animated Background */}
       <div className="absolute inset-0 overflow-hidden">
         {/* Neural Network Pattern */}
@@ -55,8 +63,8 @@ const Login = ({ onLogin }) => {
           <svg className="w-full h-full" viewBox="0 0 1000 1000">
             <defs>
               <linearGradient id="networkGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#00ffff" />
-                <stop offset="100%" stopColor="#0080ff" />
+                <stop offset="0%" stopColor={isDarkMode ? "#06b6d4" : "#00ffff"} />
+                <stop offset="100%" stopColor={isDarkMode ? "#3b82f6" : "#0080ff"} />
               </linearGradient>
             </defs>
             {/* Network nodes and connections */}
@@ -78,7 +86,7 @@ const Login = ({ onLogin }) => {
         {[...Array(8)].map((_, i) => (
           <div
             key={i}
-            className="absolute w-px bg-gradient-to-b from-transparent via-cyan-400 to-transparent opacity-40"
+            className={`absolute w-px bg-gradient-to-b from-transparent via-cyan-400 dark:via-cyan-300 to-transparent opacity-40`}
             style={{
               left: `${(i * 12) + 10}%`,
               height: '100vh',
@@ -92,7 +100,7 @@ const Login = ({ onLogin }) => {
         {[...Array(15)].map((_, i) => (
           <div
             key={`matrix-${i}`}
-            className="absolute text-cyan-400 text-xs font-mono opacity-30 select-none"
+            className="absolute text-cyan-400 dark:text-cyan-300 text-xs font-mono opacity-30 select-none"
             style={{
               left: `${Math.random() * 100}%`,
               animationDelay: `${Math.random() * 5}s`,
@@ -108,8 +116,8 @@ const Login = ({ onLogin }) => {
           className="absolute inset-0 opacity-10"
           style={{
             backgroundImage: `
-              linear-gradient(rgba(0, 255, 255, 0.3) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(0, 255, 255, 0.3) 1px, transparent 1px)
+              linear-gradient(rgba(0, 255, 255, ${isDarkMode ? '0.2' : '0.3'}) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(0, 255, 255, ${isDarkMode ? '0.2' : '0.3'}) 1px, transparent 1px)
             `,
             backgroundSize: '40px 40px',
             animation: 'gridFlow 15s linear infinite'
@@ -117,8 +125,8 @@ const Login = ({ onLogin }) => {
         ></div>
 
         {/* Scanning Beams */}
-        <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-80 animate-scanHorizontal"></div>
-        <div className="absolute top-0 left-0 w-0.5 h-full bg-gradient-to-b from-transparent via-cyan-400 to-transparent opacity-80 animate-scanVertical"></div>
+        <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-cyan-400 dark:via-cyan-300 to-transparent opacity-80 animate-scanHorizontal"></div>
+        <div className="absolute top-0 left-0 w-0.5 h-full bg-gradient-to-b from-transparent via-cyan-400 dark:via-cyan-300 to-transparent opacity-80 animate-scanVertical"></div>
       </div>
 
       {/* Login Container */}
@@ -126,32 +134,49 @@ const Login = ({ onLogin }) => {
         {/* Hologram Effect Container */}
         <div className="relative">
           {/* Outer Glow */}
-          <div className="absolute -inset-4 bg-gradient-to-r from-cyan-400/20 via-blue-500/20 to-cyan-400/20 rounded-2xl blur-xl animate-pulse"></div>
+          <div className={`absolute -inset-4 bg-gradient-to-r ${
+            isDarkMode 
+              ? 'from-cyan-400/20 via-blue-500/20 to-cyan-400/20' 
+              : 'from-cyan-400/30 via-blue-500/30 to-cyan-400/30'
+          } rounded-2xl blur-xl animate-pulse`}></div>
 
           {/* Main Login Panel */}
-          <div className="relative bg-gray-900/80 backdrop-blur-xl border border-cyan-400/30 rounded-2xl shadow-2xl shadow-cyan-500/20 p-8 overflow-hidden">
+          <div className={`relative ${
+            isDarkMode 
+              ? 'bg-gray-800/90 border-gray-600/50' 
+              : 'bg-gray-900/80 border-cyan-400/30'
+          } backdrop-blur-xl border rounded-2xl shadow-2xl shadow-cyan-500/20 p-8 overflow-hidden transition-colors duration-300`}>
+            
             {/* Internal Scanning Lines */}
-            <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-cyan-400 to-transparent animate-scanInternal"></div>
+            <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-cyan-400 dark:via-cyan-300 to-transparent animate-scanInternal"></div>
 
             {/* Header Section */}
             <div className="text-center mb-8 relative">
               {/* Logo/Icon */}
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg mb-4 animate-float">
-                <div className="w-8 h-8 border-2 border-black rounded-sm animate-spin"></div>
+              <div className={`inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br ${
+                isDarkMode 
+                  ? 'from-cyan-400 to-blue-400' 
+                  : 'from-cyan-400 to-blue-500'
+              } rounded-lg mb-4 animate-float`}>
+                <div className="w-8 h-8 border-2 border-black dark:border-gray-800 rounded-sm animate-spin"></div>
               </div>
 
-              <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent animate-shimmer">
+              <h1 className={`text-3xl font-bold mb-2 bg-gradient-to-r ${
+                isDarkMode 
+                  ? 'from-cyan-300 via-blue-300 to-cyan-300' 
+                  : 'from-cyan-400 via-blue-400 to-cyan-400'
+              } bg-clip-text text-transparent animate-shimmer`}>
                 SYSTEM ACCESS
               </h1>
-              <p className="text-cyan-400/80 font-mono text-sm uppercase tracking-[0.2em]">
+              <p className="text-cyan-400 dark:text-cyan-300 font-mono text-sm uppercase tracking-[0.2em]">
                 PT. Medianusa Permana
               </p>
 
               {/* Status Indicators */}
               <div className="flex justify-center space-x-2 mt-4">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-ping"></div>
-                <div className="w-2 h-2 bg-cyan-400 rounded-full animate-ping" style={{ animationDelay: '0.5s' }}></div>
-                <div className="w-2 h-2 bg-blue-400 rounded-full animate-ping" style={{ animationDelay: '1s' }}></div>
+                <div className="w-2 h-2 bg-green-400 dark:bg-green-300 rounded-full animate-ping"></div>
+                <div className="w-2 h-2 bg-cyan-400 dark:bg-cyan-300 rounded-full animate-ping" style={{ animationDelay: '0.5s' }}></div>
+                <div className="w-2 h-2 bg-blue-400 dark:bg-blue-300 rounded-full animate-ping" style={{ animationDelay: '1s' }}></div>
               </div>
             </div>
 
@@ -159,9 +184,9 @@ const Login = ({ onLogin }) => {
             <div className="space-y-6">
               {/* Username Input */}
               <div className="group">
-                <label className="block text-cyan-400 text-sm font-mono uppercase tracking-wider mb-3">
+                <label className="block text-cyan-400 dark:text-cyan-300 text-sm font-mono uppercase tracking-wider mb-3">
                   <span className="flex items-center">
-                    <div className="w-2 h-2 bg-cyan-400 rounded-full mr-2 animate-pulse"></div>
+                    <div className="w-2 h-2 bg-cyan-400 dark:bg-cyan-300 rounded-full mr-2 animate-pulse"></div>
                     User Identification
                   </span>
                 </label>
@@ -172,21 +197,25 @@ const Login = ({ onLogin }) => {
                     required
                     value={formData.username}
                     onChange={handleChange}
-                    className="w-full bg-black/50 border border-gray-600 text-white p-4 rounded-sm font-mono focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 hover:border-gray-400"
+                    className={`w-full ${
+                      isDarkMode 
+                        ? 'bg-gray-700/50 border-gray-500 text-gray-100' 
+                        : 'bg-black/50 border-gray-600 text-white'
+                    } border p-4 rounded-sm font-mono focus:border-cyan-400 dark:focus:border-cyan-300 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 hover:border-gray-400 dark:hover:border-gray-400`}
                     placeholder="Enter username..."
                   />
-                  <div className="absolute inset-0 border border-cyan-400/20 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                  <div className="absolute inset-0 border border-cyan-400/20 dark:border-cyan-300/20 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                   <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                    <div className="w-2 h-2 bg-cyan-400 rounded-full animate-ping opacity-50"></div>
+                    <div className="w-2 h-2 bg-cyan-400 dark:bg-cyan-300 rounded-full animate-ping opacity-50"></div>
                   </div>
                 </div>
               </div>
 
               {/* Password Input */}
               <div className="group">
-                <label className="block text-cyan-400 text-sm font-mono uppercase tracking-wider mb-3">
+                <label className="block text-cyan-400 dark:text-cyan-300 text-sm font-mono uppercase tracking-wider mb-3">
                   <span className="flex items-center">
-                    <div className="w-2 h-2 bg-cyan-400 rounded-full mr-2 animate-pulse"></div>
+                    <div className="w-2 h-2 bg-cyan-400 dark:bg-cyan-300 rounded-full mr-2 animate-pulse"></div>
                     Security Key
                   </span>
                 </label>
@@ -197,21 +226,29 @@ const Login = ({ onLogin }) => {
                     required
                     value={formData.password}
                     onChange={handleChange}
-                    className="w-full bg-black/50 border border-gray-600 text-white p-4 rounded-sm font-mono focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 hover:border-gray-400"
+                    className={`w-full ${
+                      isDarkMode 
+                        ? 'bg-gray-700/50 border-gray-500 text-gray-100' 
+                        : 'bg-black/50 border-gray-600 text-white'
+                    } border p-4 rounded-sm font-mono focus:border-cyan-400 dark:focus:border-cyan-300 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 hover:border-gray-400 dark:hover:border-gray-400`}
                     placeholder="Enter security key..."
                   />
-                  <div className="absolute inset-0 border border-cyan-400/20 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                  <div className="absolute inset-0 border border-cyan-400/20 dark:border-cyan-300/20 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                   <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                    <div className="w-2 h-2 bg-cyan-400 rounded-full animate-ping opacity-50"></div>
+                    <div className="w-2 h-2 bg-cyan-400 dark:bg-cyan-300 rounded-full animate-ping opacity-50"></div>
                   </div>
                 </div>
               </div>
 
               {/* Error Display */}
               {error && (
-                <div className="bg-red-900/50 border border-red-500/50 text-red-400 px-4 py-3 rounded-sm font-mono text-sm animate-shake">
+                <div className={`${
+                  isDarkMode 
+                    ? 'bg-red-800/50 border-red-600/50 text-red-300' 
+                    : 'bg-red-900/50 border-red-500/50 text-red-400'
+                } border px-4 py-3 rounded-sm font-mono text-sm animate-shake`}>
                   <span className="flex items-center">
-                    <div className="w-2 h-2 bg-red-400 rounded-full mr-2 animate-ping"></div>
+                    <div className="w-2 h-2 bg-red-400 dark:bg-red-300 rounded-full mr-2 animate-ping"></div>
                     ACCESS DENIED: {error}
                   </span>
                 </div>
@@ -221,10 +258,15 @@ const Login = ({ onLogin }) => {
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className={`w-full group relative overflow-hidden bg-gradient-to-r from-cyan-500 to-blue-500 text-black py-4 px-6 rounded-sm font-mono uppercase tracking-wider font-bold transition-all duration-300 ${loading
+                className={`w-full group relative overflow-hidden bg-gradient-to-r ${
+                  isDarkMode 
+                    ? 'from-cyan-400 to-blue-400 hover:from-cyan-300 hover:to-blue-300' 
+                    : 'from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400'
+                } text-black py-4 px-6 rounded-sm font-mono uppercase tracking-wider font-bold transition-all duration-300 ${
+                  loading
                     ? 'opacity-50 cursor-not-allowed'
-                    : 'hover:from-cyan-400 hover:to-blue-400 hover:shadow-2xl hover:shadow-cyan-500/30 transform hover:scale-[1.02]'
-                  }`}
+                    : 'hover:shadow-2xl hover:shadow-cyan-500/30 transform hover:scale-[1.02]'
+                }`}
               >
                 <span className="absolute inset-0 bg-white/20 transform translate-x-full group-hover:translate-x-0 transition-transform duration-500"></span>
                 <span className="relative z-10 flex items-center justify-center">
@@ -235,7 +277,7 @@ const Login = ({ onLogin }) => {
                     </>
                   ) : (
                     <>
-                      <span className="mr-2">►</span>
+                      <span className="mr-2">▶</span>
                       Initialize Access
                     </>
                   )}
@@ -244,18 +286,22 @@ const Login = ({ onLogin }) => {
             </div>
 
             {/* Demo Accounts Section */}
-            <div className="mt-8 p-4 bg-black/30 border border-gray-600/50 rounded-sm">
-              <p className="text-cyan-400 font-mono text-xs uppercase tracking-wider mb-3">
+            <div className={`mt-8 p-4 ${
+              isDarkMode 
+                ? 'bg-gray-700/30 border-gray-500/50' 
+                : 'bg-black/30 border-gray-600/50'
+            } border rounded-sm`}>
+              <p className="text-cyan-400 dark:text-cyan-300 font-mono text-xs uppercase tracking-wider mb-3">
                 Demo Access Credentials:
               </p>
-              <div className="space-y-1 text-gray-300 font-mono text-xs">
+              <div className="space-y-1 text-gray-300 dark:text-gray-400 font-mono text-xs">
                 <p className="flex justify-between">
                   <span>ADMIN:</span>
-                  <span className="text-cyan-400">admin / admin123</span>
+                  <span className="text-cyan-400 dark:text-cyan-300">admin / admin123</span>
                 </p>
                 <p className="flex justify-between">
                   <span>STAFF:</span>
-                  <span className="text-cyan-400">staff / staff123</span>
+                  <span className="text-cyan-400 dark:text-cyan-300">staff / staff123</span>
                 </p>
               </div>
             </div>
@@ -264,7 +310,7 @@ const Login = ({ onLogin }) => {
             <div className="mt-6 text-center">
               <button
                 onClick={handleBackToHome}
-                className="text-cyan-400/80 hover:text-cyan-400 font-mono text-sm uppercase tracking-wider transition-colors duration-300"
+                className="text-cyan-400/80 dark:text-cyan-300/80 hover:text-cyan-400 dark:hover:text-cyan-300 font-mono text-sm uppercase tracking-wider transition-colors duration-300"
               >
                 ← Return to Main System
               </button>
