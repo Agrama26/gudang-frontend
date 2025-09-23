@@ -18,6 +18,7 @@ import {
   Filler
 } from 'chart.js';
 import { PolarArea, Radar } from 'react-chartjs-2';
+ChartJS.register(RadialLinearScale, ArcElement, Tooltip, Legend);
 
 // Register Chart.js components
 ChartJS.register(
@@ -40,7 +41,7 @@ const Dashboard = ({ user, onLogout }) => {
   const [filteredItems, setFilteredItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const [kondisiFilter, setKondisiFilter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [kotaFilter, setKotaFilter] = useState('');
@@ -60,6 +61,10 @@ const Dashboard = ({ user, onLogout }) => {
 
   const handleKotaFilterChange = (e) => {
     setKotaFilter(e.target.value);
+  };
+
+  const handleKondisiFilterChange = (e) => {
+    setKondisiFilter(e.target.value);
   };
 
   // Intersection Observer for scroll animations
@@ -125,9 +130,13 @@ const Dashboard = ({ user, onLogout }) => {
       result = result.filter((item) => item.kota === kotaFilter);
     }
 
+    if (kondisiFilter) {
+      result = result.filter((item) => item.kondisi === kondisiFilter);
+    }
+
     setFilteredItems(result);
     setChartAnimated(true);
-  }, [chartAnimated, searchQuery, statusFilter, kotaFilter, items]);
+  }, [chartAnimated, searchQuery, statusFilter, kotaFilter, kondisiFilter, items]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -180,17 +189,21 @@ const Dashboard = ({ user, onLogout }) => {
           '#3B82F6',
           '#EF4444',
         ],
-        borderColor: [
-          '#16A34A',
-          '#2563EB',
-          '#DC2626',
+        borderColor: isDarkMode ? [
+          '#1f2937',
+          '#1f2937',
+          '#1f2937',
+        ] : [
+          '#ffffff',
+          '#ffffff',
+          '#ffffff',
         ],
         borderWidth: 2,
         hoverOffset: 4,
         hoverBorderWidth: 3,
       },
     ],
-  }), [statusCounts]);
+  }), [statusCounts, isDarkMode]);
 
   const PolarOptions = {
     responsive: true,
@@ -205,12 +218,12 @@ const Dashboard = ({ user, onLogout }) => {
             size: 12,
             weight: 'bold',
           },
-          color: isDarkMode ? '#e5e7eb' : '#374151',
+          color: isDarkMode ? '#ffffff' : '#000000',
         },
       },
       tooltip: {
         backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.9)' : 'rgba(0, 0, 0, 0.8)',
-        titleColor: 'white',
+        titleColor: isDarkMode ? 'white' : 'black',
         bodyColor: 'white',
         borderColor: '#22C55E',
         borderWidth: 1,
@@ -223,6 +236,31 @@ const Dashboard = ({ user, onLogout }) => {
             return `${label}: ${value} (${percentage}%)`;
           }
         }
+      },
+    },
+    scales: {
+      r: {
+        beginAtZero: true,
+        grid: {
+          color: isDarkMode ? 'rgba(75, 85, 99, 0.6)' : 'rgba(0, 0, 0, 0.3)',
+        },
+        angleLines: {
+          color: isDarkMode ? 'rgba(75, 85, 99, 0.6)' : 'rgba(0, 0, 0, 0.3)',
+        },
+        ticks: {
+          font: {
+            size: 12,
+          },
+          color: isDarkMode ? '#9ca3af' : '#374151',
+          backdropColor: isDarkMode ? 'rgba(31, 41, 55, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+        },
+        pointLabels: {
+          font: {
+            size: 14,
+            weight: 'bold',
+          },
+          color: isDarkMode ? '#e5e7eb' : '#374151',
+        },
       },
     },
     animation: {
@@ -257,14 +295,43 @@ const Dashboard = ({ user, onLogout }) => {
         pointHoverRadius: 8,
         borderWidth: 3,
       },
+      // {
+      //   label: 'Status',
+      //   data: [
+      //     filteredItems.filter(item => item.kota === 'Medan' && item.status === 'READY').length,
+      //     filteredItems.filter(item => item.kota === 'Batam' && item.status === 'READY').length,
+      //     filteredItems.filter(item => item.kota === 'Pekan Baru' && item.status === 'READY').length,
+      //     filteredItems.filter(item => item.kota === 'Jakarta' && item.status === 'READY').length,
+      //     filteredItems.filter(item => item.kota === 'Tarutung' && item.status === 'READY').length,
+      //     filteredItems.filter(item => item.kota === 'Medan' && item.status === 'TERPAKAI').length,
+      //     filteredItems.filter(item => item.kota === 'Batam' && item.status === 'TERPAKAI').length,
+      //     filteredItems.filter(item => item.kota === 'Pekan Baru' && item.status === 'TERPAKAI').length,
+      //     filteredItems.filter(item => item.kota === 'Jakarta' && item.status === 'TERPAKAI').length,
+      //     filteredItems.filter(item => item.kota === 'Tarutung' && item.status === 'TERPAKAI').length,
+      //     filteredItems.filter(item => item.kota === 'Medan' && item.status === 'RUSAK').length,
+      //     filteredItems.filter(item => item.kota === 'Batam' && item.status === 'RUSAK').length,
+      //     filteredItems.filter(item => item.kota === 'Pekan Baru' && item.status === 'RUSAK').length,
+      //     filteredItems.filter(item => item.kota === 'Jakarta' && item.status === 'RUSAK').length,
+      //     filteredItems.filter(item => item.kota === 'Tarutung' && item.status === 'RUSAK').length,
+      //   ],
+      //   fill: true,
+      //   backgroundColor: 'rgba(59, 130, 246, 0.2)',
+      //   borderColor: '#3B82F6',
+      //   pointBackgroundColor: '#3B82F6',
+      //   pointBorderColor: '#2563EB',
+      //   pointHoverBackgroundColor: '#2563EB',
+      //   pointHoverBorderColor: '#3B82F6',
+      //   pointRadius: 6,
+      //   pointHoverRadius: 8,
+      //   borderWidth: 3,
+      // },
       {
-        label: 'Ready Items',
+        label: 'Kondisi',
         data: [
-          filteredItems.filter(item => item.kota === 'Medan' && item.status === 'READY').length,
-          filteredItems.filter(item => item.kota === 'Batam' && item.status === 'READY').length,
-          filteredItems.filter(item => item.kota === 'Pekan Baru' && item.status === 'READY').length,
-          filteredItems.filter(item => item.kota === 'Jakarta' && item.status === 'READY').length,
-          filteredItems.filter(item => item.kota === 'Tarutung' && item.status === 'READY').length,
+          kondisiCounts['Baru'] || 0,
+          kondisiCounts['Baik'] || 0,
+          kondisiCounts['Rusak Ringan'] || 0,
+          kondisiCounts['Rusak Berat'] || 0,
         ],
         fill: true,
         backgroundColor: 'rgba(59, 130, 246, 0.2)',
@@ -273,25 +340,6 @@ const Dashboard = ({ user, onLogout }) => {
         pointBorderColor: '#2563EB',
         pointHoverBackgroundColor: '#2563EB',
         pointHoverBorderColor: '#3B82F6',
-        pointRadius: 6,
-        pointHoverRadius: 8,
-        borderWidth: 3,
-      },
-      {
-        label: 'Kondisi Items',
-        data: [
-          kondisiCounts['Baru'] || 0,
-          kondisiCounts['Baik'] || 0,
-          kondisiCounts['Rusak Ringan'] || 0,
-          kondisiCounts['Rusak Berat'] || 0,
-        ],
-        fill: true,
-        backgroundColor: 'rgba(239, 68, 68, 0.2)',
-        borderColor: '#EF4444',
-        pointBackgroundColor: '#EF4444',
-        pointBorderColor: '#DC2626',
-        pointHoverBackgroundColor: '#DC2626',
-        pointHoverBorderColor: '#EF4444',
         pointRadius: 6,
         pointHoverRadius: 8,
         borderWidth: 3,
@@ -316,7 +364,7 @@ const Dashboard = ({ user, onLogout }) => {
         },
       },
       tooltip: {
-        backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.9)' : 'rgba(0, 0, 0, 0.8)',
+        backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.9)' : 'rgba(0, 0, 0, 0.1)',
         titleColor: 'white',
         bodyColor: 'white',
         borderColor: '#22C55E',
@@ -327,10 +375,10 @@ const Dashboard = ({ user, onLogout }) => {
       r: {
         beginAtZero: true,
         grid: {
-          color: isDarkMode ? 'rgba(75, 85, 99, 0.3)' : 'rgba(0, 0, 0, 0.1)',
+          color: isDarkMode ? 'rgba(75, 85, 99, 0.6)' : 'rgba(0, 0, 0, 0.3)',
         },
         angleLines: {
-          color: isDarkMode ? 'rgba(75, 85, 99, 0.3)' : 'rgba(0, 0, 0, 0.1)',
+          color: isDarkMode ? 'rgba(75, 85, 99, 0.6)' : 'rgba(0, 0, 0, 0.3)',
         },
         ticks: {
           font: {
@@ -438,7 +486,7 @@ const Dashboard = ({ user, onLogout }) => {
                 Home
               </button>
 
-              {user && onLogout && (
+              {/* {user && onLogout && (
                 <button
                   onClick={onLogout}
                   className="bg-red-500 dark:bg-red-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-red-500/50 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 border border-red-400 dark:border-red-500"
@@ -450,7 +498,7 @@ const Dashboard = ({ user, onLogout }) => {
                     <span>Logout</span>
                   </div>
                 </button>
-              )}
+              )} */}
             </div>
           </div>
         </div>
@@ -492,7 +540,7 @@ const Dashboard = ({ user, onLogout }) => {
           <div className="grid md:grid-cols-2 xl:grid-cols-2 gap-6 mb-8">
             {/* Total Items Card */}
             <div
-              className={`group bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border border-teal-100 dark:border-gray-700 hover:bg-teal-50 dark:hover:bg-gray-750 transition-all duration-1000 transform hover:scale-105 hover:-translate-y-2 ${isVisible['stat-total'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+              className={`group bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border border-teal-100 dark:border-gray-700 hover:bg-teal-50 dark:hover:bg-gray-750 transition-all duration-1000 transform hover:scale-105 hover:-translate-y-2 ${isVisible['stat-total'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
                 }`}
               data-animate="stat-total"
             >
@@ -511,7 +559,7 @@ const Dashboard = ({ user, onLogout }) => {
 
             {/* Ready Card */}
             <div
-              className={`group bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border border-teal-100 dark:border-gray-700 hover:bg-teal-50 dark:hover:bg-gray-750 transition-all duration-1000 transform hover:scale-105 hover:-translate-y-2 ${isVisible['stat-ready'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+              className={`group bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border border-teal-100 dark:border-gray-700 hover:bg-teal-50 dark:hover:bg-gray-750 transition-all duration-1000 transform hover:scale-105 hover:-translate-y-2 ${isVisible['stat-ready'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
                 }`}
               data-animate="stat-ready"
               style={{ transitionDelay: '100ms' }}
@@ -531,7 +579,7 @@ const Dashboard = ({ user, onLogout }) => {
 
             {/* Terpakai Card */}
             <div
-              className={`group bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border border-teal-100 dark:border-gray-700 hover:bg-teal-50 dark:hover:bg-gray-750 transition-all duration-1000 transform hover:scale-105 hover:-translate-y-2 ${isVisible['stat-terpakai'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+              className={`group bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border border-teal-100 dark:border-gray-700 hover:bg-teal-50 dark:hover:bg-gray-750 transition-all duration-1000 transform hover:scale-105 hover:-translate-y-2 ${isVisible['stat-terpakai'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
                 }`}
               data-animate="stat-terpakai"
               style={{ transitionDelay: '100ms' }}
@@ -551,7 +599,7 @@ const Dashboard = ({ user, onLogout }) => {
 
             {/* Rusak Card */}
             <div
-              className={`group bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border border-teal-100 dark:border-gray-700 hover:bg-teal-50 dark:hover:bg-gray-750 transition-all duration-1000 transform hover:scale-105 hover:-translate-y-2 ${isVisible['stat-rusak'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+              className={`group bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border border-teal-100 dark:border-gray-700 hover:bg-teal-50 dark:hover:bg-gray-750 transition-all duration-1000 transform hover:scale-105 hover:-translate-y-2 ${isVisible['stat-rusak'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
                 }`}
               data-animate="stat-rusak"
               style={{ transitionDelay: '100ms' }}
@@ -573,7 +621,7 @@ const Dashboard = ({ user, onLogout }) => {
 
         {/* Search and Filter */}
         <div
-          className={`bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border border-teal-100 dark:border-gray-700 mb-8 transition-all duration-1000 ${isVisible.filters ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          className={`bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border border-teal-100 dark:border-gray-700 mb-8 transition-all duration-1000 ${isVisible.filters ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16'
             }`}
           data-animate="filters"
         >
@@ -610,12 +658,27 @@ const Dashboard = ({ user, onLogout }) => {
               </select>
             </div>
 
+            {/* Kondisi Filter */}
+            <div className="md:w-64">
+              <select
+                value={kondisiFilter}
+                onChange={handleKondisiFilterChange}
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-50 appearance-none cursor-pointer"
+              >
+                <option value="">Semua Kondisi</option>
+                <option value="Baru">Baru</option>
+                <option value="Baik">Baik</option>
+                <option value="Rusak Ringan">Rusak Ringan</option>
+                <option value="Rusak Berat">Rusak Berat</option>
+              </select>
+            </div>
+
             {/* Status Filter */}
             <div className="md:w-64">
               <select
                 value={statusFilter}
                 onChange={handleStatusFilterChange}
-                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-300 appearance-none cursor-pointer"
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-50 appearance-none cursor-pointer"
               >
                 <option value="">Semua Status</option>
                 <option value="READY">READY</option>
@@ -639,30 +702,30 @@ const Dashboard = ({ user, onLogout }) => {
 
           <div className="overflow-x-auto">
             <table className="min-w-full">
-              <thead className="bg-gray-50 dark:bg-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-700 ">
                 <tr>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider ">
                     Nama Barang
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                     Type/Model
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                     MAC Address
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                     Serial Number
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                     Kondisi
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                     Lokasi
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                     Action
                   </th>
                 </tr>
@@ -672,14 +735,14 @@ const Dashboard = ({ user, onLogout }) => {
                   filteredItems.map((item, index) => (
                     <tr
                       key={item.id}
-                      className={`hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 group ${isVisible.table ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4'
+                      className={`hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 group ${isVisible.table ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'
                         }`}
-                      style={{ transitionDelay: `${index * 50}ms` }}
+                      style={{ transitionDelay: `${index * 100}ms` }}
                     >
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800 dark:text-gray-200">
+                      <td className="px-6 py-4 text-left whitespace-nowrap text-sm font-medium text-gray-800 dark:text-gray-200">
                         {item.nama}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
+                      <td className="px-6 py-4 text-left whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
                         {item.type}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400 font-mono">

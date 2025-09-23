@@ -80,6 +80,9 @@ export const barangAPI = {
     apiRequest(`/barang/${id}`, { method: "DELETE" }),
 };
 
+export const kondisiAPI = { getAll: () => apiRequest("/kondisi") };
+export const kotaAPI = { getAll: () => apiRequest("/kota") };
+
 // (opsional) Stats & QR
 export const statsAPI = { getDashboard: () => apiRequest("/stats") };
 export const qrAPI = { getQRCode: (id) => apiRequest(`/qr/${id}`) };

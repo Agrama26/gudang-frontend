@@ -1,15 +1,51 @@
 import { useState } from 'react';
 import logo from '../assets/logo.png';
+import teknisi from '../assets/teknisi.png'
 import 'tailwindcss/tailwind.css';
 import '../index.css';
 import '../App.css';
-import { useNavigate } from 'react-router-dom'; 
+import { useNavigate } from 'react-router-dom';
 import { useDarkMode } from '../contexts/DarkModeContext';
 import DarkModeToggle from './DarkModeToggle';
+import { useEffect, useRef } from 'react';
 
 const LandingPage = () => {
   const navigate = useNavigate();
   const { isDarkMode } = useDarkMode();
+  const [isVisible, setIsVisible] = useState({});
+  const [scrollY, setScrollY] = useState(0);
+  const observerRef = useRef();
+
+  // Handle scroll animation
+  useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Intersection Observer for scroll animations
+  useEffect(() => {
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const id = entry.target.getAttribute('data-animate');
+          if (entry.isIntersecting) {
+            setIsVisible(prev => ({ ...prev, [id]: true }));
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    const elements = document.querySelectorAll('[data-animate]');
+    elements.forEach(el => observerRef.current.observe(el));
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, []);
 
   const features = [
     {
@@ -92,24 +128,20 @@ const LandingPage = () => {
       </div>
 
       {/* Navigation */}
-      <nav className="relative backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 border-b border-teal-200 dark:border-gray-700 shadow-lg">
-        <div className="container mx-auto px-6 py-6">
+      <nav className="fixed top-0 w-full z-50 backdrop-blur-xl bg-white/90 dark:bg-gray-900/90 border-b border-teal-200 dark:border-gray-700 shadow-lg transition-all duration-300">
+        <div className="container mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
               <div className="w-100 h-100 group relative bg-teal-600 dark:bg-teal-700 px-3 py-2 rounded-xl shadow-lg hover:shadow-teal-300 dark:hover:shadow-teal-600 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1">
-                <div className="">
-                  <img src={logo} alt="Logo" width="150" height="150" className="w-100 h-100 object-contain drop-shadow-lg" />
-                </div>
+                <img src={logo} alt="Logo" width="150" height="150" className="w-100 h-100 object-contain drop-shadow-lg" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-teal-600 dark:text-teal-400">
+                <h1 className="text-xl font-bold text-teal-600 dark:text-teal-400">
                   PT. Medianusa Permana
                 </h1>
-                <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                  Sistem Manajemen Inventori
-                </p>
               </div>
             </div>
+
             <div className="flex items-center space-x-4">
               <DarkModeToggle />
               <button
@@ -120,7 +152,7 @@ const LandingPage = () => {
               </button>
               <button
                 onClick={() => navigate('/dashboard')}
-                className="bg-gradient-to-r from-teal-600 to-blue-600 dark:from-teal-500 dark:to-blue-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-teal-500/50 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
+                className="bg-gradient-to-r from-teal-600 to-blue-600 dark:from-teal-500 dark:to-blue-500 text-white px-6 py-2 rounded-xl font-semibold shadow-lg hover:shadow-teal-500/50 transition-all duration-300 transform hover:scale-105"
               >
                 Dashboard
               </button>
@@ -130,58 +162,131 @@ const LandingPage = () => {
       </nav>
 
       {/* Hero Section */}
-      <div className="relative container mx-auto px-6 py-20">
-        <div className="text-center space-y-8">
-          <div className="space-y-4">
-            <h1 className="text-6xl md:text-7xl font-bold bg-gradient-to-r from-teal-600 via-blue-600 to-teal-600 dark:from-teal-400 dark:via-blue-400 dark:to-teal-400 bg-clip-text text-transparent leading-tight">
-              Data Barang
-            </h1>
-            <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-blue-600 via-teal-600 to-blue-600 dark:from-blue-400 dark:via-teal-400 dark:to-blue-400 bg-clip-text text-transparent leading-tight">
-              PT. Medianusa Permana
-            </h1>
-            <div className="flex justify-center space-x-2 mt-6">
-              <div className="w-3 h-3 bg-teal-600 dark:bg-teal-400 rounded-full animate-bounce"></div>
-              <div className="w-3 h-3 bg-blue-600 dark:bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-              <div className="w-3 h-3 bg-emerald-600 dark:bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+      <section id="beranda" className="relative min-h-screen flex items-center pt-16 overflow-hidden">
+        {/* Background with parallax effect */}
+        <div
+          className="absolute inset-0 z-0"
+          style={{
+            transform: `translateY(${scrollY * 0.5}px)`,
+            background: `linear-gradient(135deg, 
+              ${isDarkMode ? '#0f766e' : '#14b8a6'} 0%, 
+              ${isDarkMode ? '#0891b2' : '#0891b2'} 50%, 
+              ${isDarkMode ? '#1d4ed8' : '#2563eb'} 100%)`
+          }}
+        >
+          {/* Animated geometric shapes */}
+          <div className="absolute inset-0">
+            <div className="absolute top-20 left-10 w-32 h-32 bg-white/10 rounded-full animate-bounce-slow"></div>
+            <div className="absolute top-40 right-20 w-24 h-24 bg-white/10 rounded-full animate-pulse" style={{ animationDelay: '2s' }}></div>
+            <div className="absolute bottom-40 left-1/4 w-40 h-40 bg-white/5 rounded-full animate-bounce-slow" style={{ animationDelay: '1s' }}></div>
+
+            {/* Curved design element */}
+            <div className="absolute top-0 right-0 w-1/2 h-full">
+              <svg className="w-full h-full" viewBox="0 0 500 800" preserveAspectRatio="xMidYMid slice">
+                <path
+                  d="M0,400 C150,300 350,500 500,400 L500,800 L0,800 Z"
+                  fill="rgba(255,255,255,0.1)"
+                  className="animate-pulse"
+                />
+              </svg>
             </div>
-          </div>
-
-          <p className="text-xl text-gray-700 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed">
-            Sistem manajemen inventori modern untuk peralatan jaringan Mikrotik dan TP-Link
-            di 5 cabang PT. Medianusa Permana (Medan, Batam, Pekan Baru, Tarutung, Jakarta)
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <button
-              onClick={() => navigate('/login')}
-              className="group relative bg-gradient-to-r from-teal-600 to-blue-600 dark:from-teal-500 dark:to-blue-500 text-white px-10 py-4 rounded-xl text-lg font-bold shadow-2xl hover:shadow-teal-500/50 transition-all duration-300 hover:from-teal-700 hover:to-blue-700 dark:hover:from-teal-400 dark:hover:to-blue-400 transform hover:scale-105 overflow-hidden"
-            >
-              <span className="absolute inset-0 bg-white/20 transform skew-x-12 translate-x-full group-hover:translate-x-0 transition-transform duration-500"></span>
-              <span className="relative z-10 flex items-center space-x-2">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M3 3a1 1 0 011 1v12a1 1 0 102 0V4a1 1 0 011-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd"></path>
-                </svg>
-                <span>Mulai Sekarang</span>
-              </span>
-            </button>
-
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="group bg-white dark:bg-gray-800 text-teal-600 dark:text-teal-400 border-2 border-teal-600 dark:border-teal-400 px-10 py-4 rounded-xl text-lg font-bold hover:bg-teal-50 dark:hover:bg-gray-700 hover:border-teal-700 dark:hover:border-teal-300 transition-all duration-300 backdrop-blur-sm shadow-lg transform hover:scale-105"
-            >
-              <span className="flex items-center space-x-2">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"></path>
-                  <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"></path>
-                </svg>
-                <span>Lihat Demo</span>
-              </span>
-            </button>
           </div>
         </div>
 
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left content */}
+            <div
+              className={`space-y-8 transition-all duration-1000 ${isVisible.hero ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-12'
+                }`}
+              data-animate="hero"
+            >
+              <div className="space-y-6">
+                <h1 className="text-white text-4xl md:text-6xl font-bold leading-tight">
+                  Menghadirkan<br />
+                  <span className="bg-gradient-to-r from-cyan-200 to-blue-200 bg-clip-text text-transparent">
+                    Keunggulan Inovasi
+                  </span><br />
+                  <span className="bg-gradient-to-r from-blue-200 to-cyan-200 bg-clip-text text-transparent">
+                    Solusi dan Teknologi
+                  </span>
+                </h1>
+                <p className="text-white/90 text-xl leading-relaxed max-w-2xl">
+                  untuk Meningkatkan Management Barang
+                </p>
+              </div>
+
+              <div className="sm:flex-row gap-4">
+                <button
+                  onClick={() => navigate('/dashboard')}
+                  className="group bg-white text-teal-600 px-8 py-4 rounded-xl font-bold shadow-xl hover:shadow-2xl transition-all duration-300 hover:bg-gray-50 transform hover:scale-105 hover:-translate-y-1"
+                >
+                  <span className="flex items-center justify-center space-x-2">
+                    <span>Start</span>
+                    <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd"></path>
+                    </svg>
+                  </span>
+                </button>
+
+                {/* <button
+                  onClick={() => navigate('/login')}
+                  className="group bg-white/20 border-2 border-white text-white px-8 py-4 rounded-xl font-bold hover:bg-white hover:text-teal-600 transition-all duration-300 backdrop-blur-sm transform hover:scale-105 hover:-translate-y-1"
+                >
+                  <span className="flex items-center justify-center space-x-2">
+                    <span> Login </span>
+                    <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd"></path>
+                    </svg>
+                  </span>
+                </button> */}
+              </div>
+            </div>
+
+            {/* Right content - Woman illustration placeholder */}
+            <div
+              className={`relative transition-all duration-1000 delay-300 ${isVisible.hero ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-12'
+                }`}
+              data-animate="hero"
+            >
+              <div className="relative">
+                {/* Decorative circle background */}
+                <div className="absolute -inset-8">
+                  <div className="w-full h-full bg-white/10 rounded-full animate-pulse"></div>
+                </div>
+
+                {/* Placeholder for woman image - you'll need to add the actual image */}
+                <div className="relative z-10 bg-white/20 backdrop-blur-sm rounded-3xl p-8 border border-white/30">
+                  <div className="h-500 w-500 bg-gradient-to-br from-white/30 to-white/10 rounded-2xl flex items-center justify-center">
+                    <div className="text-center text-white/80">
+                      {/* <p className="text-lg font-medium">Teknisi Ni Boss</p> */}
+                      <div className="group relative px-3 py-2 rounded-xl shadow-lg hover:shadow-teal-300 dark:hover:shadow-teal-600 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1">
+                        <img src={teknisi} alt="Teknisi" width="400" height="400"/>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Scroll indicator */}
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white/60 animate-bounce">
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+          </svg>
+        </div>
+      </section>
+
+      <div className="container mx-auto px-6 py-20">
         {/* Features Section */}
-        <div className="mt-32">
+        <section
+          id="layanan"
+          className={`mt-32 transition-all duration-1000 ${isVisible.features ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
+            }`}
+          data-animate="features"
+        >
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-800 dark:text-gray-100 mb-4">
               Fitur Unggulan
@@ -195,7 +300,10 @@ const LandingPage = () => {
             {features.map((feature, index) => (
               <div
                 key={index}
-                className="group bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-8 rounded-2xl shadow-xl border border-teal-100 dark:border-gray-700 hover:border-teal-300 dark:hover:border-teal-500 hover:bg-teal-50 dark:hover:bg-gray-700 transition-all duration-500 transform hover:scale-105 hover:-translate-y-2"
+                className={`group bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-8 rounded-2xl shadow-xl border border-teal-100 dark:border-gray-700 hover:border-teal-300 dark:hover:border-teal-500 hover:bg-teal-50 dark:hover:bg-gray-700 transition-all duration-500 transform hover:scale-105 hover:-translate-y-2 ${isVisible.features ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                  }`}
+                style={{ transitionDelay: `${index * 100}ms` }}
+                data-animate="features"
               >
                 <div className="mb-6 group-hover:scale-110 transition-transform duration-300">
                   {feature.icon}
@@ -209,10 +317,14 @@ const LandingPage = () => {
               </div>
             ))}
           </div>
-        </div>
+        </section>
 
         {/* Stats Section */}
-        <div className="mt-32">
+        <section
+          className={`mt-32 transition-all duration-1000 ${isVisible.stats ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
+            }`}
+          data-animate="stats"
+        >
           <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-2xl p-12 border border-teal-100 dark:border-gray-700 shadow-2xl">
             <div className="text-center mb-12">
               <h3 className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-4">
@@ -223,36 +335,35 @@ const LandingPage = () => {
               </p>
             </div>
             <div className="grid md:grid-cols-4 gap-8 text-center">
-              <div className="space-y-2">
-                <div className="text-4xl font-bold bg-gradient-to-r from-teal-600 to-blue-600 dark:from-teal-400 dark:to-blue-400 bg-clip-text text-transparent">
-                  1000+
+              {[
+                { number: '1000+', label: 'Barang Terdaftar', gradient: 'from-teal-600 to-blue-600 dark:from-teal-400 dark:to-blue-400' },
+                { number: '5', label: 'Cabang', gradient: 'from-blue-600 to-emerald-600 dark:from-blue-400 dark:to-emerald-400' },
+                { number: '24/7', label: 'Monitoring', gradient: 'from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400' },
+                { number: '99.9%', label: 'Akurasi Data', gradient: 'from-teal-600 to-blue-600 dark:from-teal-400 dark:to-blue-400' }
+              ].map((stat, index) => (
+                <div
+                  key={index}
+                  className={`space-y-2 transition-all duration-1000 ${isVisible.stats ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                    }`}
+                  style={{ transitionDelay: `${index * 200}ms` }}
+                >
+                  <div className={`text-4xl font-bold bg-gradient-to-r ${stat.gradient} bg-clip-text text-transparent`}>
+                    {stat.number}
+                  </div>
+                  <div className="text-gray-600 dark:text-gray-300">{stat.label}</div>
                 </div>
-                <div className="text-gray-600 dark:text-gray-300">Barang Terdaftar</div>
-              </div>
-              <div className="space-y-2">
-                <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-emerald-600 dark:from-blue-400 dark:to-emerald-400 bg-clip-text text-transparent">
-                  5
-                </div>
-                <div className="text-gray-600 dark:text-gray-300">Cabang</div>
-              </div>
-              <div className="space-y-2">
-                <div className="text-4xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
-                  24/7
-                </div>
-                <div className="text-gray-600 dark:text-gray-300">Monitoring</div>
-              </div>
-              <div className="space-y-2">
-                <div className="text-4xl font-bold bg-gradient-to-r from-teal-600 to-blue-600 dark:from-teal-400 dark:to-blue-400 bg-clip-text text-transparent">
-                  99.9%
-                </div>
-                <div className="text-gray-600 dark:text-gray-300">Akurasi Data</div>
-              </div>
+              ))}
             </div>
           </div>
-        </div>
+        </section>
 
         {/* Company Info Section */}
-        <div className="mt-32">
+        <section
+          id="tentang"
+          className={`mt-32 transition-all duration-1000 ${isVisible.company ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
+            }`}
+          data-animate="company"
+        >
           <div className="bg-gradient-to-r from-teal-600 to-blue-600 dark:from-teal-700 dark:to-blue-700 rounded-2xl p-12 text-white shadow-2xl">
             <div className="text-center">
               <h3 className="text-3xl font-bold mb-6">
@@ -260,35 +371,32 @@ const LandingPage = () => {
               </h3>
               <p className="text-xl leading-relaxed max-w-4xl mx-auto mb-8">
                 PT. Medianusa Permana adalah perusahaan yang bergerak di bidang pelayanan jaringan
-                dengan 4 cabang di Indonesia: Medan, Pekan Baru, Tarutung, dan Jakarta.
+                dengan 5 cabang di Indonesia: Medan, Batam, Pekan Baru, Tarutung, dan Jakarta.
                 Kami mengelola inventori peralatan jaringan seperti Mikrotik dan TP-Link dengan
                 sistem digital yang modern dan efisien.
               </p>
               <div className="grid md:grid-cols-5 gap-6 mt-12">
-                <div className="bg-white/20 dark:bg-white/10 backdrop-blur-sm rounded-xl p-6">
-                  <h4 className="font-bold text-lg mb-2">Batam</h4>
-                  <p className="text-sm opacity-90">Kantor Pusat</p>
-                </div>
-                <div className="bg-white/20 dark:bg-white/10 backdrop-blur-sm rounded-xl p-6">
-                  <h4 className="font-bold text-lg mb-2">Medan</h4>
-                  <p className="text-sm opacity-90">Kantor Cabang</p>
-                </div>
-                <div className="bg-white/20 dark:bg-white/10 backdrop-blur-sm rounded-xl p-6">
-                  <h4 className="font-bold text-lg mb-2">Pekan Baru</h4>
-                  <p className="text-sm opacity-90">Kantor Cabang</p>
-                </div>
-                <div className="bg-white/20 dark:bg-white/10 backdrop-blur-sm rounded-xl p-6">
-                  <h4 className="font-bold text-lg mb-2">Tarutung</h4>
-                  <p className="text-sm opacity-90">Cabang Regional</p>
-                </div>
-                <div className="bg-white/20 dark:bg-white/10 backdrop-blur-sm rounded-xl p-6">
-                  <h4 className="font-bold text-lg mb-2">Jakarta</h4>
-                  <p className="text-sm opacity-90">Cabang Metropolitan</p>
-                </div>
+                {[
+                  { city: 'Batam', status: 'Kantor Pusat' },
+                  { city: 'Medan', status: 'Kantor Cabang' },
+                  { city: 'Pekan Baru', status: 'Kantor Cabang' },
+                  { city: 'Tarutung', status: 'Cabang Regional' },
+                  { city: 'Jakarta', status: 'Cabang Metropolitan' }
+                ].map((office, index) => (
+                  <div
+                    key={index}
+                    className={`bg-white/20 dark:bg-white/10 backdrop-blur-sm rounded-xl p-6 transition-all duration-1000 hover:scale-105 hover:bg-white/30 ${isVisible.company ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                      }`}
+                    style={{ transitionDelay: `${index * 100}ms` }}
+                  >
+                    <h4 className="font-bold text-lg mb-2">{office.city}</h4>
+                    <p className="text-sm opacity-90">{office.status}</p>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
         {/* CTA Section */}
         <div className="mt-32 text-center">

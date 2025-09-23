@@ -1,13 +1,12 @@
 import { useNavigate } from 'react-router-dom';
 import { barangAPI } from '../utils/api'; // sesuaikan path
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import logo from '../assets/logo.png';
 import { useDarkMode } from '../contexts/DarkModeContext';
 import DarkModeToggle from './DarkModeToggle';
-import { useEffect } from 'react';
 
 const AddItem = () => {
-  // const [darkMode, setDarkMode] = useState(false);
   const { isDarkMode } = useDarkMode();
   const [formData, setFormData] = useState({
     nama: '',
@@ -34,109 +33,193 @@ const AddItem = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate required fields
+    if (!formData.nama.trim()) {
+      toast.error('Nama barang tidak boleh kosong!', {
+        icon: '⚠️',
+        duration: 4000
+      });
+      return;
+    }
+
+    if (!formData.type.trim()) {
+      toast.error('Type/Model tidak boleh kosong!', {
+        icon: '⚠️',
+        duration: 4000
+      });
+      return;
+    }
+
+    if (!formData.serial_number.trim()) {
+      toast.error('Serial number tidak boleh kosong!', {
+        icon: '⚠️',
+        duration: 4000
+      });
+      return;
+    }
+
+    if (!formData.lokasi.trim()) {
+      toast.error('Lokasi tidak boleh kosong!', {
+        icon: '⚠️',
+        duration: 4000
+      });
+      return;
+    }
+
+    if (!formData.kota) {
+      toast.error('Silakan pilih cabang!', {
+        icon: '🏢',
+        duration: 4000
+      });
+      return;
+    }
+
     setLoading(true);
+    
+    // Show loading toast
+    const loadingToastId = toast.loading('Menambahkan barang...', {
+      icon: '⏳'
+    });
+
     try {
-      // Pastikan backend menerima data dengan format yang tepat
       const response = await barangAPI.create(formData);
 
       if (response && response.id) {
-        alert('Barang berhasil ditambahkan!');
-        navigate('/dashboard');
+        // Dismiss loading toast and show success
+        toast.dismiss(loadingToastId);
+        toast.success(
+          <>
+            <div className="flex flex-col">
+              <span className="font-semibold">Barang berhasil ditambahkan!</span>
+              <span className="text-sm opacity-80">
+                {formData.nama} - ID: #{response.id}
+              </span>
+            </div>
+          </>,
+          {
+            icon: '✅',
+            duration: 5000,
+            style: {
+              minHeight: '60px'
+            }
+          }
+        );
+
+        // Show additional info toast
+        setTimeout(() => {
+          toast.info(
+            `Barang disimpan di ${formData.lokasi}, ${formData.kota}`,
+            {
+              icon: '📍',
+              duration: 4000
+            }
+          );
+        }, 1000);
+
+        // Reset form
+        setFormData({
+          nama: '',
+          type: '',
+          mac_address: '',
+          serial_number: '',
+          kondisi: 'Baik',
+          status: 'READY',
+          keterangan: '',
+          lokasi: '',
+          kota: ''
+        });
+
+        // Navigate back to dashboard after showing success
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 2000);
       } else {
-        // Jika response tidak ada atau tidak sesuai
         throw new Error('Gagal menambahkan barang. Periksa input atau coba lagi nanti.');
       }
     } catch (err) {
+      // Dismiss loading toast and show error
+      toast.dismiss(loadingToastId);
+      
       console.error(err);
-      alert(err.message || 'Terjadi kesalahan saat menambahkan barang. Coba lagi nanti.');
+      
+      if (err.message.includes('Serial number already exists')) {
+        toast.error(
+          <>
+            <div className="flex flex-col">
+              <span className="font-semibold">Serial number sudah ada!</span>
+              <span className="text-sm opacity-80">
+                {formData.serial_number} telah terdaftar dalam sistem
+              </span>
+            </div>
+          </>,
+          {
+            icon: '🔄',
+            duration: 5000
+          }
+        );
+      } else if (err.message.includes('401') || err.message.includes('403')) {
+        toast.error('Sesi Anda telah berakhir. Silakan login kembali.', {
+          icon: '🔐',
+          duration: 5000
+        });
+        setTimeout(() => navigate('/login'), 2000);
+      } else {
+        toast.error(
+          <>
+            <div className="flex flex-col">
+              <span className="font-semibold">Gagal menambahkan barang</span>
+              <span className="text-sm opacity-80">
+                {err.message || 'Terjadi kesalahan sistem. Coba lagi nanti.'}
+              </span>
+            </div>
+          </>,
+          {
+            icon: '❌',
+            duration: 6000
+          }
+        );
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const handleBack = () => {
-    // Replace with actual navigation: navigate('/dashboard');
+    // Check if form has data
+    const hasData = Object.values(formData).some(value => 
+      value !== '' && value !== 'Baik' && value !== 'READY'
+    );
+
+    if (hasData) {
+      const confirmLeave = window.confirm(
+        'Anda memiliki data yang belum disimpan. Yakin ingin keluar?'
+      );
+      if (!confirmLeave) {
+        return;
+      }
+      
+      toast.info('Data yang belum disimpan telah diabaikan', {
+        icon: '🗑️',
+        duration: 3000
+      });
+    }
+    
     navigate('/dashboard');
   };
 
-  const handleScan = (data) => {
-    if (data) {
-      // Mengambil data dari barcode (misalnya nama dan MAC address)
-      const barcodeData = JSON.parse(data); // Anggap data dalam format JSON, bisa disesuaikan
-      setFormData({
-        ...formData,
-        nama: barcodeData.nama || '',
-        mac_address: barcodeData.mac_address || '',
-      });
-      setScanning(false); // Menutup scanner setelah data dipindai
-    }
-  };
-
-  const handleError = (err) => {
-    console.error(err);
-    alert("Failed to scan barcode");
-  };
-
-  // // Dark mode toggle
-  // const toggleDarkMode = () => {
-  //   setDarkMode(!darkMode);
-  // };
-
-  // // Load dark mode preference
-  // useEffect(() => {
-  //   const savedTheme = localStorage.getItem('isDarkMode');
-  //   if (savedTheme) {
-  //     setDarkMode(JSON.parse(savedTheme));
-  //   }
-  // }, []);
-
-  // Save dark mode preference
-  useEffect(() => {
-    localStorage.setItem('isDarkMode', JSON.stringify(isDarkMode));
-  }, [isDarkMode]);
-
-  // const handleChange = (e) => {
-  //   setFormData({
-  //     ...formData,
-  //     [e.target.name]: e.target.value
-  //   });
-  // };
-
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   setLoading(true);
-  //   try {
-  //     // Simulate API call
-  //     await new Promise(resolve => setTimeout(resolve, 2000));
-  //     alert('Demo: Barang berhasil ditambahkan! Data: ' + JSON.stringify(formData, null, 2));
-  //     // Reset form
-  //     setFormData({
-  //       nama: '',
-  //       type: '',
-  //       mac_address: '',
-  //       serial_number: '',
-  //       kondisi: 'Baik',
-  //       status: 'READY',
-  //       keterangan: '',
-  //       lokasi: '',
-  //       kota: ''
-  //     });
-  //   } catch (err) {
-  //     console.error(err);
-  //     alert('Demo: Terjadi kesalahan saat menambahkan barang');
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-  // const handleBack = () => {
-  //   navigate('/dashboard');
-  // };
-
-  // Mock barcode scanner
+  // Mock barcode scanner with better feedback
   const startScanning = () => {
     setScanning(true);
     setScanResult(null);
+
+    // Show scanning toast
+    const scanToastId = toast.loading(
+      'Scanning barcode... Arahkan kamera ke barcode peralatan',
+      {
+        icon: '📱'
+      }
+    );
 
     // Simulate scanning process
     setTimeout(() => {
@@ -155,12 +238,70 @@ const AddItem = () => {
         ...mockScanData
       }));
       setScanning(false);
+
+      // Dismiss scanning toast and show success
+      toast.dismiss(scanToastId);
+      toast.success(
+        <>
+          <div className="flex flex-col">
+            <span className="font-semibold">Scan berhasil!</span>
+            <span className="text-sm opacity-80">
+              Data {mockScanData.nama} telah terisi otomatis
+            </span>
+          </div>
+        </>,
+        {
+          icon: '📷',
+          duration: 5000
+        }
+      );
     }, 3000);
   };
 
   const stopScanning = () => {
     setScanning(false);
     setScanResult(null);
+    toast.info('Scanning dibatalkan', {
+      icon: '⏹️',
+      duration: 2000
+    });
+  };
+
+  // Auto-save draft (optional feature)
+  useEffect(() => {
+    const draftData = localStorage.getItem('addItemDraft');
+    if (draftData) {
+      try {
+        const parsedDraft = JSON.parse(draftData);
+        setFormData(parsedDraft);
+        toast.info('Draft terakhir telah dipulihkan', {
+          icon: '📋',
+          duration: 3000
+        });
+      } catch (error) {
+        console.error('Error parsing draft:', error);
+      }
+    }
+  }, []);
+
+  // Save draft on form change
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const hasData = Object.values(formData).some(value => 
+        value !== '' && value !== 'Baik' && value !== 'READY'
+      );
+      
+      if (hasData) {
+        localStorage.setItem('addItemDraft', JSON.stringify(formData));
+      }
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [formData]);
+
+  // Clear draft on successful submit
+  const clearDraft = () => {
+    localStorage.removeItem('addItemDraft');
   };
 
   // Style classes
@@ -170,7 +311,6 @@ const AddItem = () => {
   const inputClass = isDarkMode ? 'bg-gray-700/50 border-gray-600 text-white' : 'bg-gray-50 border-gray-200 text-gray-700';
   const textPrimaryClass = isDarkMode ? 'text-teal-400' : 'text-teal-600';
   const textSecondaryClass = isDarkMode ? 'text-gray-400' : 'text-gray-600';
-  const textMainClass = isDarkMode ? 'text-white' : 'text-gray-800';
 
   return (
     <div className={'min-h-screen transition-all duration-300 ' + containerClass}>
@@ -191,11 +331,10 @@ const AddItem = () => {
                 </div>
               </div>
               <h1 className={'text-2xl font-bold transition-colors duration-300 ' + textPrimaryClass}>
-                Tambah
+                Tambah Barang
               </h1>
             </div>
             <div className="flex items-center space-x-4">
-              {/* Dark Mode Toggle */}
               <DarkModeToggle />
 
               <button
@@ -555,7 +694,7 @@ const AddItem = () => {
                   <div className={'w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center ' + (isDarkMode ? 'bg-blue-600' : 'bg-blue-500')}>
                     <span className="text-white font-bold text-sm">1</span>
                   </div>
-                  <p className={'font-semibold mb-1 transition-colors duration-300 ' + textMainClass}>Posisikan Barcode</p>
+                  <p className={'font-semibold mb-1 transition-colors duration-300 ' + (isDarkMode ? 'text-white' : 'text-gray-800')}>Posisikan Barcode</p>
                   <p className={'transition-colors duration-300 ' + textSecondaryClass}>
                     Arahkan kamera ke barcode pada peralatan jaringan
                   </p>
@@ -564,7 +703,7 @@ const AddItem = () => {
                   <div className={'w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center ' + (isDarkMode ? 'bg-green-600' : 'bg-green-500')}>
                     <span className="text-white font-bold text-sm">2</span>
                   </div>
-                  <p className={'font-semibold mb-1 transition-colors duration-300 ' + textMainClass}>Scan Otomatis</p>
+                  <p className={'font-semibold mb-1 transition-colors duration-300 ' + (isDarkMode ? 'text-white' : 'text-gray-800')}>Scan Otomatis</p>
                   <p className={'transition-colors duration-300 ' + textSecondaryClass}>
                     MAC address dan info peralatan terisi otomatis
                   </p>
@@ -573,7 +712,7 @@ const AddItem = () => {
                   <div className={'w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center ' + (isDarkMode ? 'bg-purple-600' : 'bg-purple-500')}>
                     <span className="text-white font-bold text-sm">3</span>
                   </div>
-                  <p className={'font-semibold mb-1 transition-colors duration-300 ' + textMainClass}>Lengkapi Form</p>
+                  <p className={'font-semibold mb-1 transition-colors duration-300 ' + (isDarkMode ? 'text-white' : 'text-gray-800')}>Lengkapi Form</p>
                   <p className={'transition-colors duration-300 ' + textSecondaryClass}>
                     Isi data tambahan dan simpan barang
                   </p>

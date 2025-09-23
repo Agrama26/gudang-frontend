@@ -1,9 +1,13 @@
+import React from 'react';
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDarkMode } from '../contexts/DarkModeContext';
 import DarkModeToggle from './DarkModeToggle';
+import { toast } from 'react-toastify';
 
 const ItemDetail = () => {
+  const [updating, setUpdating] = useState(false);
+
   const { id } = useParams();
   const navigate = useNavigate();
   const { isDarkMode } = useDarkMode();
@@ -19,6 +23,12 @@ const ItemDetail = () => {
   // Fetch data from API
   const fetchItemDetails = async () => {
     setLoading(true);
+    
+    // Show loading toast
+    const loadingToastId = toast.loading('Memuat detail barang...', {
+      icon: '📦'
+    });
+
     try {
       const { barangAPI } = await import('../utils/api');
       const data = await barangAPI.getById(id);
@@ -28,8 +38,37 @@ const ItemDetail = () => {
       setNewLokasi(data.barang.lokasi);
       setNewKondisi(data.barang.kondisi);
       setNewKeterangan(data.barang.keterangan);
+
+      // Dismiss loading toast and show success
+      toast.dismiss(loadingToastId);
+      toast.success(`Detail barang ${data.barang.nama} berhasil dimuat`, {
+        icon: '✅',
+        duration: 3000
+      });
     } catch (error) {
       console.error('Error fetching item details:', error);
+      
+      // Dismiss loading toast and show error
+      toast.dismiss(loadingToastId);
+      
+      if (error.message.includes('404')) {
+        toast.error('Barang tidak ditemukan', {
+          icon: '❌',
+          duration: 5000
+        });
+      } else if (error.message.includes('401') || error.message.includes('403')) {
+        toast.error('Sesi Anda telah berakhir. Silakan login kembali.', {
+          icon: '🔐',
+          duration: 5000
+        });
+        setTimeout(() => navigate('/login'), 2000);
+      } else {
+        toast.error('Gagal memuat detail barang. Coba lagi nanti.', {
+          icon: '⚠️',
+          duration: 5000
+        });
+      }
+      
       setItem(null);
     } finally {
       setLoading(false);
@@ -41,171 +80,241 @@ const ItemDetail = () => {
   }, [id]);
 
   const handleStatusUpdate = async () => {
-    if (
-      newStatus !== item.status ||
-      newLokasi !== item.lokasi ||
-      newKondisi !== item.kondisi ||
-      newKeterangan !== item.keterangan
-    ) {
-      try {
-        const { barangAPI } = await import('../utils/api');
+    const hasChanges = newStatus !== item.status || 
+                      newLokasi !== item.lokasi || 
+                      newKondisi !== item.kondisi || 
+                      newKeterangan !== item.keterangan;
 
-        const changes = [];
-        if (newStatus !== item.status) {
-          changes.push(`Status diubah dari ${item.status} ke ${newStatus}`);
-        }
-        if (newLokasi !== item.lokasi) {
-          changes.push(`Lokasi dipindah dari ${item.lokasi} ke ${newLokasi}`);
-        }
-        if (newKondisi !== item.kondisi) {
-          changes.push(`Kondisi diubah dari ${item.kondisi} ke ${newKondisi}`);
-        }
-        if (newKeterangan !== item.keterangan) {
-          changes.push(`Keterangan diubah dari ${item.keterangan} ke ${newKeterangan}`);
-        }
-        const Info = changes.join(', ');
+    if (!hasChanges) {
+      toast.info('Tidak ada perubahan yang perlu disimpan', {
+        icon: 'ℹ️',
+        duration: 3000
+      });
+      return;
+    }
 
-        await barangAPI.updateStatus(id, {
-          status: newStatus,
-          lokasi: newLokasi,
-          kondisi: newKondisi,
-          keterangan: newKeterangan,
-          info: Info
-        });
+    setUpdating(true);
 
-        await fetchItemDetails();
-        alert('Status dan lokasi berhasil diupdate!');
-      } catch (error) {
-        console.error('Error updating status:', error);
-        alert('Gagal mengupdate status. Silakan coba lagi.');
+    // Show loading toast
+    const updateToastId = toast.loading('Mengupdate data barang...', {
+      icon: '🔄'
+    });
+
+    try {
+      const { barangAPI } = await import('../utils/api');
+
+      const changes = [];
+      if (newStatus !== item.status) changes.push(`Status: ${item.status} → ${newStatus}`);
+      if (newLokasi !== item.lokasi) changes.push(`Lokasi: ${item.lokasi} → ${newLokasi}`);
+      if (newKondisi !== item.kondisi) changes.push(`Kondisi: ${item.kondisi} → ${newKondisi}`);
+      if (newKeterangan !== item.keterangan) changes.push('Keterangan diperbarui');
+
+      const changeInfo = changes.join(', ');
+
+      await barangAPI.updateStatus(id, {
+        status: newStatus,
+        lokasi: newLokasi,
+        kondisi: newKondisi,
+        keterangan: newKeterangan,
+        info: changeInfo
+      });
+
+      await fetchItemDetails();
+      
+      // Dismiss loading toast and show success
+      toast.dismiss(updateToastId);
+      toast.success(
+        <>
+          <div className="flex flex-col">
+            <span className="font-semibold">Update berhasil!</span>
+            <span className="text-sm opacity-80">
+              {changes.length} perubahan telah disimpan
+            </span>
+          </div>
+        </>,
+        {
+          icon: '✅',
+          duration: 5000
+        }
+      );
+
+      // Show detailed changes
+      if (changes.length > 0) {
+        setTimeout(() => {
+          toast.info(
+            <>
+              <div className="flex flex-col">
+                <span className="font-semibold">Perubahan yang disimpan:</span>
+                {changes.map((change, index) => (
+                  <span key={index} className="text-sm opacity-80">• {change}</span>
+                ))}
+              </div>
+            </>,
+            {
+              icon: '📝',
+              duration: 6000,
+              style: {
+                minHeight: '80px'
+              }
+            }
+          );
+        }, 1000);
       }
+
+    } catch (error) {
+      console.error('Error updating status:', error);
+      
+      // Dismiss loading toast and show error
+      toast.dismiss(updateToastId);
+      
+      if (error.message.includes('404')) {
+        toast.error('Barang tidak ditemukan', {
+          icon: '❌',
+          duration: 5000
+        });
+      } else if (error.message.includes('401') || error.message.includes('403')) {
+        toast.error('Sesi Anda telah berakhir. Silakan login kembali.', {
+          icon: '🔐',
+          duration: 5000
+        });
+        setTimeout(() => navigate('/login'), 2000);
+      } else {
+        toast.error('Gagal mengupdate status. Silakan coba lagi.', {
+          icon: '⚠️',
+          duration: 5000
+        });
+      }
+    } finally {
+      setUpdating(false);
     }
   };
 
   const handleBack = () => {
+    const hasUnsavedChanges = newStatus !== item?.status || 
+                             newLokasi !== item?.lokasi || 
+                             newKondisi !== item?.kondisi || 
+                             newKeterangan !== item?.keterangan;
+
+    if (hasUnsavedChanges) {
+      const confirmLeave = window.confirm(
+        'Anda memiliki perubahan yang belum disimpan. Yakin ingin keluar?'
+      );
+      if (!confirmLeave) {
+        return;
+      }
+      
+      toast.info('Perubahan yang belum disimpan telah diabaikan', {
+        icon: '🗑️',
+        duration: 3000
+      });
+    }
+    
     navigate('/dashboard');
+  };
+
+  // QR Code generation
+  const handleQRGeneration = () => {
+    if (!item) return;
+
+    toast.promise(
+      // Simulate QR generation
+      new Promise((resolve) => {
+        setTimeout(() => {
+          resolve(`QR Code untuk ${item.nama} berhasil dibuat`);
+        }, 2000);
+      }),
+      {
+        pending: {
+          render: 'Generating QR Code...',
+          icon: '🔄'
+        },
+        success: {
+          render: ({ data }) => data,
+          icon: '📱'
+        },
+        error: {
+          render: 'Gagal membuat QR Code',
+          icon: '❌'
+        }
+      }
+    );
+  };
+
+  const handleQRDownload = () => {
+    toast.success('QR Code berhasil didownload!', {
+      icon: '📥',
+      duration: 3000
+    });
   };
 
   const getStatusColor = (status) => {
     switch (status) {
       case 'READY':
-        return isDarkMode 
-          ? 'bg-green-800/50 text-green-300 border-green-300/30' 
-          : 'bg-green-900/50 text-green-400 border-green-400/30';
+        return isDarkMode
+          ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30'
+          : 'bg-emerald-500 text-white shadow-emerald-500/30';
       case 'TERPAKAI':
-        return isDarkMode 
-          ? 'bg-blue-800/50 text-blue-300 border-blue-300/30' 
-          : 'bg-blue-900/50 text-blue-400 border-blue-400/30';
+        return isDarkMode
+          ? 'bg-blue-500/20 text-blue-300 border-blue-400/30'
+          : 'bg-blue-500 text-white shadow-blue-500/30';
       case 'RUSAK':
-        return isDarkMode 
-          ? 'bg-red-800/50 text-red-300 border-red-300/30' 
-          : 'bg-red-900/50 text-red-400 border-red-400/30';
+        return isDarkMode
+          ? 'bg-red-500/20 text-red-300 border-red-400/30'
+          : 'bg-red-500 text-white shadow-red-500/30';
       default:
-        return isDarkMode 
-          ? 'bg-gray-700/50 text-gray-300 border-gray-300/30' 
-          : 'bg-gray-900/50 text-gray-400 border-gray-400/30';
+        return isDarkMode
+          ? 'bg-gray-500/20 text-gray-300 border-gray-400/30'
+          : 'bg-gray-500 text-white shadow-gray-500/30';
     }
   };
 
-  // Mock QR Code component
-  const MockQRCode = ({ value, size }) => (
-    <div
-      className={`${isDarkMode ? 'bg-gray-100' : 'bg-white'} flex items-center justify-center font-mono text-xs text-center p-2 rounded`}
-      style={{ width: size, height: size }}
-    >
-      <div className="grid grid-cols-8 gap-px">
-        {[...Array(64)].map((_, i) => (
-          <div
-            key={i}
-            className={`w-2 h-2 ${Math.random() > 0.5 ? (isDarkMode ? 'bg-gray-800' : 'bg-black') : (isDarkMode ? 'bg-gray-100' : 'bg-white')}`}
-          />
-        ))}
-      </div>
-    </div>
-  );
+  // Style classes
+  const containerClass = isDarkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-teal-50 to-blue-50';
+  const headerClass = isDarkMode ? 'bg-gray-800/80 border-gray-700' : 'bg-white/80 border-teal-200';
+  const cardClass = isDarkMode ? 'bg-gray-800/80 border-gray-700' : 'bg-white border-teal-100';
+  const inputClass = isDarkMode ? 'bg-gray-700/50 border-gray-600 text-white' : 'bg-gray-50 border-gray-200 text-gray-700';
+  const textPrimaryClass = isDarkMode ? 'text-teal-400' : 'text-teal-600';
+  const textSecondaryClass = isDarkMode ? 'text-gray-400' : 'text-gray-600';
+  const textMainClass = isDarkMode ? 'text-white' : 'text-gray-800';
 
   if (loading) {
     return (
-      <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-black'} text-white flex items-center justify-center relative overflow-hidden transition-colors duration-300`}>
-        {/* Dark Mode Toggle */}
-        <div className="fixed top-6 right-6 z-50">
-          <DarkModeToggle />
-        </div>
-
-        {/* Loading Background */}
-        <div className="absolute inset-0">
-          <div
-            className="absolute inset-0 opacity-20"
-            style={{
-              backgroundImage: `
-                linear-gradient(rgba(0, 255, 255, ${isDarkMode ? '0.2' : '0.3'}) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 255, 255, ${isDarkMode ? '0.2' : '0.3'}) 1px, transparent 1px)
-              `,
-              backgroundSize: '30px 30px',
-              animation: 'gridScan 3s linear infinite'
-            }}
-          />
-
-          {[...Array(8)].map((_, i) => (
-            <div
-              key={i}
-              className={`absolute w-1 h-1 ${isDarkMode ? 'bg-cyan-300' : 'bg-cyan-400'} rounded-full animate-ping`}
-              style={{
-                left: `${20 + (i * 10)}%`,
-                top: `${30 + (i * 5)}%`,
-                animationDelay: `${i * 0.2}s`
-              }}
-            />
-          ))}
-        </div>
-
-        <div className="relative z-10 text-center">
+      <div className={'min-h-screen flex items-center justify-center transition-all duration-300 ' + containerClass}>
+        <div className="text-center">
           <div className="relative">
-            <div className={`w-16 h-16 border-4 ${isDarkMode ? 'border-cyan-300/30 border-t-cyan-300' : 'border-cyan-400/30 border-t-cyan-400'} rounded-full animate-spin mx-auto mb-4`}></div>
-            <div className={`absolute inset-0 w-16 h-16 border-4 ${isDarkMode ? 'border-blue-300/20 border-b-blue-300' : 'border-blue-400/20 border-b-blue-400'} rounded-full animate-spin mx-auto`} style={{ animationDirection: 'reverse', animationDuration: '2s' }}></div>
+            <div className={'w-16 h-16 border-4 border-t-transparent rounded-full animate-spin mx-auto mb-4 ' + (isDarkMode ? 'border-teal-400' : 'border-teal-600')}></div>
+            <div className={'absolute inset-0 w-16 h-16 border-4 border-b-transparent rounded-full animate-spin mx-auto ' + (isDarkMode ? 'border-blue-400/20' : 'border-blue-600/20')} style={{ animationDirection: 'reverse', animationDuration: '2s' }}></div>
           </div>
-          <p className={`${isDarkMode ? 'text-cyan-300' : 'text-cyan-400'} font-mono uppercase tracking-wider`}>Scanning Item Data...</p>
+          <p className={'font-semibold uppercase tracking-wider transition-colors duration-300 ' + textPrimaryClass}>Loading Item Data...</p>
           <div className="mt-4 flex justify-center space-x-1">
-            {[...Array(3)].map((_, i) => (
+            {[0, 1, 2].map((i) => (
               <div
                 key={i}
-                className={`w-2 h-2 ${isDarkMode ? 'bg-cyan-300' : 'bg-cyan-400'} rounded-full animate-bounce`}
-                style={{ animationDelay: `${i * 0.2}s` }}
+                className={'w-2 h-2 rounded-full animate-bounce ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}
+                style={{ animationDelay: (i * 0.2) + 's' }}
               />
             ))}
           </div>
         </div>
-
-        <style jsx>{`
-          @keyframes gridScan {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(30px, 30px); }
-          }
-        `}</style>
       </div>
     );
   }
 
   if (!item) {
     return (
-      <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-black'} text-white flex items-center justify-center transition-colors duration-300`}>
-        {/* Dark Mode Toggle */}
-        <div className="fixed top-6 right-6 z-50">
-          <DarkModeToggle />
-        </div>
-
+      <div className={'min-h-screen flex items-center justify-center transition-all duration-300 ' + containerClass}>
         <div className="text-center">
-          <div className={`text-6xl ${isDarkMode ? 'text-red-300' : 'text-red-400'} mb-4`}>⚠</div>
-          <p className={`${isDarkMode ? 'text-red-300' : 'text-red-400'} font-mono text-xl mb-6`}>ITEM NOT FOUND</p>
+          <div className={'text-6xl mb-4 transition-colors duration-300 ' + (isDarkMode ? 'text-red-400' : 'text-red-500')}>⚠️</div>
+          <p className={'text-xl mb-6 font-semibold transition-colors duration-300 ' + (isDarkMode ? 'text-red-400' : 'text-red-500')}>
+            ITEM NOT FOUND
+          </p>
           <button
             onClick={handleBack}
-            className={`bg-gradient-to-r ${
-              isDarkMode 
-                ? 'from-cyan-400 to-blue-400 hover:from-cyan-300 hover:to-blue-300' 
-                : 'from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400'
-            } text-black px-6 py-3 rounded-sm font-mono uppercase tracking-wider transition-all duration-300`}
+            className={'px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 ' + (isDarkMode
+              ? 'bg-gradient-to-r from-teal-600 to-blue-600 text-white hover:from-teal-700 hover:to-blue-700'
+              : 'bg-gradient-to-r from-teal-500 to-blue-500 text-white hover:from-teal-600 hover:to-blue-600')}
           >
-            ← Return to Dashboard
+            ← Kembali ke Dashboard
           </button>
         </div>
       </div>
@@ -213,69 +322,40 @@ const ItemDetail = () => {
   }
 
   return (
-    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-black'} text-white relative overflow-hidden transition-colors duration-300`}>
-      {/* Dark Mode Toggle */}
-      <div className="fixed top-6 right-6 z-50">
-        <DarkModeToggle />
-      </div>
-
-      {/* Animated Background */}
-      <div className="absolute inset-0 overflow-hidden">
-        {/* Hexagonal Grid */}
-        <div className="absolute inset-0 opacity-10">
-          <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
-            <defs>
-              <pattern id="hexPattern" x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
-                <polygon points="5,1 8.66,3 8.66,7 5,9 1.34,7 1.34,3" fill="none" stroke={isDarkMode ? "#06b6d4" : "#00ffff"} strokeWidth="0.2" />
-              </pattern>
-            </defs>
-            <rect width="100" height="100" fill="url(#hexPattern)" className="animate-pulse" />
-          </svg>
-        </div>
-
-        {/* Data Flow Lines */}
-        {[...Array(6)].map((_, i) => (
-          <div
-            key={i}
-            className={`absolute w-px bg-gradient-to-b from-transparent via-cyan-400 dark:via-cyan-300 to-transparent opacity-40`}
-            style={{
-              left: `${15 + (i * 15)}%`,
-              height: '100vh',
-              animation: `dataFlow ${3 + i}s linear infinite`,
-              animationDelay: `${i * 0.5}s`
-            }}
-          />
-        ))}
-
-        {/* Scanning Beams */}
-        <div className={`absolute top-1/4 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-cyan-400 dark:via-cyan-300 to-transparent opacity-60 animate-scanBeam`}></div>
+    <div className={'min-h-screen transition-all duration-300 ' + containerClass}>
+      {/* Animated Background Elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className={'absolute -top-40 -right-40 w-80 h-80 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse ' + (isDarkMode ? 'bg-teal-800' : 'bg-teal-200')}></div>
+        <div className={'absolute -bottom-40 -left-40 w-80 h-80 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse ' + (isDarkMode ? 'bg-blue-800' : 'bg-blue-200')}></div>
       </div>
 
       {/* Header */}
-      <div className={`relative z-10 ${isDarkMode ? 'bg-gray-800/80' : 'bg-gray-900/80'} backdrop-blur-sm border-b border-cyan-500/30 dark:border-cyan-400/30`}>
+      <div className={'relative backdrop-blur-xl border-b shadow-lg transition-all duration-300 ' + headerClass}>
         <div className="container mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
-              <div className={`w-8 h-8 bg-gradient-to-br ${isDarkMode ? 'from-cyan-300 to-blue-400' : 'from-cyan-400 to-blue-500'} rounded-sm animate-pulse`}></div>
-              <h1 className={`text-2xl font-bold bg-gradient-to-r ${
-                isDarkMode 
-                  ? 'from-cyan-300 to-blue-300' 
-                  : 'from-cyan-400 to-blue-400'
-              } bg-clip-text text-transparent font-mono`}>
-                ITEM ANALYSIS MODULE
+              <div className={'w-8 h-8 rounded-sm animate-pulse ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
+              <h1 className={'text-2xl font-bold transition-colors duration-300 ' + textPrimaryClass}>
+                Detail {item?.nama}
               </h1>
             </div>
-            <button
-              onClick={handleBack}
-              className={`group bg-transparent border ${
-                isDarkMode 
-                  ? 'border-cyan-300 text-cyan-300 hover:bg-cyan-300' 
-                  : 'border-cyan-400 text-cyan-400 hover:bg-cyan-400'
-              } hover:text-black px-6 py-2 rounded-sm transition-all duration-300 font-mono uppercase tracking-wider relative overflow-hidden`}
-            >
-              <span className={`absolute inset-0 ${isDarkMode ? 'bg-cyan-300' : 'bg-cyan-400'} transform translate-x-full group-hover:translate-x-0 transition-transform duration-300`}></span>
-              <span className="relative z-10">← RETURN TO DASHBOARD</span>
-            </button>
+            <div className="flex items-center space-x-4">
+              <DarkModeToggle />
+
+              <button
+                onClick={handleBack}
+                className={'group border px-6 py-2 rounded-xl transition-all duration-300 font-semibold transform hover:scale-105 ' + (isDarkMode
+                  ? 'border-teal-400 text-teal-400 hover:bg-teal-400 hover:text-black'
+                  : 'border-teal-600 text-teal-600 hover:bg-teal-600 hover:text-white')}
+              >
+                <span className="flex items-center space-x-2">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd"></path>
+                  </svg>
+                  <span>Kembali ke Dashboard</span>
+                </span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -285,61 +365,57 @@ const ItemDetail = () => {
           {/* Item Details */}
           <div className="lg:col-span-2 space-y-8">
             {/* Basic Info */}
-            <div className={`${
-              isDarkMode ? 'bg-gray-800/80' : 'bg-gray-900/80'
-            } backdrop-blur-md rounded-lg border border-cyan-500/30 dark:border-cyan-400/30 shadow-2xl shadow-cyan-500/20 p-8 relative overflow-hidden`}>
-              
-              {/* Header with status indicator */}
+            <div className={'backdrop-blur-md rounded-2xl border shadow-xl p-8 transition-all duration-300 ' + cardClass}>
               <div className="flex items-center justify-between mb-6">
-                <h2 className={`text-xl font-bold ${isDarkMode ? 'text-cyan-300' : 'text-cyan-400'} font-mono uppercase tracking-wider`}>Device Information</h2>
+                <h2 className={'text-xl font-bold transition-colors duration-300 ' + textPrimaryClass}>
+                  Informasi Peralatan Jaringan
+                </h2>
                 <div className="flex items-center space-x-2">
-                  <div className={`w-2 h-2 ${isDarkMode ? 'bg-green-300' : 'bg-green-400'} rounded-full animate-ping`}></div>
-                  <span className={`${isDarkMode ? 'text-green-300' : 'text-green-400'} text-xs font-mono`}>ACTIVE</span>
+                  <div className={'w-2 h-2 rounded-full animate-ping ' + (isDarkMode ? 'bg-green-400' : 'bg-green-500')}></div>
+                  <span className={'text-xs font-semibold uppercase tracking-wider transition-colors duration-300 ' + (isDarkMode ? 'text-green-400' : 'text-green-600')}>
+                    ACTIVE
+                  </span>
                 </div>
               </div>
 
-              {/* Scanning line animation */}
-              <div className={`absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-cyan-400 dark:via-cyan-300 to-transparent animate-scanInternal`}></div>
-
-              <div className="grid md:grid-cols-2 gap-6">
+              <div className="text-left grid md:grid-cols-2 gap-6">
                 {[
-                  { label: 'Device Name', value: item.nama },
-                  { label: 'Type/Model', value: item.type },
-                  { label: 'MAC Address', value: item.mac_address, mono: true },
-                  { label: 'Serial Number', value: item.serial_number, mono: true },
-                  { label: 'Condition', value: item.kondisi, mono: true },
-                  { label: 'Kota', value: item.kota, mono: true },
-                  { label: 'Current Location', value: item.lokasi },
-                  { label: 'Notes', value: item.keterangan, span: true }
+                  { label: 'Nama Peralatan', value: item.nama, icon: '🖧' },
+                  { label: 'Type/Model', value: item.type, icon: '📦' },
+                  { label: 'MAC Address', value: item.mac_address, mono: true, icon: '🏷️' },
+                  { label: 'Serial Number', value: item.serial_number, mono: true, icon: '#️⃣' },
+                  { label: 'Kondisi', value: item.kondisi, icon: '🔧' },
+                  { label: 'Cabang', value: item.kota, icon: '🏢' },
+                  { label: 'Lokasi Instalasi', value: item.lokasi, span: true, icon: '📍' },
+                  { label: 'Keterangan', value: item.keterangan, span: true, icon: '📝' }
                 ].map((field, index) => (
                   <div key={index} className={`group ${field.span ? 'md:col-span-2' : ''}`}>
-                    <label className={`block text-sm font-mono uppercase tracking-wider ${isDarkMode ? 'text-cyan-300/80' : 'text-cyan-400/80'} mb-2`}>
+                    <label className={'block text-sm font-semibold uppercase tracking-wider mb-2 transition-colors duration-300 ' + textPrimaryClass}>
                       <span className="flex items-center">
-                        <div className={`w-2 h-2 ${isDarkMode ? 'bg-cyan-300' : 'bg-cyan-400'} rounded-full mr-2 animate-pulse`}></div>
+                        <span className="mr-2">{field.icon}</span>
                         {field.label}
                       </span>
                     </label>
                     <div className="relative">
-                      <p className={`p-3 ${
-                        isDarkMode ? 'bg-gray-700/50 border-gray-500' : 'bg-black/50 border-gray-600'
-                      } border rounded-sm text-white transition-all duration-300 group-hover:border-cyan-400/50 ${field.mono ? 'font-mono' : ''}`}>
+                      <p className={'p-3 border rounded-xl transition-all duration-300 group-hover:border-teal-400/50 ' +
+                        (isDarkMode ? 'bg-gray-700/50 border-gray-600 text-white' : 'bg-gray-50 border-gray-200 text-gray-800') +
+                        (field.mono ? ' font-mono' : '')}>
                         {field.value || 'N/A'}
                       </p>
-                      <div className="absolute inset-0 border border-cyan-400/20 dark:border-cyan-300/20 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                     </div>
                   </div>
                 ))}
 
-                {/* Status with special styling */}
+                {/* Status dengan styling khusus */}
                 <div className="group">
-                  <label className={`block text-sm font-mono uppercase tracking-wider ${isDarkMode ? 'text-cyan-300/80' : 'text-cyan-400/80'} mb-2`}>
+                  <label className={'block text-sm font-semibold uppercase tracking-wider mb-2 transition-colors duration-300 ' + textPrimaryClass}>
                     <span className="flex items-center">
-                      <div className={`w-2 h-2 ${isDarkMode ? 'bg-cyan-300' : 'bg-cyan-400'} rounded-full mr-2 animate-pulse`}></div>
-                      Status
+                      <span className="mr-2">📊</span>
+                      Status Peralatan
                     </span>
                   </label>
                   <div className="relative">
-                    <span className={`inline-flex px-4 py-2 text-sm font-mono font-bold rounded-sm border ${getStatusColor(item.status)}`}>
+                    <span className={'inline-flex px-4 py-2 text-sm font-bold rounded-xl border transition-all duration-300 ' + getStatusColor(item.status)}>
                       {item.status}
                     </span>
                   </div>
@@ -347,158 +423,153 @@ const ItemDetail = () => {
               </div>
             </div>
 
-            {/* Status & Location Update */}
-            <div className={`${
-              isDarkMode ? 'bg-gray-800/80' : 'bg-gray-900/80'
-            } backdrop-blur-md rounded-lg border border-cyan-500/30 dark:border-cyan-400/30 shadow-2xl shadow-cyan-500/20 p-8 relative overflow-hidden`}>
-              
+            {/* Status Update Module */}
+            <div className={'backdrop-blur-md rounded-2xl border shadow-xl p-8 transition-all duration-300 ' + cardClass}>
               <div className="flex items-center justify-between mb-6">
-                <h2 className={`text-xl font-bold ${isDarkMode ? 'text-cyan-300' : 'text-cyan-400'} font-mono uppercase tracking-wider`}>System Update Module</h2>
+                <h2 className={'text-xl font-bold transition-colors duration-300 ' + textPrimaryClass}>
+                  Update Status & Lokasi
+                </h2>
                 <div className="flex items-center space-x-2">
-                  <div className={`w-2 h-2 ${isDarkMode ? 'bg-yellow-300' : 'bg-yellow-400'} rounded-full animate-ping`}></div>
-                  <span className={`${isDarkMode ? 'text-yellow-300' : 'text-yellow-400'} text-xs font-mono`}>STANDBY</span>
+                  <div className={'w-2 h-2 rounded-full animate-ping ' + (isDarkMode ? 'bg-yellow-400' : 'bg-yellow-500')}></div>
+                  <span className={'text-xs font-semibold uppercase tracking-wider transition-colors duration-300 ' + (isDarkMode ? 'text-yellow-400' : 'text-yellow-600')}>
+                    STANDBY
+                  </span>
                 </div>
               </div>
 
               <div className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="group">
-                    <label className={`block text-sm font-mono uppercase tracking-wider ${isDarkMode ? 'text-cyan-300' : 'text-cyan-400'} mb-3`}>
+                    <label className={'block text-sm font-semibold uppercase tracking-wider mb-3 transition-colors duration-300 ' + textPrimaryClass}>
                       <span className="flex items-center">
-                        <div className={`w-2 h-2 ${isDarkMode ? 'bg-cyan-300' : 'bg-cyan-400'} rounded-full mr-2 animate-pulse`}></div>
-                        New Status
+                        <div className={'w-2 h-2 rounded-full mr-2 animate-pulse ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
+                        Status Baru
                       </span>
                     </label>
-                    <div className="relative">
-                      <select
-                        value={newStatus}
-                        onChange={(e) => setNewStatus(e.target.value)}
-                        className={`w-full p-4 ${
-                          isDarkMode ? 'bg-gray-700/50 border-gray-500' : 'bg-black/50 border-gray-600'
-                        } border rounded-sm text-white font-mono focus:border-cyan-400 dark:focus:border-cyan-300 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 hover:border-gray-400`}
-                      >
-                        <option value="READY" className={isDarkMode ? "bg-gray-800" : "bg-gray-900"}>READY</option>
-                        <option value="TERPAKAI" className={isDarkMode ? "bg-gray-800" : "bg-gray-900"}>TERPAKAI</option>
-                        <option value="RUSAK" className={isDarkMode ? "bg-gray-800" : "bg-gray-900"}>RUSAK</option>
-                      </select>
-                      <div className="absolute inset-0 border border-cyan-400/20 dark:border-cyan-300/20 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-                    </div>
+                    <select
+                      value={newStatus}
+                      onChange={(e) => setNewStatus(e.target.value)}
+                      className={'w-full p-4 border rounded-xl font-semibold focus:ring-2 focus:ring-teal-400/20 transition-all duration-300 ' + inputClass + ' focus:border-teal-400'}
+                    >
+                      <option value="READY">READY</option>
+                      <option value="TERPAKAI">TERPAKAI</option>
+                      <option value="RUSAK">RUSAK</option>
+                    </select>
                   </div>
 
                   <div className="group">
-                    <label className={`block text-sm font-mono uppercase tracking-wider ${isDarkMode ? 'text-cyan-300' : 'text-cyan-400'} mb-3`}>
+                    <label className={'block text-sm font-semibold uppercase tracking-wider mb-3 transition-colors duration-300 ' + textPrimaryClass}>
                       <span className="flex items-center">
-                        <div className={`w-2 h-2 ${isDarkMode ? 'bg-cyan-300' : 'bg-cyan-400'} rounded-full mr-2 animate-pulse`}></div>
-                        New Location
+                        <div className={'w-2 h-2 rounded-full mr-2 animate-pulse ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
+                        Lokasi Baru
                       </span>
                     </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={newLokasi}
-                        onChange={(e) => setNewLokasi(e.target.value)}
-                        className={`w-full p-4 ${
-                          isDarkMode ? 'bg-gray-700/50 border-gray-500' : 'bg-black/50 border-gray-600'
-                        } border rounded-sm text-white font-mono focus:border-cyan-400 dark:focus:border-cyan-300 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 hover:border-gray-400`}
-                        placeholder="Enter new location..."
-                      />
-                      <div className="absolute inset-0 border border-cyan-400/20 dark:border-cyan-300/20 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-                    </div>
+                    <input
+                      type="text"
+                      value={newLokasi}
+                      onChange={(e) => setNewLokasi(e.target.value)}
+                      className={'w-full p-4 border rounded-xl font-medium focus:ring-2 focus:ring-teal-400/20 transition-all duration-300 ' + inputClass + ' focus:border-teal-400'}
+                      placeholder="Masukkan lokasi baru..."
+                    />
                   </div>
 
                   <div className="group">
-                    <label className={`block text-sm font-mono uppercase tracking-wider ${isDarkMode ? 'text-cyan-300' : 'text-cyan-400'} mb-3`}>
+                    <label className={'block text-sm font-semibold uppercase tracking-wider mb-3 transition-colors duration-300 ' + textPrimaryClass}>
                       <span className="flex items-center">
-                        <div className={`w-2 h-2 ${isDarkMode ? 'bg-cyan-300' : 'bg-cyan-400'} rounded-full mr-2 animate-pulse`}></div>
+                        <div className={'w-2 h-2 rounded-full mr-2 animate-pulse ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
                         Kondisi
                       </span>
                     </label>
-                    <div className="relative">
-                      <select
-                        value={newKondisi}
-                        onChange={(e) => setNewKondisi(e.target.value)}
-                        className={`w-full p-4 ${
-                          isDarkMode ? 'bg-gray-700/50 border-gray-500' : 'bg-black/50 border-gray-600'
-                        } border rounded-sm text-white font-mono focus:border-cyan-400 dark:focus:border-cyan-300 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 hover:border-gray-400`}
-                      >
-                        <option value="Baru" className={isDarkMode ? "bg-gray-800" : "bg-gray-900"}>Baru</option>
-                        <option value="Baik" className={isDarkMode ? "bg-gray-800" : "bg-gray-900"}>Baik</option>
-                        <option value="Rusak Ringan" className={isDarkMode ? "bg-gray-800" : "bg-gray-900"}>Rusak Ringan</option>
-                        <option value="Rusak Berat" className={isDarkMode ? "bg-gray-800" : "bg-gray-900"}>Rusak Berat</option>
-                      </select>
-                      <div className="absolute inset-0 border border-cyan-400/20 dark:border-cyan-300/20 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-                    </div>
+                    <select
+                      value={newKondisi}
+                      onChange={(e) => setNewKondisi(e.target.value)}
+                      className={'w-full p-4 border rounded-xl font-semibold focus:ring-2 focus:ring-teal-400/20 transition-all duration-300 ' + inputClass + ' focus:border-teal-400'}
+                    >
+                      <option value="Baru">Baru</option>
+                      <option value="Baik">Baik</option>
+                      <option value="Rusak Ringan">Rusak Ringan</option>
+                      <option value="Rusak Berat">Rusak Berat</option>
+                    </select>
                   </div>
 
                   <div className="group">
-                    <label className={`block text-sm font-mono uppercase tracking-wider ${isDarkMode ? 'text-cyan-300' : 'text-cyan-400'} mb-3`}>
+                    <label className={'block text-sm font-semibold uppercase tracking-wider mb-3 transition-colors duration-300 ' + textPrimaryClass}>
                       <span className="flex items-center">
-                        <div className={`w-2 h-2 ${isDarkMode ? 'bg-cyan-300' : 'bg-cyan-400'} rounded-full mr-2 animate-pulse`}></div>
-                        Notes
+                        <div className={'w-2 h-2 rounded-full mr-2 animate-pulse ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
+                        Keterangan
                       </span>
                     </label>
-                    <div className="relative">
-                      <textarea
-                        rows="1"
-                        value={newKeterangan}
-                        onChange={(e) => setNewKeterangan(e.target.value)}
-                        className={`w-full p-4 ${
-                          isDarkMode ? 'bg-gray-700/50 border-gray-500' : 'bg-black/50 border-gray-600'
-                        } border rounded-sm text-white font-mono focus:border-cyan-400 dark:focus:border-cyan-300 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 hover:border-gray-400`}
-                        placeholder="Enter additional notes (optional)..."
-                      ></textarea>
-                      <div className="absolute inset-0 border border-cyan-400/20 dark:border-cyan-300/20 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-                    </div>
+                    <textarea
+                      rows="2"
+                      value={newKeterangan}
+                      onChange={(e) => setNewKeterangan(e.target.value)}
+                      className={'w-full p-4 border rounded-xl font-medium focus:ring-2 focus:ring-teal-400/20 transition-all duration-300 resize-none ' + inputClass + ' focus:border-teal-400'}
+                      placeholder="Masukkan keterangan tambahan..."
+                    ></textarea>
                   </div>
                 </div>
 
                 <button
                   onClick={handleStatusUpdate}
-                  disabled={newStatus === item.status && newLokasi === item.lokasi && newKondisi === item.kondisi && newKeterangan === item.keterangan}
-                  className={`w-full group relative overflow-hidden py-4 px-6 rounded-sm font-mono uppercase tracking-wider font-bold transition-all duration-300 ${
-                    newStatus !== item.status || newLokasi !== item.lokasi || newKondisi !== item.kondisi || newKeterangan !== item.keterangan
-                      ? `bg-gradient-to-r ${
-                          isDarkMode 
-                            ? 'from-cyan-400 to-blue-400 hover:from-cyan-300 hover:to-blue-300' 
-                            : 'from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400'
-                        } text-black hover:shadow-2xl hover:shadow-cyan-500/30`
-                      : `${isDarkMode ? 'bg-gray-600 text-gray-400' : 'bg-gray-700 text-gray-400'} cursor-not-allowed`
-                  }`}
+                  disabled={updating || (newStatus === item.status && newLokasi === item.lokasi && newKondisi === item.kondisi && newKeterangan === item.keterangan)}
+                  className={'w-full group relative overflow-hidden py-4 px-6 rounded-xl font-bold uppercase tracking-wider transition-all duration-300 transform hover:scale-105 ' + (
+                    updating || (newStatus === item.status && newLokasi === item.lokasi && newKondisi === item.kondisi && newKeterangan === item.keterangan)
+                      ? 'opacity-50 cursor-not-allowed bg-gray-400 text-gray-200'
+                      : (isDarkMode
+                        ? 'bg-gradient-to-r from-teal-600 to-blue-600 text-white hover:from-teal-700 hover:to-blue-700 hover:shadow-teal-500/50'
+                        : 'bg-gradient-to-r from-teal-500 to-blue-500 text-white hover:from-teal-600 hover:to-blue-600 hover:shadow-teal-500/50')
+                  )}
                 >
-                  <span className="absolute inset-0 bg-white/20 transform translate-x-full group-hover:translate-x-0 transition-transform duration-500"></span>
-                  <span className="relative z-10">
-                    {newStatus !== item.status || newLokasi !== item.lokasi || newKondisi !== item.kondisi || newKeterangan !== item.keterangan ? '▶ Execute Update' : '✓ No Changes Detected'}
+                  <span className="relative z-10 flex items-center justify-center">
+                    {updating ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-3"></div>
+                        Updating...
+                      </>
+                    ) : (newStatus !== item.status || newLokasi !== item.lokasi || newKondisi !== item.kondisi || newKeterangan !== item.keterangan) ? (
+                      <>
+                        <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
+                        </svg>
+                        Execute Update
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
+                        </svg>
+                        No Changes Detected
+                      </>
+                    )}
                   </span>
                 </button>
 
                 {(newStatus !== item.status || newLokasi !== item.lokasi || newKondisi !== item.kondisi || newKeterangan !== item.keterangan) && (
-                  <div className={`p-4 ${
-                    isDarkMode ? 'bg-blue-800/30 border-blue-300/30' : 'bg-blue-900/30 border-blue-400/30'
-                  } border rounded-sm`}>
-                    <p className={`${isDarkMode ? 'text-blue-300' : 'text-blue-400'} font-mono text-sm uppercase tracking-wider mb-2`}>
+                  <div className={'p-4 border rounded-xl transition-all duration-300 ' + (isDarkMode ? 'bg-blue-900/30 border-blue-600/50' : 'bg-blue-50 border-blue-200')}>
+                    <p className={'font-semibold text-sm uppercase tracking-wider mb-2 transition-colors duration-300 ' + (isDarkMode ? 'text-blue-400' : 'text-blue-600')}>
                       <span className="flex items-center">
-                        <div className={`w-2 h-2 ${isDarkMode ? 'bg-blue-300' : 'bg-blue-400'} rounded-full mr-2 animate-ping`}></div>
+                        <div className={'w-2 h-2 rounded-full mr-2 animate-ping ' + (isDarkMode ? 'bg-blue-400' : 'bg-blue-500')}></div>
                         Pending Changes:
                       </span>
                     </p>
                     {newStatus !== item.status && (
-                      <p className={`${isDarkMode ? 'text-blue-200' : 'text-blue-300'} font-mono text-sm`}>
+                      <p className={'text-sm font-mono transition-colors duration-300 ' + (isDarkMode ? 'text-blue-300' : 'text-blue-700')}>
                         • Status: {item.status} → {newStatus}
                       </p>
                     )}
                     {newLokasi !== item.lokasi && (
-                      <p className={`${isDarkMode ? 'text-blue-200' : 'text-blue-300'} font-mono text-sm`}>
-                        • Location: {item.lokasi} → {newLokasi}
+                      <p className={'text-sm font-mono transition-colors duration-300 ' + (isDarkMode ? 'text-blue-300' : 'text-blue-700')}>
+                        • Lokasi: {item.lokasi} → {newLokasi}
                       </p>
                     )}
                     {newKondisi !== item.kondisi && (
-                      <p className={`${isDarkMode ? 'text-blue-200' : 'text-blue-300'} font-mono text-sm`}>
+                      <p className={'text-sm font-mono transition-colors duration-300 ' + (isDarkMode ? 'text-blue-300' : 'text-blue-700')}>
                         • Kondisi: {item.kondisi} → {newKondisi}
                       </p>
                     )}
                     {newKeterangan !== item.keterangan && (
-                      <p className={`${isDarkMode ? 'text-blue-200' : 'text-blue-300'} font-mono text-sm`}>
-                        • Notes: {item.keterangan || 'N/A'} → {newKeterangan || 'N/A'}
+                      <p className={'text-sm font-mono transition-colors duration-300 ' + (isDarkMode ? 'text-blue-300' : 'text-blue-700')}>
+                        • Keterangan: Updated
                       </p>
                     )}
                   </div>
@@ -507,43 +578,44 @@ const ItemDetail = () => {
             </div>
 
             {/* History */}
-            <div className={`${
-              isDarkMode ? 'bg-gray-800/80' : 'bg-gray-900/80'
-            } backdrop-blur-md rounded-lg border border-cyan-500/30 dark:border-cyan-400/30 shadow-2xl shadow-cyan-500/20 p-8`}>
-              
+            <div className={'backdrop-blur-md rounded-2xl border shadow-xl p-8 transition-all duration-300 ' + cardClass}>
               <div className="flex items-center justify-between mb-6">
-                <h2 className={`text-xl font-bold ${isDarkMode ? 'text-cyan-300' : 'text-cyan-400'} font-mono uppercase tracking-wider`}>Usage History Log</h2>
+                <h2 className={'text-xl font-bold transition-colors duration-300 ' + textPrimaryClass}>
+                  History Keluar Masuk
+                </h2>
                 <div className="flex items-center space-x-2">
-                  <div className={`w-2 h-2 ${isDarkMode ? 'bg-cyan-300' : 'bg-cyan-400'} rounded-full animate-ping`}></div>
-                  <span className={`${isDarkMode ? 'text-cyan-300' : 'text-cyan-400'} text-xs font-mono`}>TRACKING</span>
+                  <div className={'w-2 h-2 rounded-full animate-ping ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
+                  <span className={'text-xs font-semibold uppercase tracking-wider transition-colors duration-300 ' + textPrimaryClass}>
+                    TRACKING
+                  </span>
                 </div>
               </div>
 
               <div className="space-y-4">
                 {history.map((entry, index) => (
                   <div key={entry.id} className="relative group">
-                    <div className={`border-l-4 ${
-                      isDarkMode ? 'border-cyan-300/50' : 'border-cyan-400/50'
-                    } pl-6 py-4 ${
-                      isDarkMode ? 'bg-gray-700/30 hover:bg-gray-700/50' : 'bg-black/30 hover:bg-black/50'
-                    } rounded-r-sm transition-all duration-300`}>
-                      <div className={`absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-1/2 w-3 h-3 ${isDarkMode ? 'bg-cyan-300' : 'bg-cyan-400'} rounded-full animate-pulse`}></div>
+                    <div className={'border-l-4 pl-6 py-4 rounded-r-xl transition-all duration-300 ' +
+                      (isDarkMode ? 'border-teal-400/50 bg-gray-700/30 hover:bg-gray-700/50' : 'border-teal-600/50 bg-teal-50/30 hover:bg-teal-50/50')}>
+                      <div className={'absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-1/2 w-3 h-3 rounded-full animate-pulse ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
                       <div className="flex justify-between items-start mb-2">
                         <div>
                           <div className="flex items-center space-x-3 mb-2">
-                            <span className={`${isDarkMode ? 'text-cyan-300' : 'text-cyan-400'} font-mono text-sm`}>STATUS:</span>
-                            <span className={`px-3 py-1 text-xs font-mono font-bold rounded-sm border ${getStatusColor(entry.status)}`}>
+                            <span className={'font-semibold text-sm transition-colors duration-300 ' + textPrimaryClass}>STATUS:</span>
+                            <span className={'px-3 py-1 text-xs font-bold rounded-xl border transition-all duration-300 ' + getStatusColor(entry.status)}>
                               {entry.status}
                             </span>
                           </div>
-                          <p className={`${isDarkMode ? 'text-gray-200' : 'text-gray-300'} font-mono text-sm`}>
-                            <span className={`${isDarkMode ? 'text-cyan-300' : 'text-cyan-400'}`}>LOCATION:</span> {entry.lokasi}
+                          <p className={'text-sm mb-1 text-left transition-colors duration-300 ' + textMainClass}>
+                            <span className={'font-semibold ' + textPrimaryClass}>KONDISI:</span> {entry.kondisi}
                           </p>
-                          <p className={`${isDarkMode ? 'text-gray-200' : 'text-gray-300'} font-mono text-sm mt-1`}>
-                            <span className={`${isDarkMode ? 'text-cyan-300' : 'text-cyan-400'}`}>INFO:</span> {entry.keterangan}
+                          <p className={'text-sm mb-1 text-left transition-colors duration-300 ' + textMainClass}>
+                            <span className={'font-semibold ' + textPrimaryClass}>LOKASI:</span> {entry.lokasi}
+                          </p>
+                          <p className={'text-sm text-left transition-colors duration-300 ' + textMainClass}>
+                            <span className={'font-semibold ' + textPrimaryClass}>INFO:</span> {entry.keterangan}
                           </p>
                         </div>
-                        <span className={`${isDarkMode ? 'text-cyan-300/60' : 'text-cyan-400/60'} font-mono text-xs`}>
+                        <span className={'text-xs font-mono transition-colors duration-300 ' + textSecondaryClass}>
                           {entry.tanggal}
                         </span>
                       </div>
@@ -557,157 +629,177 @@ const ItemDetail = () => {
           {/* QR Code Section */}
           <div className="space-y-8">
             {/* QR Code Display */}
-            <div className={`${
-              isDarkMode ? 'bg-gray-800/80' : 'bg-gray-900/80'
-            } backdrop-blur-md rounded-lg border border-cyan-500/30 dark:border-cyan-400/30 shadow-2xl shadow-cyan-500/20 p-8 relative overflow-hidden`}>
-              
+            <div className={'backdrop-blur-md rounded-2xl border shadow-xl p-8 transition-all duration-300 ' + cardClass}>
               <div className="flex items-center justify-between mb-6">
-                <h2 className={`text-xl font-bold ${isDarkMode ? 'text-cyan-300' : 'text-cyan-400'} font-mono uppercase tracking-wider`}>QR Identity</h2>
+                <h2 className={'text-xl font-bold transition-colors duration-300 ' + textPrimaryClass}>
+                  QR Identity
+                </h2>
                 <div className="flex items-center space-x-2">
-                  <div className={`w-2 h-2 ${isDarkMode ? 'bg-green-300' : 'bg-green-400'} rounded-full animate-ping`}></div>
-                  <span className={`${isDarkMode ? 'text-green-300' : 'text-green-400'} text-xs font-mono`}>ENCODED</span>
+                  <div className={'w-2 h-2 rounded-full animate-ping ' + (isDarkMode ? 'bg-green-400' : 'bg-green-500')}></div>
+                  <span className={'text-xs font-semibold uppercase tracking-wider transition-colors duration-300 ' + (isDarkMode ? 'text-green-400' : 'text-green-600')}>
+                    ENCODED
+                  </span>
                 </div>
               </div>
 
               <div className="text-center">
-                <div className={`${isDarkMode ? 'bg-gray-100' : 'bg-white'} p-6 rounded-sm inline-block relative`}>
-                  <div className={`absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 ${isDarkMode ? 'border-gray-800' : 'border-black'}`}></div>
-                  <div className={`absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 ${isDarkMode ? 'border-gray-800' : 'border-black'}`}></div>
-                  <div className={`absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 ${isDarkMode ? 'border-gray-800' : 'border-black'}`}></div>
+                <div className={'p-6 rounded-xl inline-block relative transition-all duration-300 ' + (isDarkMode ? 'bg-white' : 'bg-white')}>
+                  <div className={'absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 ' + (isDarkMode ? 'border-gray-800' : 'border-black')}></div>
+                  <div className={'absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 ' + (isDarkMode ? 'border-gray-800' : 'border-black')}></div>
+                  <div className={'absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 ' + (isDarkMode ? 'border-gray-800' : 'border-black')}></div>
 
-                  <MockQRCode
-                    value={JSON.stringify({
-                      id: item.id,
-                      serial: item.serial_number,
-                      nama: item.nama
-                    })}
-                    size={200}
-                  />
+                  {/* Mock QR Code */}
+                  <div className={'w-48 h-48 flex items-center justify-center ' + (isDarkMode ? 'bg-gray-100' : 'bg-white')}>
+                    <div className="grid grid-cols-8 gap-px">
+                      {[...Array(64)].map((_, i) => (
+                        <div
+                          key={i}
+                          className={'w-2 h-2 ' + (Math.random() > 0.5 ? (isDarkMode ? 'bg-gray-800' : 'bg-black') : (isDarkMode ? 'bg-gray-100' : 'bg-white'))}
+                        />
+                      ))}
+                    </div>
+                  </div>
                 </div>
-                <p className={`mt-4 ${isDarkMode ? 'text-cyan-300/80' : 'text-cyan-400/80'} font-mono text-sm`}>
+                <p className={'mt-4 text-sm font-semibold uppercase tracking-wider transition-colors duration-300 ' + textPrimaryClass}>
                   SCAN FOR INSTANT ACCESS
                 </p>
+                <p className={'mt-1 text-xs transition-colors duration-300 ' + textSecondaryClass}>
+                  ID: {item.id} | MAC: {item.mac_address}
+                </p>
+              </div>
+
+              {/* QR Actions */}
+              <div className="mt-6 space-y-3">
+                <button
+                  onClick={handleQRGeneration}
+                  className={'w-full py-3 px-4 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 ' + (isDarkMode
+                    ? 'bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-indigo-500/50'
+                    : 'bg-indigo-500 text-white hover:bg-indigo-600 hover:shadow-indigo-500/50')}
+                >
+                  🔄 Regenerate QR
+                </button>
+                <button
+                  onClick={handleQRDownload}
+                  className={'w-full py-3 px-4 rounded-xl font-semibold border-2 transition-all duration-300 transform hover:scale-105 ' + (isDarkMode
+                    ? 'border-teal-400 text-teal-400 hover:bg-teal-400 hover:text-black'
+                    : 'border-teal-600 text-teal-600 hover:bg-teal-600 hover:text-white')}
+                >
+                  📥 Download QR
+                </button>
               </div>
             </div>
 
             {/* QR Scanner */}
-            <div className={`${
-              isDarkMode ? 'bg-gray-800/80' : 'bg-gray-900/80'
-            } backdrop-blur-md rounded-lg border border-cyan-500/30 dark:border-cyan-400/30 shadow-2xl shadow-cyan-500/20 p-8`}>
-              
+            <div className={'backdrop-blur-md rounded-2xl border shadow-xl p-8 transition-all duration-300 ' + cardClass}>
               <div className="flex items-center justify-between mb-6">
-                <h2 className={`text-xl font-bold ${isDarkMode ? 'text-cyan-300' : 'text-cyan-400'} font-mono uppercase tracking-wider`}>QR Scanner</h2>
+                <h2 className={'text-xl font-bold transition-colors duration-300 ' + textPrimaryClass}>
+                  QR Scanner
+                </h2>
                 <div className="flex items-center space-x-2">
-                  <div className={`w-2 h-2 rounded-full animate-ping ${
-                    showQRScanner 
-                      ? (isDarkMode ? 'bg-red-300' : 'bg-red-400')
-                      : (isDarkMode ? 'bg-gray-300' : 'bg-gray-400')
-                  }`}></div>
-                  <span className={`text-xs font-mono ${
-                    showQRScanner 
-                      ? (isDarkMode ? 'text-red-300' : 'text-red-400')
-                      : (isDarkMode ? 'text-gray-300' : 'text-gray-400')
-                  }`}>
+                  <div className={'w-2 h-2 rounded-full animate-ping ' + (
+                    showQRScanner
+                      ? (isDarkMode ? 'bg-red-400' : 'bg-red-500')
+                      : (isDarkMode ? 'bg-gray-400' : 'bg-gray-500')
+                  )}></div>
+                  <span className={'text-xs font-semibold uppercase tracking-wider transition-colors duration-300 ' + (
+                    showQRScanner
+                      ? (isDarkMode ? 'text-red-400' : 'text-red-500')
+                      : (isDarkMode ? 'text-gray-400' : 'text-gray-500')
+                  )}>
                     {showQRScanner ? 'SCANNING' : 'STANDBY'}
                   </span>
                 </div>
               </div>
 
               <button
-                onClick={() => setShowQRScanner(!showQRScanner)}
-                className={`w-full group relative overflow-hidden py-4 px-6 rounded-sm font-mono uppercase tracking-wider font-bold transition-all duration-300 ${
+                onClick={() => {
+                  setShowQRScanner(!showQRScanner);
+                  if (!showQRScanner) {
+                    toast.info('QR Scanner diaktifkan', {
+                      icon: '📱',
+                      duration: 2000
+                    });
+                  } else {
+                    toast.info('QR Scanner dinonaktifkan', {
+                      icon: '⏹️',
+                      duration: 2000
+                    });
+                  }
+                }}
+                className={'w-full group relative overflow-hidden py-4 px-6 rounded-xl font-bold uppercase tracking-wider transition-all duration-300 transform hover:scale-105 ' + (
                   showQRScanner
-                    ? `bg-gradient-to-r ${
-                        isDarkMode 
-                          ? 'from-red-400 to-orange-400 hover:from-red-300 hover:to-orange-300' 
-                          : 'from-red-500 to-orange-500 hover:from-red-400 hover:to-orange-400'
-                      } text-white`
-                    : `bg-gradient-to-r ${
-                        isDarkMode 
-                          ? 'from-cyan-400 to-blue-400 hover:from-cyan-300 hover:to-blue-300' 
-                          : 'from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400'
-                      } text-black`
-                } hover:shadow-2xl`}
+                    ? (isDarkMode
+                      ? 'bg-gradient-to-r from-red-600 to-orange-600 text-white hover:from-red-700 hover:to-orange-700'
+                      : 'bg-gradient-to-r from-red-500 to-orange-500 text-white hover:from-red-600 hover:to-orange-600')
+                    : (isDarkMode
+                      ? 'bg-gradient-to-r from-teal-600 to-blue-600 text-white hover:from-teal-700 hover:to-blue-700'
+                      : 'bg-gradient-to-r from-teal-500 to-blue-500 text-white hover:from-teal-600 hover:to-blue-600')
+                ) + ' hover:shadow-2xl'}
               >
-                <span className="absolute inset-0 bg-white/20 transform translate-x-full group-hover:translate-x-0 transition-transform duration-500"></span>
-                <span className="relative z-10">
-                  {showQRScanner ? '■ Deactivate Scanner' : '▶ Activate Scanner'}
+                <span className="relative z-10 flex items-center justify-center">
+                  {showQRScanner ? (
+                    <>
+                      <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"></path>
+                      </svg>
+                      Deactivate Scanner
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M3 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm2 2V5h1v1H5zM3 13a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1v-3zm2 2v-1h1v1H5zM13 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1V4zm2 2V5h1v1h-1z" clipRule="evenodd"></path>
+                      </svg>
+                      Activate Scanner
+                    </>
+                  )}
                 </span>
               </button>
 
               {showQRScanner && (
-                <div className={`mt-6 p-6 ${
-                  isDarkMode ? 'bg-gray-700/50 border-red-300/30' : 'bg-black/50 border-red-400/30'
-                } border rounded-sm text-center relative`}>
-                  <div className={`absolute top-4 left-4 w-8 h-8 border-t-2 border-l-2 ${isDarkMode ? 'border-red-300' : 'border-red-400'} animate-pulse`}></div>
-                  <div className={`absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 ${isDarkMode ? 'border-red-300' : 'border-red-400'} animate-pulse`}></div>
-                  <div className={`absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 ${isDarkMode ? 'border-red-300' : 'border-red-400'} animate-pulse`}></div>
-                  <div className={`absolute bottom-4 right-4 w-8 h-8 border-b-2 border-r-2 ${isDarkMode ? 'border-red-300' : 'border-red-400'} animate-pulse`}></div>
+                <div className={'mt-6 p-6 border rounded-xl text-center relative transition-all duration-300 ' + (isDarkMode ? 'bg-gray-700/50 border-red-600/50' : 'bg-red-50 border-red-200')}>
+                  <div className={'absolute top-4 left-4 w-8 h-8 border-t-2 border-l-2 animate-pulse ' + (isDarkMode ? 'border-red-400' : 'border-red-500')}></div>
+                  <div className={'absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 animate-pulse ' + (isDarkMode ? 'border-red-400' : 'border-red-500')}></div>
+                  <div className={'absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 animate-pulse ' + (isDarkMode ? 'border-red-400' : 'border-red-500')}></div>
+                  <div className={'absolute bottom-4 right-4 w-8 h-8 border-b-2 border-r-2 animate-pulse ' + (isDarkMode ? 'border-red-400' : 'border-red-500')}></div>
 
-                  <div className={`w-32 h-32 border-2 ${isDarkMode ? 'border-red-300/50' : 'border-red-400/50'} rounded-sm mx-auto mb-4 relative`}>
-                    <div className={`absolute inset-0 border ${isDarkMode ? 'border-red-300' : 'border-red-400'} animate-pulse`}></div>
-                    <div className={`absolute top-1/2 left-0 w-full h-0.5 ${isDarkMode ? 'bg-red-300' : 'bg-red-400'} animate-scanBeam`}></div>
+                  <div className={'w-32 h-32 border-2 rounded-xl mx-auto mb-4 relative ' + (isDarkMode ? 'border-red-400/50' : 'border-red-500/50')}>
+                    <div className={'absolute inset-0 border animate-pulse ' + (isDarkMode ? 'border-red-400' : 'border-red-500')}></div>
+                    <div className={'absolute top-1/2 left-0 w-full h-0.5 animate-pulse ' + (isDarkMode ? 'bg-red-400' : 'bg-red-500')}></div>
                   </div>
 
-                  <p className={`${isDarkMode ? 'text-red-300' : 'text-red-400'} font-mono text-sm uppercase tracking-wider`}>
+                  <p className={'font-bold text-sm uppercase tracking-wider transition-colors duration-300 ' + (isDarkMode ? 'text-red-400' : 'text-red-500')}>
                     Camera Module Required
                   </p>
-                  <p className={`${isDarkMode ? 'text-red-300/60' : 'text-red-400/60'} font-mono text-xs mt-2`}>
+                  <p className={'text-xs mt-2 transition-colors duration-300 ' + (isDarkMode ? 'text-red-400/80' : 'text-red-600/80')}>
                     Browser camera access needed for QR scanning
                   </p>
                 </div>
               )}
             </div>
+
+            {/* Device Info Card */}
+            <div className={'backdrop-blur-md rounded-2xl border shadow-xl p-6 transition-all duration-300 ' + cardClass}>
+              <h3 className={'text-lg font-bold mb-4 transition-colors duration-300 ' + textPrimaryClass}>
+                Network Info
+              </h3>
+              <div className="space-y-3">
+                <div className={'flex justify-between items-center p-3 rounded-xl transition-all duration-300 ' + (isDarkMode ? 'bg-gray-700/50' : 'bg-gray-50')}>
+                  <span className={'text-sm font-semibold transition-colors duration-300 ' + textSecondaryClass}>Device ID</span>
+                  <span className={'text-sm font-mono font-bold transition-colors duration-300 ' + textMainClass}>#{item.id}</span>
+                </div>
+                <div className={'flex justify-between items-center p-3 rounded-xl transition-all duration-300 ' + (isDarkMode ? 'bg-gray-700/50' : 'bg-gray-50')}>
+                  <span className={'text-sm font-semibold transition-colors duration-300 ' + textSecondaryClass}>Created</span>
+                  <span className={'text-sm font-mono transition-colors duration-300 ' + textMainClass}>{item.created_at}</span>
+                </div>
+                <div className={'flex justify-between items-center p-3 rounded-xl transition-all duration-300 ' + (isDarkMode ? 'bg-gray-700/50' : 'bg-gray-50')}>
+                  <span className={'text-sm font-semibold transition-colors duration-300 ' + textSecondaryClass}>Last Update</span>
+                  <span className={'text-sm font-mono transition-colors duration-300 ' + textMainClass}>{item.updated_at}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-
-      {/* CSS Animations */}
-      <style jsx>{`
-        @keyframes dataFlow {
-          0% { transform: translateY(-100vh) scaleY(0); opacity: 0; }
-          10% { opacity: 1; scaleY: 1; }
-          90% { opacity: 1; scaleY: 1; }
-          100% { transform: translateY(100vh) scaleY(0); opacity: 0; }
-        }
-        
-        @keyframes scanBeam {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
-        }
-        
-        @keyframes scanInternal {
-          0% { transform: translateX(-100%); opacity: 0; }
-          50% { opacity: 1; }
-          100% { transform: translateX(100%); opacity: 0; }
-        }
-        
-        .animate-scanBeam {
-          animation: scanBeam 2s linear infinite;
-        }
-        
-        .animate-scanInternal {
-          animation: scanInternal 4s ease-in-out infinite;
-        }
-        
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-          width: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-          background: rgba(0, 0, 0, 0.3);
-        }
-        
-        ::-webkit-scrollbar-thumb {
-          background: rgba(0, 255, 255, 0.5);
-          border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-          background: rgba(0, 255, 255, 0.7);
-        }
-      `}</style>
     </div>
   );
 };
