@@ -1,23 +1,22 @@
 // src/api.js
-const API_BASE_URL = "http://localhost:5000/api";
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || // set ini di .env.production
+  (location.hostname === "localhost"
+    ? "http://localhost:5000/api" // dev
+    : `${location.origin}/api`); // fallback prod
 
-// Ambil token dari localStorage (dua pola)
 const getAuthToken = () => {
-  const rawUser = localStorage.getItem("user");
-  if (rawUser) {
-    try {
-      const parsed = JSON.parse(rawUser);
-      if (parsed?.token) return parsed.token;
-    } catch {}
-  }
-  // fallback jika ada yang hanya menyimpan 'token' terpisah
-  const token = localStorage.getItem("token");
-  return token || null;
+  try {
+    const u = JSON.parse(localStorage.getItem("user") || "null");
+    if (u?.token) return u.token;
+  } catch {}
+  return localStorage.getItem("token");
 };
 
-// Helper request
 const apiRequest = async (endpoint, options = {}) => {
   const token = getAuthToken();
+  const ctrl = new AbortController();
+  const id = setTimeout(() => ctrl.abort(), 15000); // timeout 15s
 
   const config = {
     method: options.method || "GET",
@@ -27,29 +26,42 @@ const apiRequest = async (endpoint, options = {}) => {
       ...options.headers,
     },
     body: options.body,
+    signal: ctrl.signal,
   };
 
-  const res = await fetch(`${API_BASE_URL}${endpoint}`, config);
+  let res;
+  try {
+    res = await fetch(`${API_BASE_URL}${endpoint}`, config);
+  } catch (e) {
+    clearTimeout(id);
+    throw new Error(`Network error/CORS: ${e.message}`);
+  }
+  clearTimeout(id);
+
   const text = await res.text();
 
   if (!res.ok) {
-    // Jika token invalid/expired, bersihkan & arahkan ke login
     if (res.status === 401 || res.status === 403) {
       localStorage.removeItem("user");
       localStorage.removeItem("token");
-      if (window.location.pathname !== "/login") {
+      if (window.location.pathname !== "/login")
         window.location.href = "/login";
-      }
     }
     let detail;
-    try { detail = JSON.parse(text); } catch { detail = { message: text }; }
-    throw new Error(`${res.status} ${res.statusText} — ${detail?.message || "Request failed"}`);
+    try {
+      detail = JSON.parse(text);
+    } catch {
+      detail = { message: text };
+    }
+    throw new Error(
+      `${res.status} ${res.statusText} — ${detail?.message || "Request failed"}`
+    );
   }
 
   return text ? JSON.parse(text) : null;
 };
 
-// Auth API
+// Auth
 export const authAPI = {
   login: async (username, password) => {
     const data = await apiRequest("/auth/login", {
@@ -64,25 +76,25 @@ export const authAPI = {
   },
 };
 
-// Barang API
+// Barang
 export const barangAPI = {
-  getAll: (kotaFilter = '') => {
-    // Menambahkan query parameter untuk filter kota
-    const url = kotaFilter ? `/barang?kotaFilter=${kotaFilter}` : "/barang";
-    return apiRequest(url);
+  getAll: (kotaFilter = "") => {
+    const qs = kotaFilter ? `?${new URLSearchParams({ kotaFilter })}` : "";
+    return apiRequest(`/barang${qs}`);
   },
   getById: (id) => apiRequest(`/barang/${id}`),
-  create: (data) => 
+  create: (data) =>
     apiRequest("/barang", { method: "POST", body: JSON.stringify(data) }),
   updateStatus: (id, data) =>
-    apiRequest(`/barang/${id}/status`, { method: "PUT", body: JSON.stringify(data) }),
-  delete: (id) =>
-    apiRequest(`/barang/${id}`, { method: "DELETE" }),
+    apiRequest(`/barang/${id}/status`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+  delete: (id) => apiRequest(`/barang/${id}`, { method: "DELETE" }),
 };
 
-export const kondisiAPI = { getAll: () => apiRequest("/kondisi") };
-export const kotaAPI = { getAll: () => apiRequest("/kota") };
-
-// (opsional) Stats & QR
-export const statsAPI = { getDashboard: () => apiRequest("/stats") };
+// (opsional tambahan dari backend)
 export const qrAPI = { getQRCode: (id) => apiRequest(`/qr/${id}`) };
+export const kotaAPI = { getAll: () => apiRequest(`/kota`) }; // perlu endpoint di backend
+export const kondisiAPI = { getAll: () => apiRequest(`/kondisi`) }; // perlu endpoint di backend
+export const statsAPI = { getDashboard: () => apiRequest(`/stats`) }; // perlu endpoint di backend
