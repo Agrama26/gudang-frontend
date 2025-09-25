@@ -300,9 +300,9 @@ const AddItem = () => {
   }, [formData]);
 
   // Clear draft on successful submit
-  const clearDraft = () => {
-    localStorage.removeItem('addItemDraft');
-  };
+  // const clearDraft = () => {
+  //   localStorage.removeItem('addItemDraft');
+  // };
 
   // Style classes
   const containerClass = isDarkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-teal-50 to-blue-50';

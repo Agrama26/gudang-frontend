@@ -1,5 +1,4 @@
-import React from 'react';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDarkMode } from '../contexts/DarkModeContext';
 import DarkModeToggle from './DarkModeToggle';
@@ -21,9 +20,9 @@ const ItemDetail = () => {
   const [newKeterangan, setNewKeterangan] = useState('');
 
   // Fetch data from API
-  const fetchItemDetails = async () => {
+  const fetchItemDetails = useCallback(async () => {
     setLoading(true);
-    
+
     // Show loading toast
     const loadingToastId = toast.loading('Memuat detail barang...', {
       icon: '📦'
@@ -47,10 +46,10 @@ const ItemDetail = () => {
       });
     } catch (error) {
       console.error('Error fetching item details:', error);
-      
+
       // Dismiss loading toast and show error
       toast.dismiss(loadingToastId);
-      
+
       if (error.message.includes('404')) {
         toast.error('Barang tidak ditemukan', {
           icon: '❌',
@@ -68,22 +67,22 @@ const ItemDetail = () => {
           duration: 5000
         });
       }
-      
+
       setItem(null);
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, navigate]); // Add id and navigate as dependencies
 
   useEffect(() => {
     fetchItemDetails();
-  }, [id]);
+  }, [fetchItemDetails]); // Use the memoized fetchItemDetails here
 
   const handleStatusUpdate = async () => {
-    const hasChanges = newStatus !== item.status || 
-                      newLokasi !== item.lokasi || 
-                      newKondisi !== item.kondisi || 
-                      newKeterangan !== item.keterangan;
+    const hasChanges = newStatus !== item.status ||
+      newLokasi !== item.lokasi ||
+      newKondisi !== item.kondisi ||
+      newKeterangan !== item.keterangan;
 
     if (!hasChanges) {
       toast.info('Tidak ada perubahan yang perlu disimpan', {
@@ -120,7 +119,7 @@ const ItemDetail = () => {
       });
 
       await fetchItemDetails();
-      
+
       // Dismiss loading toast and show success
       toast.dismiss(updateToastId);
       toast.success(
@@ -163,10 +162,10 @@ const ItemDetail = () => {
 
     } catch (error) {
       console.error('Error updating status:', error);
-      
+
       // Dismiss loading toast and show error
       toast.dismiss(updateToastId);
-      
+
       if (error.message.includes('404')) {
         toast.error('Barang tidak ditemukan', {
           icon: '❌',
@@ -190,10 +189,10 @@ const ItemDetail = () => {
   };
 
   const handleBack = () => {
-    const hasUnsavedChanges = newStatus !== item?.status || 
-                             newLokasi !== item?.lokasi || 
-                             newKondisi !== item?.kondisi || 
-                             newKeterangan !== item?.keterangan;
+    const hasUnsavedChanges = newStatus !== item?.status ||
+      newLokasi !== item?.lokasi ||
+      newKondisi !== item?.kondisi ||
+      newKeterangan !== item?.keterangan;
 
     if (hasUnsavedChanges) {
       const confirmLeave = window.confirm(
@@ -202,13 +201,13 @@ const ItemDetail = () => {
       if (!confirmLeave) {
         return;
       }
-      
+
       toast.info('Perubahan yang belum disimpan telah diabaikan', {
         icon: '🗑️',
         duration: 3000
       });
     }
-    
+
     navigate('/dashboard');
   };
 

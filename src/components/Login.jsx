@@ -20,6 +20,21 @@ const Login = ({ onLogin }) => {
     });
   };
 
+  // Tambahkan state baru
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      handleSubmit(e); // Login dengan Enter
+    }
+    if (e.key === "Delete") {
+      setFormData((prev) => ({
+        ...prev,
+        [e.target.name]: "" // Kosongkan input yang aktif
+      }));
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -140,38 +155,34 @@ const Login = ({ onLogin }) => {
         {/* Hologram Effect Container */}
         <div className="relative">
           {/* Outer Glow */}
-          <div className={`absolute -inset-4 bg-gradient-to-r ${
-            isDarkMode 
-              ? 'from-cyan-400/20 via-blue-500/20 to-cyan-400/20' 
-              : 'from-cyan-900/30 via-blue-900/30 to-cyan-900/30'
-          } rounded-2xl blur-xl animate-pulse`}></div>
+          <div className={`absolute -inset-4 bg-gradient-to-r ${isDarkMode
+            ? 'from-cyan-400/20 via-blue-500/20 to-cyan-400/20'
+            : 'from-cyan-900/30 via-blue-900/30 to-cyan-900/30'
+            } rounded-2xl blur-xl animate-pulse`}></div>
 
           {/* Main Login Panel */}
-          <div className={`relative ${
-            isDarkMode 
-              ? 'bg-gray-800/90 border-gray-600/50' 
-              : 'bg-teal-50/80 border-cyan-400/30'
-          } backdrop-blur-xl border rounded-2xl shadow-2xl shadow-cyan-500/20 p-8 overflow-hidden transition-colors duration-300`}>
-            
+          <div className={`relative ${isDarkMode
+            ? 'bg-gray-800/90 border-gray-600/50'
+            : 'bg-teal-50/80 border-cyan-400/30'
+            } backdrop-blur-xl border rounded-2xl shadow-2xl shadow-cyan-500/20 p-8 overflow-hidden transition-colors duration-300`}>
+
             {/* Internal Scanning Lines */}
             <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-teal-600 dark:via-cyan-300 to-transparent animate-scanInternal"></div>
 
             {/* Header Section */}
             <div className="text-center mb-8 relative">
               {/* Logo/Icon */}
-              <div className={`inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br ${
-                isDarkMode 
-                  ? 'from-teal-400 to-blue-400' 
-                  : 'from-teal-500 to-blue-500'
-              } rounded-lg mb-4 animate-float`}>
+              <div className={`inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br ${isDarkMode
+                ? 'from-teal-400 to-blue-400'
+                : 'from-teal-500 to-blue-500'
+                } rounded-lg mb-4 animate-float`}>
                 <div className="w-8 h-8 border-2 border-white dark:border-gray-800 rounded-sm animate-spin"></div>
               </div>
 
-              <h1 className={`text-3xl font-bold mb-2 bg-gradient-to-r ${
-                isDarkMode 
-                  ? 'from-cyan-300 via-blue-300 to-cyan-300' 
-                  : 'from-teal-600 via-blue-400 to-teal-400'
-              } bg-clip-text text-transparent animate-shimmer`}>
+              <h1 className={`text-3xl font-bold mb-2 bg-gradient-to-r ${isDarkMode
+                ? 'from-cyan-300 via-blue-300 to-cyan-300'
+                : 'from-teal-600 via-blue-400 to-teal-400'
+                } bg-clip-text text-transparent animate-shimmer`}>
                 LOGIN SYSTEM
               </h1>
               <p className="text-teal-700 dark:text-cyan-300 font-mono text-sm uppercase tracking-[0.2em]">
@@ -203,11 +214,11 @@ const Login = ({ onLogin }) => {
                     required
                     value={formData.username}
                     onChange={handleChange}
-                    className={`w-full ${
-                      isDarkMode 
-                        ? 'bg-gray-700/50 border-gray-500 text-gray-100' 
-                        : 'bg-white/50 border-gray-500 text-black'
-                    } border p-4 rounded-sm font-mono focus:border-cyan-400 dark:focus:border-cyan-300 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 hover:border-gray-400 dark:hover:border-gray-400`}
+                    onKeyDown={handleKeyDown}   // << Tambah ini
+                    className={`w-full ${isDarkMode
+                      ? 'bg-gray-700/50 border-gray-500 text-gray-100'
+                      : 'bg-white/50 border-gray-500 text-black'
+                      } border p-4 rounded-sm font-mono focus:border-cyan-400 dark:focus:border-cyan-300 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 hover:border-gray-400 dark:hover:border-gray-400`}
                     placeholder="Enter username..."
                   />
                   <div className="absolute inset-0 border border-cyan-400/20 dark:border-cyan-300/20 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
@@ -227,18 +238,28 @@ const Login = ({ onLogin }) => {
                 </label>
                 <div className="relative">
                   <input
-                    type="password"
+                    type={showPassword ? "text" : "password"}   // toggle tipe input
                     name="password"
                     required
                     value={formData.password}
                     onChange={handleChange}
-                    className={`w-full ${
-                      isDarkMode 
-                        ? 'bg-gray-700/50 border-gray-500 text-gray-100' 
-                        : 'bg-white/50 border-gray-600 text-black'
-                    } border p-4 rounded-sm font-mono focus:border-cyan-400 dark:focus:border-cyan-300 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 hover:border-gray-400 dark:hover:border-gray-400`}
+                    onKeyDown={handleKeyDown}   // enter + delete handler
+                    className={`w-full ${isDarkMode
+                      ? 'bg-gray-700/50 border-gray-500 text-gray-100'
+                      : 'bg-white/50 border-gray-600 text-black'
+                      } border p-4 rounded-sm font-mono focus:border-cyan-400 dark:focus:border-cyan-300 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 hover:border-gray-400 dark:hover:border-gray-400`}
                     placeholder="Enter security key..."
                   />
+
+                  {/* Toggle Show/Hide Password dengan Icon */}
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-lg"
+                  >
+                    {showPassword ? "🙈" : "👁️"}
+                  </button>
+
                   <div className="absolute inset-0 border border-cyan-400/20 dark:border-cyan-300/20 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                   <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                     <div className="w-2 h-2 bg-cyan-400 dark:bg-cyan-300 rounded-full animate-ping opacity-50"></div>
@@ -248,11 +269,10 @@ const Login = ({ onLogin }) => {
 
               {/* Error Display */}
               {error && (
-                <div className={`${
-                  isDarkMode 
-                    ? 'bg-red-800/50 border-red-600/50 text-red-300' 
-                    : 'bg-red-900/50 border-red-500/100 text-red-700'
-                } border px-4 py-3 rounded-sm font-mono text-sm animate-shake`}>
+                <div className={`${isDarkMode
+                  ? 'bg-red-800/50 border-red-600/50 text-red-300'
+                  : 'bg-red-900/50 border-red-500/100 text-red-700'
+                  } border px-4 py-3 rounded-sm font-mono text-sm animate-shake`}>
                   <span className="flex items-center">
                     <div className="w-2 h-2 bg-red-700 dark:bg-red-300 rounded-full mr-2 animate-ping"></div>
                     ACCESS DENIED: {error}
@@ -264,15 +284,13 @@ const Login = ({ onLogin }) => {
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className={`w-full group relative overflow-hidden bg-gradient-to-r ${
-                  isDarkMode 
-                    ? 'from-cyan-400 to-blue-400 hover:from-cyan-300 hover:to-blue-300' 
-                    : 'from-teal-500 to-blue-500 hover:from-teal-400 hover:to-blue-400'
-                } text-white py-4 px-6 rounded-sm font-mono uppercase tracking-wider font-bold transition-all duration-300 ${
-                  loading
+                className={`w-full group relative overflow-hidden bg-gradient-to-r ${isDarkMode
+                  ? 'from-cyan-400 to-blue-400 hover:from-cyan-300 hover:to-blue-300'
+                  : 'from-teal-500 to-blue-500 hover:from-teal-400 hover:to-blue-400'
+                  } text-white py-4 px-6 rounded-sm font-mono uppercase tracking-wider font-bold transition-all duration-300 ${loading
                     ? 'opacity-50 cursor-not-allowed'
                     : 'hover:shadow-2xl hover:shadow-cyan-500/30 transform hover:scale-[1.02]'
-                }`}
+                  }`}
               >
                 <span className="absolute inset-0 bg-white/20 transform translate-x-full group-hover:translate-x-0 transition-transform duration-500"></span>
                 <span className="relative z-10 flex items-center justify-center">
@@ -292,11 +310,10 @@ const Login = ({ onLogin }) => {
             </div>
 
             {/* Demo Accounts Section */}
-            <div className={`mt-8 p-4 ${
-              isDarkMode 
-                ? 'bg-gray-700/30 border-gray-500/50' 
-                : 'bg-white/30 border-gray-600/50'
-            } border rounded-sm`}>
+            <div className={`mt-8 p-4 ${isDarkMode
+              ? 'bg-gray-700/30 border-gray-500/50'
+              : 'bg-white/30 border-gray-600/50'
+              } border rounded-sm`}>
               <p className="text-teal-700 dark:text-cyan-300 font-mono text-xs uppercase tracking-wider mb-3">
                 Demo Access Credentials:
               </p>
@@ -420,7 +437,7 @@ const Login = ({ onLogin }) => {
           background: rgba(0, 255, 255, 0.8);
         }
       `}</style>
-    </div>
+    </div >
   );
 };
 
