@@ -1,24 +1,9 @@
 // src/utils/api.js
-// src/utils/api.js
-const API_BASE_URL = import.meta.env.VITE_API_URL;
-
-console.log("🔗 API Base URL:", API_BASE_URL);
-
-// Health check function
-export const healthCheck = async () => {
-  try {
-    console.log("🏥 Performing health check...");
-    const response = await fetch(`${API_BASE_URL}/health`);
-    const data = await response.json();
-    console.log("✅ Health check successful:", data);
-    return data;
-  } catch (error) {
-    console.error("❌ Health check failed:", error);
-    throw error;
-  }
-};
-
-ITE_API_URL;
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || // Production URL dari .env.production
+  (typeof window !== "undefined" && window.location.hostname === "localhost"
+    ? "http://localhost:5000/api" // Development
+    : "http://gudang-backend-production-c3da.up.railway.app/api"); // Fallback production
 
 console.log("🔗 API Base URL:", API_BASE_URL); // Debug log
 
@@ -188,4 +173,20 @@ export const statsAPI = {
     console.log("📊 Fetching dashboard stats");
     return apiRequest(`/stats`);
   },
+};
+
+// Health check function
+export const healthCheck = async () => {
+  try {
+    console.log("🏥 Performing health check...");
+    const response = await fetch(
+      `${API_BASE_URL.replace("/api", "")}/api/health`
+    );
+    const data = await response.json();
+    console.log("✅ Health check successful:", data);
+    return data;
+  } catch (error) {
+    console.error("❌ Health check failed:", error);
+    throw error;
+  }
 };
