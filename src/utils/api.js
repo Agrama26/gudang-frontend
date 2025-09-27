@@ -3,7 +3,7 @@ const API_BASE_URL =
   import.meta.env.VITE_API_URL || // Production URL dari .env.production
   (typeof window !== "undefined" && window.location.hostname === "localhost"
     ? "http://localhost:5000/api" // Development
-    : "gudang-backend-production-c3da.up.railway.app/api"); // Fallback production
+    : "gudang-backend-production-c3da.up.railway.app"); // Fallback production
 
 console.log("🔗 API Base URL:", API_BASE_URL); // Debug log
 
