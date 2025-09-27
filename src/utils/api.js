@@ -1,22 +1,26 @@
-// src/api.js
+// src/utils/api.js
 const API_BASE_URL =
-  import.meta.env.VITE_API_URL || // set ini di .env.production
-  (location.hostname === "localhost"
-    ? "http://localhost:5000/api" // dev
-    : `${location.origin}/api`); // fallback prod
+  import.meta.env.VITE_API_URL || // Production URL dari .env.production
+  (typeof window !== "undefined" && window.location.hostname === "localhost"
+    ? "http://localhost:5000/api" // Development
+    : "gudang-backend-production-c3da.up.railway.app/api"); // Fallback production
+
+console.log("🔗 API Base URL:", API_BASE_URL); // Debug log
 
 const getAuthToken = () => {
   try {
     const u = JSON.parse(localStorage.getItem("user") || "null");
     if (u?.token) return u.token;
-  } catch {}
+  } catch (e) {
+    console.error("Error parsing user data:", e);
+  }
   return localStorage.getItem("token");
 };
 
 const apiRequest = async (endpoint, options = {}) => {
   const token = getAuthToken();
-  const ctrl = new AbortController();
-  const id = setTimeout(() => ctrl.abort(), 15000); // timeout 15s
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
 
   const config = {
     method: options.method || "GET",
@@ -26,75 +30,163 @@ const apiRequest = async (endpoint, options = {}) => {
       ...options.headers,
     },
     body: options.body,
-    signal: ctrl.signal,
+    signal: controller.signal,
   };
 
-  let res;
+  console.log(`🚀 API Request: ${config.method} ${API_BASE_URL}${endpoint}`);
+
+  let response;
   try {
-    res = await fetch(`${API_BASE_URL}${endpoint}`, config);
-  } catch (e) {
-    clearTimeout(id);
-    throw new Error(`Network error/CORS: ${e.message}`);
+    response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+  } catch (error) {
+    clearTimeout(timeoutId);
+    console.error("❌ Network error:", error);
+
+    if (error.name === "AbortError") {
+      throw new Error(
+        "Request timeout - Please check your internet connection"
+      );
+    }
+    throw new Error(`Network error: ${error.message}`);
   }
-  clearTimeout(id);
 
-  const text = await res.text();
+  clearTimeout(timeoutId);
 
-  if (!res.ok) {
-    if (res.status === 401 || res.status === 403) {
+  let responseText;
+  try {
+    responseText = await response.text();
+  } catch (error) {
+    console.error("❌ Error reading response:", error);
+    throw new Error("Failed to read server response");
+  }
+
+  console.log(`📡 Response Status: ${response.status} ${response.statusText}`);
+
+  if (!response.ok) {
+    // Handle authentication errors
+    if (response.status === 401 || response.status === 403) {
+      console.warn("🔒 Authentication error - clearing local storage");
       localStorage.removeItem("user");
       localStorage.removeItem("token");
-      if (window.location.pathname !== "/login")
+
+      if (
+        typeof window !== "undefined" &&
+        window.location.pathname !== "/login"
+      ) {
         window.location.href = "/login";
+      }
     }
-    let detail;
+
+    let errorDetail;
     try {
-      detail = JSON.parse(text);
-    } catch {
-      detail = { message: text };
+      errorDetail = JSON.parse(responseText);
+    } catch (e) {
+      errorDetail = { message: responseText || `HTTP ${response.status}` };
     }
-    throw new Error(
-      `${res.status} ${res.statusText} — ${detail?.message || "Request failed"}`
-    );
+
+    const errorMessage =
+      errorDetail?.message || `Request failed with status ${response.status}`;
+    console.error("❌ API Error:", errorMessage);
+    throw new Error(errorMessage);
   }
 
-  return text ? JSON.parse(text) : null;
+  // Parse successful response
+  try {
+    return responseText ? JSON.parse(responseText) : null;
+  } catch (error) {
+    console.error("❌ Error parsing JSON response:", error);
+    throw new Error("Invalid JSON response from server");
+  }
 };
 
-// Auth
+// Auth API
 export const authAPI = {
   login: async (username, password) => {
+    console.log("🔐 Attempting login for user:", username);
+
     const data = await apiRequest("/auth/login", {
       method: "POST",
       body: JSON.stringify({ username, password }),
     });
+
     if (data?.token) {
-      localStorage.setItem("user", JSON.stringify(data));
+      console.log("✅ Login successful, storing user data");
+      const userData = {
+        ...data.user,
+        token: data.token,
+      };
+      localStorage.setItem("user", JSON.stringify(userData));
       localStorage.setItem("token", data.token);
     }
+
     return data;
   },
 };
 
-// Barang
+// Barang API
 export const barangAPI = {
   getAll: (kotaFilter = "") => {
-    const qs = kotaFilter ? `?${new URLSearchParams({ kotaFilter })}` : "";
-    return apiRequest(`/barang${qs}`);
+    console.log("📋 Fetching all barang, kota filter:", kotaFilter);
+    const queryString = kotaFilter
+      ? `?kotaFilter=${encodeURIComponent(kotaFilter)}`
+      : "";
+    return apiRequest(`/barang${queryString}`);
   },
-  getById: (id) => apiRequest(`/barang/${id}`),
-  create: (data) =>
-    apiRequest("/barang", { method: "POST", body: JSON.stringify(data) }),
-  updateStatus: (id, data) =>
-    apiRequest(`/barang/${id}/status`, {
+
+  getById: (id) => {
+    console.log("📋 Fetching barang by ID:", id);
+    return apiRequest(`/barang/${id}`);
+  },
+
+  create: (data) => {
+    console.log("➕ Creating new barang:", data.nama);
+    return apiRequest("/barang", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  updateStatus: (id, data) => {
+    console.log("🔄 Updating barang status, ID:", id);
+    return apiRequest(`/barang/${id}/status`, {
       method: "PUT",
       body: JSON.stringify(data),
-    }),
-  delete: (id) => apiRequest(`/barang/${id}`, { method: "DELETE" }),
+    });
+  },
+
+  delete: (id) => {
+    console.log("🗑️ Deleting barang, ID:", id);
+    return apiRequest(`/barang/${id}`, { method: "DELETE" });
+  },
 };
 
-// (opsional tambahan dari backend)
-export const qrAPI = { getQRCode: (id) => apiRequest(`/qr/${id}`) };
-export const kotaAPI = { getAll: () => apiRequest(`/kota`) }; // perlu endpoint di backend
-export const kondisiAPI = { getAll: () => apiRequest(`/kondisi`) }; // perlu endpoint di backend
-export const statsAPI = { getDashboard: () => apiRequest(`/stats`) }; // perlu endpoint di backend
+// QR & Other APIs
+export const qrAPI = {
+  getQRCode: (id) => {
+    console.log("📱 Generating QR code for ID:", id);
+    return apiRequest(`/qr/${id}`);
+  },
+};
+
+export const statsAPI = {
+  getDashboard: () => {
+    console.log("📊 Fetching dashboard stats");
+    return apiRequest(`/stats`);
+  },
+};
+
+// Health check function
+export const healthCheck = async () => {
+  try {
+    console.log("🏥 Performing health check...");
+    const response = await fetch(
+      `${API_BASE_URL.replace("/api", "")}/api/health`
+    );
+    const data = await response.json();
+    console.log("✅ Health check successful:", data);
+    return data;
+  } catch (error) {
+    console.error("❌ Health check failed:", error);
+    throw error;
+  }
+};
