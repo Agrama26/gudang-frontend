@@ -1,9 +1,10 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 // Config universal: support localhost, ngrok, LAN, deploy
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), SpeedInsights()],
   server: {
     host: true, // biar bisa diakses dari luar localhost (contoh: LAN, ngrok)
     port: 5173, // port default Vite
