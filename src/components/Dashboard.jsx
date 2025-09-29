@@ -51,6 +51,43 @@ const Dashboard = ({ user, onLogout }) => {
   const [chartAnimated, setChartAnimated] = useState(false);
   const observerRef = useRef();
 
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDeleteClick = (item) => {
+    setItemToDelete(item);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!itemToDelete) return;
+
+    setDeleting(true);
+    try {
+      await barangAPI.delete(itemToDelete.id);
+
+      // Remove item from state
+      setItems(prevItems => prevItems.filter(item => item.id !== itemToDelete.id));
+
+      // Close modal and reset states
+      setShowDeleteModal(false);
+      setItemToDelete(null);
+
+      alert(`Barang "${itemToDelete.nama}" berhasil dihapus!`);
+    } catch (error) {
+      console.error('Error deleting item:', error);
+      alert('Gagal menghapus barang. Silakan coba lagi.');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteModal(false);
+    setItemToDelete(null);
+  };
+
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
   };
@@ -242,24 +279,24 @@ const Dashboard = ({ user, onLogout }) => {
       r: {
         beginAtZero: true,
         grid: {
-          color: isDarkMode ? 'rgba(75, 85, 99, 0.6)' : 'rgba(0, 0, 0, 0.3)',
+          color: isDarkMode ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)',
         },
         angleLines: {
-          color: isDarkMode ? 'rgba(75, 85, 99, 0.6)' : 'rgba(0, 0, 0, 0.3)',
+          color: isDarkMode ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)',
         },
         ticks: {
           font: {
             size: 12,
           },
-          color: isDarkMode ? '#9ca3af' : '#374151',
-          backdropColor: isDarkMode ? 'rgba(31, 41, 55, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+          color: isDarkMode ? '#ffffff' : '#374151',
+          backdropColor: isDarkMode ? 'rgba(31, 41, 55, 0.9)' : 'rgba(255, 255, 255, 0.9)',
         },
         pointLabels: {
           font: {
             size: 14,
             weight: 'bold',
           },
-          color: isDarkMode ? '#e5e7eb' : '#374151',
+          color: isDarkMode ? '#ffffff' : '#374151',
         },
       },
     },
@@ -295,43 +332,10 @@ const Dashboard = ({ user, onLogout }) => {
         pointHoverRadius: 8,
         borderWidth: 3,
       },
-      // {
-      //   label: 'Status',
-      //   data: [
-      //     filteredItems.filter(item => item.kota === 'Medan' && item.status === 'READY').length,
-      //     filteredItems.filter(item => item.kota === 'Batam' && item.status === 'READY').length,
-      //     filteredItems.filter(item => item.kota === 'Pekan Baru' && item.status === 'READY').length,
-      //     filteredItems.filter(item => item.kota === 'Jakarta' && item.status === 'READY').length,
-      //     filteredItems.filter(item => item.kota === 'Tarutung' && item.status === 'READY').length,
-      //     filteredItems.filter(item => item.kota === 'Medan' && item.status === 'TERPAKAI').length,
-      //     filteredItems.filter(item => item.kota === 'Batam' && item.status === 'TERPAKAI').length,
-      //     filteredItems.filter(item => item.kota === 'Pekan Baru' && item.status === 'TERPAKAI').length,
-      //     filteredItems.filter(item => item.kota === 'Jakarta' && item.status === 'TERPAKAI').length,
-      //     filteredItems.filter(item => item.kota === 'Tarutung' && item.status === 'TERPAKAI').length,
-      //     filteredItems.filter(item => item.kota === 'Medan' && item.status === 'RUSAK').length,
-      //     filteredItems.filter(item => item.kota === 'Batam' && item.status === 'RUSAK').length,
-      //     filteredItems.filter(item => item.kota === 'Pekan Baru' && item.status === 'RUSAK').length,
-      //     filteredItems.filter(item => item.kota === 'Jakarta' && item.status === 'RUSAK').length,
-      //     filteredItems.filter(item => item.kota === 'Tarutung' && item.status === 'RUSAK').length,
-      //   ],
-      //   fill: true,
-      //   backgroundColor: 'rgba(59, 130, 246, 0.2)',
-      //   borderColor: '#3B82F6',
-      //   pointBackgroundColor: '#3B82F6',
-      //   pointBorderColor: '#2563EB',
-      //   pointHoverBackgroundColor: '#2563EB',
-      //   pointHoverBorderColor: '#3B82F6',
-      //   pointRadius: 6,
-      //   pointHoverRadius: 8,
-      //   borderWidth: 3,
-      // },
       {
-        label: 'Kondisi',
+        label: 'New Items',
         data: [
           kondisiCounts['Baru'] || 0,
-          kondisiCounts['Baik'] || 0,
-          kondisiCounts['Rusak Ringan'] || 0,
-          kondisiCounts['Rusak Berat'] || 0,
         ],
         fill: true,
         backgroundColor: 'rgba(59, 130, 246, 0.2)',
@@ -364,9 +368,9 @@ const Dashboard = ({ user, onLogout }) => {
         },
       },
       tooltip: {
-        backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.9)' : 'rgba(0, 0, 0, 0.1)',
-        titleColor: 'white',
-        bodyColor: 'white',
+        backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.9)' : 'rgb(255,255,255)',
+        titleColor: isDarkMode ? 'white' : 'black',
+        bodyColor: isDarkMode ? 'white' : 'black',
         borderColor: '#22C55E',
         borderWidth: 1,
       },
@@ -375,17 +379,17 @@ const Dashboard = ({ user, onLogout }) => {
       r: {
         beginAtZero: true,
         grid: {
-          color: isDarkMode ? 'rgba(75, 85, 99, 0.6)' : 'rgba(0, 0, 0, 0.3)',
+          color: isDarkMode ? 'rgba(255, 255, 255, 255)' : 'rgba(0, 0, 0, 0.9)',
         },
         angleLines: {
-          color: isDarkMode ? 'rgba(75, 85, 99, 0.6)' : 'rgba(0, 0, 0, 0.3)',
+          color: isDarkMode ? 'rgba(255, 255, 255, 255)' : 'rgba(0, 0, 0, 0.9)',
         },
         ticks: {
           font: {
             size: 12,
           },
-          color: isDarkMode ? '#9ca3af' : '#374151',
-          backdropColor: isDarkMode ? 'rgba(31, 41, 55, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+          color: isDarkMode ? '#ffffff' : '#374151',
+          backdropColor: isDarkMode ? 'rgba(31, 41, 55, 0.8)' : 'rgba(255, 255, 255, 1)',
         },
         pointLabels: {
           font: {
@@ -450,21 +454,20 @@ const Dashboard = ({ user, onLogout }) => {
         <div className="container mx-auto px-6 py-6">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
-              <div className="w-100 h-100 group relative bg-teal-600 dark:bg-teal-700 px-3 py-2 rounded-xl shadow-lg hover:shadow-teal-300 dark:hover:shadow-teal-600 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1">
-                <img src={logo} alt="Logo" width="150" height="150" className="w-100 h-100 object-contain drop-shadow-lg" />
+              <div className="group relative">
+                <img
+                  src={logo}
+                  alt="Logo"
+                  width="150"
+                  height="150"
+                  className="w-32 md:w-30 lg:w-40 object-contain drop-shadow-lg filter invert dark:invert-0"
+                />
               </div>
+
               <div>
-                <h1 className="text-3xl font-bold text-teal-600 dark:text-teal-400">
+                <h1 className="text-1xl sm:text-2xl md:text-3xl font-bold text-teal-600 dark:text-teal-400">
                   Dashboard
                 </h1>
-                {user && (
-                  <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                    Welcome back, <span className="font-semibold text-teal-600 dark:text-teal-400">{user.username}</span>
-                    <span className="ml-2 px-2 py-1 bg-teal-100 dark:bg-teal-900 text-teal-800 dark:text-teal-200 rounded-full text-xs border border-teal-200 dark:border-teal-700">
-                      {user.role}
-                    </span>
-                  </p>
-                )}
               </div>
             </div>
 
@@ -473,32 +476,18 @@ const Dashboard = ({ user, onLogout }) => {
 
               <button
                 onClick={() => navigate('/add-item')}
-                className="group relative bg-teal-600 dark:bg-teal-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-teal-500/50 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
+                className="group md:text-base lg:text-sm relative bg-teal-600 dark:bg-teal-700 text-white px-3 py-1 m:px-6 sm:py-3 text-sm sm:text-base rounded-xl font-semibold shadow-lg hover:shadow-teal-500/50 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
               >
-                <span className="relative z-10">+ Tambah Barang</span>
+                <span className="relative z-10">+ Add Item</span>
                 <div className="absolute inset-0 bg-teal-700 dark:bg-teal-600 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </button>
 
               <button
                 onClick={() => navigate('/')}
-                className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-6 py-3 rounded-xl font-semibold border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
+                className="bg-white md:text-base lg:text-sm px-4 py-3 sm:px-6 sm:py-3 text-sm sm:text-base dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl font-semibold border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
               >
                 Home
               </button>
-
-              {/* {user && onLogout && (
-                <button
-                  onClick={onLogout}
-                  className="bg-red-500 dark:bg-red-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-red-500/50 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 border border-red-400 dark:border-red-500"
-                >
-                  <div className="flex items-center space-x-2">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd"></path>
-                    </svg>
-                    <span>Logout</span>
-                  </div>
-                </button>
-              )} */}
             </div>
           </div>
         </div>
@@ -507,7 +496,7 @@ const Dashboard = ({ user, onLogout }) => {
       {/* Dashboard Content */}
       <div className="container mx-auto px-6 py-8">
         {/* Charts Section */}
-        <div className="grid lg:grid-cols-3 gap-8 mb-8">
+        <div className="grid lg:grid-cols-3 md:grid-cols-1 sm:grid-cols-1 gap-8 mb-8">
           {/* Polar Area Chart */}
           <div
             className={`transition-all duration-1000 ${isVisible['pie-chart'] ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-12'
@@ -537,7 +526,7 @@ const Dashboard = ({ user, onLogout }) => {
           </div>
 
           {/* Statistics Cards */}
-          <div className="grid md:grid-cols-2 xl:grid-cols-2 gap-6 mb-8">
+          <div className="grid md:grid-cols-2 sm:grid-cols-2 lg:grid-cols-2 gap-6 mb-8">
             {/* Total Items Card */}
             <div
               className={`group bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border border-teal-100 dark:border-gray-700 hover:bg-teal-50 dark:hover:bg-gray-750 transition-all duration-1000 transform hover:scale-105 hover:-translate-y-2 ${isVisible['stat-total'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
@@ -767,12 +756,22 @@ const Dashboard = ({ user, onLogout }) => {
                         {item.lokasi}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button
-                          onClick={() => navigate(`/item/${item.id}`)}
-                          className="text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 font-semibold hover:bg-teal-50 dark:hover:bg-teal-900/30 px-3 py-2 rounded-lg transition-all duration-300 transform hover:scale-105"
-                        >
-                          Detail
-                        </button>
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => navigate(`/item/${item.id}`)}
+                            className="text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 font-semibold hover:bg-teal-50 dark:hover:bg-teal-900/30 px-3 py-2 rounded-lg transition-all duration-300 transform hover:scale-105"
+                          >
+                            Detail
+                          </button>
+                          <button
+                            onClick={() => handleDeleteClick(item)}
+                            className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-semibold hover:bg-red-50 dark:hover:bg-red-900/30 px-3 py-2 rounded-lg transition-all duration-300 transform hover:scale-105"
+                          >
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"></path>
+                            </svg>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -795,6 +794,70 @@ const Dashboard = ({ user, onLogout }) => {
         </div>
       </div>
 
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && itemToDelete && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            {/* Background overlay */}
+            <div className="fixed inset-0 bg-gray-500 dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-75 transition-opacity"></div>
+
+            {/* Modal */}
+            <div className="inline-block align-bottom bg-white dark:bg-gray-800 rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+              <div className="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div className="sm:flex sm:items-start">
+                  <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/30 sm:mx-0 sm:h-10 sm:w-10">
+                    <svg className="h-6 w-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                  </div>
+                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                    <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
+                      Konfirmasi Hapus Barang
+                    </h3>
+                    <div className="mt-2">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Apakah Anda yakin ingin menghapus barang <span className="font-semibold text-gray-900 dark:text-gray-100">"{itemToDelete.nama}"</span>?
+                      </p>
+                      <p className="text-sm text-red-600 dark:text-red-400 mt-2">
+                        Tindakan ini tidak dapat dibatalkan dan akan menghapus semua data riwayat barang.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button
+                  type="button"
+                  onClick={handleDeleteConfirm}
+                  disabled={deleting}
+                  className={`w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white sm:ml-3 sm:w-auto sm:text-sm transition-all duration-300 ${deleting
+                    ? 'bg-red-400 cursor-not-allowed'
+                    : 'bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600'
+                    }`}
+                >
+                  {deleting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                      Menghapus...
+                    </>
+                  ) : (
+                    'Hapus Barang'
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeleteCancel}
+                  disabled={deleting}
+                  className="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition-all duration-300"
+                >
+                  Batal
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Footer */}
       <footer
         className={`relative mt-20 backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 border-t border-teal-200 dark:border-gray-700 transition-all duration-1000 ${isVisible.footer ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
@@ -804,10 +867,14 @@ const Dashboard = ({ user, onLogout }) => {
         <div className="container mx-auto px-6 py-12">
           <div className="text-center">
             <div className="flex items-center justify-center space-x-3 mb-4">
-              <div className="w-100 h-100 px-3 py-2 bg-teal-600 dark:bg-teal-700 rounded-lg flex items-center justify-center transform hover:scale-105 transition-all duration-300">
-                <div className="w-100 h-100">
-                  <img src={logo} alt="Logo" width="150" height="150" className="w-100 h-100 object-contain drop-shadow-lg" />
-                </div>
+              <div className="group relative">
+                <img
+                  src={logo}
+                  alt="Logo"
+                  width="150"
+                  height="150"
+                  className="w-32 md:w-30 lg:w-40 object-contain drop-shadow-lg filter invert dark:invert-0"
+                />
               </div>
             </div>
             <p className="text-gray-600 dark:text-gray-400">

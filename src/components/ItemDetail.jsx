@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useDarkMode } from '../contexts/DarkModeContext';
 import DarkModeToggle from './DarkModeToggle';
 import { toast } from 'react-toastify';
+import logo from '../assets/logo.png';
 
 const ItemDetail = () => {
   const [updating, setUpdating] = useState(false);
@@ -333,7 +334,15 @@ const ItemDetail = () => {
         <div className="container mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
-              <div className={'w-8 h-8 rounded-sm animate-pulse ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
+              <div className="group relative">
+                <img
+                  src={logo}
+                  alt="Logo"
+                  width="150"
+                  height="150"
+                  className="w-32 md:w-30 lg:w-40 object-contain drop-shadow-lg filter invert dark:invert-0"
+                />
+              </div>
               <h1 className={'text-2xl font-bold transition-colors duration-300 ' + textPrimaryClass}>
                 Detail {item?.nama}
               </h1>

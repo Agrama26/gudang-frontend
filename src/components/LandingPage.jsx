@@ -132,8 +132,14 @@ const LandingPage = () => {
         <div className="container mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
-              <div className="w-100 h-100 group relative bg-teal-600 dark:bg-teal-700 px-3 py-2 rounded-xl shadow-lg hover:shadow-teal-300 dark:hover:shadow-teal-600 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1">
-                <img src={logo} alt="Logo" width="150" height="150" className="w-100 h-100 object-contain drop-shadow-lg" />
+              <div className="group relative">
+                <img
+                  src={logo}
+                  alt="Logo"
+                  width="150"
+                  height="150"
+                  className="w-32 md:w-30 lg:w-40 object-contain drop-shadow-lg filter invert dark:invert-0"
+                />
               </div>
               <div>
                 <h1 className="text-xl font-bold text-teal-600 dark:text-teal-400">
@@ -229,17 +235,6 @@ const LandingPage = () => {
                   </span>
                 </button>
 
-                {/* <button
-                  onClick={() => navigate('/login')}
-                  className="group bg-white/20 border-2 border-white text-white px-8 py-4 rounded-xl font-bold hover:bg-white hover:text-teal-600 transition-all duration-300 backdrop-blur-sm transform hover:scale-105 hover:-translate-y-1"
-                >
-                  <span className="flex items-center justify-center space-x-2">
-                    <span> Login </span>
-                    <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd"></path>
-                    </svg>
-                  </span>
-                </button> */}
               </div>
             </div>
 
@@ -261,7 +256,7 @@ const LandingPage = () => {
                     <div className="text-center text-white/80">
                       {/* <p className="text-lg font-medium">Teknisi Ni Boss</p> */}
                       <div className="group relative px-3 py-2 rounded-xl shadow-lg hover:shadow-teal-300 dark:hover:shadow-teal-600 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1">
-                        <img src={teknisi} alt="Teknisi" width="400" height="400"/>
+                        <img src={teknisi} alt="Teknisi" width="400" height="400" />
                       </div>
                     </div>
                   </div>
@@ -429,10 +424,14 @@ const LandingPage = () => {
         <div className="container mx-auto px-6 py-12">
           <div className="text-center">
             <div className="flex items-center justify-center space-x-3 mb-4">
-              <div className="w-100 h-100 px-3 py-2 bg-teal-600 dark:bg-teal-700 rounded-lg flex items-center justify-center transform hover:scale-105 transition-all duration-300">
-                <div className="">
-                  <img src={logo} alt="Logo" width="150" height="150" className="w-100 h-100 object-contain drop-shadow-lg" />
-                </div>
+              <div className="group relative">
+                <img
+                  src={logo}
+                  alt="Logo"
+                  width="150"
+                  height="150"
+                  className="w-32 md:w-30 lg:w-40 object-contain drop-shadow-lg filter invert dark:invert-0"
+                />
               </div>
             </div>
             <p className="text-gray-600 dark:text-gray-300 mb-6">

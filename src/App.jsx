@@ -133,7 +133,7 @@ function App() {
               <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-3 flex items-center space-x-3 transition-all duration-300">
                 <div className="flex items-center space-x-2">
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm text-gray-600 dark:text-gray-300">
+                  <span className="text-sm text-gray-600 dark:text-gray-300">Welcome,{' '}
                     <span className="font-semibold text-teal-600 dark:text-teal-400">{user.username}</span>
                     <span className="ml-2 px-2 py-1 bg-teal-100 dark:bg-teal-900/50 text-teal-800 dark:text-teal-200 rounded-full text-xs border border-teal-200 dark:border-teal-700">
                       {user.role}

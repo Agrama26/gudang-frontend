@@ -33,7 +33,7 @@ const AddItem = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validate required fields
     if (!formData.nama.trim()) {
       toast.error('Nama barang tidak boleh kosong!', {
@@ -76,7 +76,7 @@ const AddItem = () => {
     }
 
     setLoading(true);
-    
+
     // Show loading toast
     const loadingToastId = toast.loading('Menambahkan barang...', {
       icon: '⏳'
@@ -140,9 +140,9 @@ const AddItem = () => {
     } catch (err) {
       // Dismiss loading toast and show error
       toast.dismiss(loadingToastId);
-      
+
       console.error(err);
-      
+
       if (err.message.includes('Serial number already exists')) {
         toast.error(
           <>
@@ -187,7 +187,7 @@ const AddItem = () => {
 
   const handleBack = () => {
     // Check if form has data
-    const hasData = Object.values(formData).some(value => 
+    const hasData = Object.values(formData).some(value =>
       value !== '' && value !== 'Baik' && value !== 'READY'
     );
 
@@ -198,13 +198,13 @@ const AddItem = () => {
       if (!confirmLeave) {
         return;
       }
-      
+
       toast.info('Data yang belum disimpan telah diabaikan', {
         icon: '🗑️',
         duration: 3000
       });
     }
-    
+
     navigate('/dashboard');
   };
 
@@ -287,10 +287,10 @@ const AddItem = () => {
   // Save draft on form change
   useEffect(() => {
     const timer = setTimeout(() => {
-      const hasData = Object.values(formData).some(value => 
+      const hasData = Object.values(formData).some(value =>
         value !== '' && value !== 'Baik' && value !== 'READY'
       );
-      
+
       if (hasData) {
         localStorage.setItem('addItemDraft', JSON.stringify(formData));
       }
@@ -325,13 +325,17 @@ const AddItem = () => {
         <div className="container mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
-              <div className={'w-100 h-100 rounded-sm animate-pulse ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}>
-                <div className="w-100 h-100 group relative bg-teal-600 dark:bg-teal-700 px-3 py-2 rounded-xl shadow-lg hover:shadow-teal-300 dark:hover:shadow-teal-600 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1">
-                  <img src={logo} alt="Logo" width="150" height="150" className="w-100 h-100 object-contain drop-shadow-lg" />
-                </div>
+              <div className="group relative">
+                <img
+                  src={logo}
+                  alt="Logo"
+                  width="150"
+                  height="150"
+                  className="w-32 md:w-30 lg:w-40 object-contain drop-shadow-lg filter invert dark:invert-0"
+                />
               </div>
               <h1 className={'text-2xl font-bold transition-colors duration-300 ' + textPrimaryClass}>
-                Tambah Barang
+                Add Item
               </h1>
             </div>
             <div className="flex items-center space-x-4">
@@ -347,7 +351,7 @@ const AddItem = () => {
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd"></path>
                   </svg>
-                  <span>Kembali ke Dashboard</span>
+                  <span>Back</span>
                 </span>
               </button>
             </div>
@@ -369,10 +373,10 @@ const AddItem = () => {
                 </div>
               </div>
               <h2 className={'text-xl font-bold mb-2 transition-colors duration-300 ' + textPrimaryClass}>
-                Scanner Barcode Peralatan Jaringan
+                Barcode Scanner 
               </h2>
               <p className={'text-sm transition-colors duration-300 ' + textSecondaryClass}>
-                Scan barcode untuk mendapatkan MAC address dan informasi peralatan secara otomatis
+                Scan barcode to add MacAddress and Serial Number automatically
               </p>
             </div>
 
@@ -382,7 +386,7 @@ const AddItem = () => {
                   <div className={'w-16 h-16 border-4 border-t-transparent rounded-full animate-spin ' + (isDarkMode ? 'border-indigo-400' : 'border-indigo-500')}></div>
                   <div className={'animate-pulse transition-colors duration-300 ' + (isDarkMode ? 'text-indigo-400' : 'text-indigo-600')}>
                     <p className="text-lg font-semibold">Scanning...</p>
-                    <p className="text-sm">Arahkan kamera ke barcode peralatan jaringan</p>
+                    <p className="text-sm">Point the camera at the network equipment barcode</p>
                   </div>
                   <button
                     onClick={stopScanning}
@@ -390,7 +394,7 @@ const AddItem = () => {
                       ? 'bg-red-600 text-white hover:bg-red-700'
                       : 'bg-red-500 text-white hover:bg-red-600')}
                   >
-                    Batal Scan
+                    Cancel
                   </button>
                 </div>
               </div>
@@ -406,11 +410,11 @@ const AddItem = () => {
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M3 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm2 2V5h1v1H5zM3 13a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1v-3zm2 2v-1h1v1H5zM13 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1V4zm2 2V5h1v1h-1z" clipRule="evenodd"></path>
                     </svg>
-                    <span>Mulai Scan Barcode</span>
+                    <span>Start Barcode Scan</span>
                   </span>
                 </button>
                 <p className={'text-xs mt-2 transition-colors duration-300 ' + textSecondaryClass}>
-                  Mendukung barcode Mikrotik, TP-Link, dan peralatan jaringan lainnya
+                  Supports Mikrotik, TP-Link barcodes and other network equipment
                 </p>
               </div>
             )}
@@ -421,10 +425,10 @@ const AddItem = () => {
                   <svg className={'w-5 h-5 ' + (isDarkMode ? 'text-green-400' : 'text-green-600')} fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
                   </svg>
-                  <span className={'font-semibold transition-colors duration-300 ' + (isDarkMode ? 'text-green-400' : 'text-green-700')}>Scan Berhasil!</span>
+                  <span className={'font-semibold transition-colors duration-300 ' + (isDarkMode ? 'text-green-400' : 'text-green-700')}>Scan Successful!</span>
                 </div>
                 <p className={'text-sm transition-colors duration-300 ' + (isDarkMode ? 'text-green-300' : 'text-green-600')}>
-                  Data telah terisi otomatis: {scanResult.nama} (MAC: {scanResult.mac_address})
+                  Data has been filled in automatically: {scanResult.nama} (MAC: {scanResult.mac_address})
                 </p>
               </div>
             )}
@@ -436,7 +440,7 @@ const AddItem = () => {
               <div className="flex items-center justify-center space-x-2 mb-4">
                 <div className={'w-2 h-2 rounded-full animate-ping ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
                 <span className={'font-semibold uppercase tracking-wider text-sm transition-colors duration-300 ' + textPrimaryClass}>
-                  Form Input Data Barang
+                  Data Input Form
                 </span>
                 <div className={'w-2 h-2 rounded-full animate-ping ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
               </div>
@@ -449,7 +453,7 @@ const AddItem = () => {
                   <label htmlFor="nama" className={'block text-sm font-semibold uppercase tracking-wider mb-3 transition-colors duration-300 ' + textPrimaryClass}>
                     <span className="flex items-center">
                       <div className={'w-2 h-2 rounded-full mr-2 animate-pulse ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
-                      Nama Barang *
+                      Item Name *
                     </span>
                   </label>
                   <input
@@ -491,7 +495,7 @@ const AddItem = () => {
                       <div className={'w-2 h-2 rounded-full mr-2 animate-pulse ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
                       MAC Address
                       <span className={'ml-2 text-xs px-2 py-1 rounded-full ' + (isDarkMode ? 'bg-indigo-600 text-indigo-200' : 'bg-indigo-100 text-indigo-700')}>
-                        Auto dari Scanner
+                        Auto From Scanner
                       </span>
                     </span>
                   </label>
@@ -532,7 +536,7 @@ const AddItem = () => {
                   <label htmlFor="kondisi" className={'block text-sm font-semibold uppercase tracking-wider mb-3 transition-colors duration-300 ' + textPrimaryClass}>
                     <span className="flex items-center">
                       <div className={'w-2 h-2 rounded-full mr-2 animate-pulse ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
-                      Kondisi Peralatan *
+                      Item Condition *
                     </span>
                   </label>
                   <select
@@ -543,10 +547,10 @@ const AddItem = () => {
                     onChange={handleChange}
                     className={'w-full p-4 border rounded-xl font-medium focus:ring-2 focus:ring-teal-400/20 transition-all duration-300 cursor-pointer ' + inputClass + ' focus:border-teal-400'}
                   >
-                    <option value="Baru">Baru</option>
-                    <option value="Baik">Baik</option>
-                    <option value="Rusak Ringan">Rusak Ringan</option>
-                    <option value="Rusak Berat">Rusak Berat</option>
+                    <option value="Baru">New</option>
+                    <option value="Baik">Good</option>
+                    <option value="Rusak Ringan">Slightly Damaged</option>
+                    <option value="Rusak Berat">Heavily Damaged</option>
                   </select>
                 </div>
 
@@ -588,9 +592,9 @@ const AddItem = () => {
                     onChange={handleChange}
                     className={'w-full p-4 border rounded-xl font-medium focus:ring-2 focus:ring-teal-400/20 transition-all duration-300 cursor-pointer ' + inputClass + ' focus:border-teal-400'}
                   >
-                    <option value="">Pilih Cabang</option>
-                    <option value="Medan">Medan (Kantor Pusat)</option>
-                    <option value="Batam">Batam</option>
+                    <option value="">Select Branch</option>
+                    <option value="Medan">Medan</option>
+                    <option value="Batam">Batam (Kantor Pusat)</option>
                     <option value="Pekan Baru">Pekan Baru</option>
                     <option value="Jakarta">Jakarta</option>
                     <option value="Tarutung">Tarutung</option>
