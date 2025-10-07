@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import logo from '../assets/logo.png';
 import teknisi from '../assets/teknisi.png'
 import 'tailwindcss/tailwind.css';
@@ -6,19 +6,29 @@ import '../index.css';
 import '../App.css';
 import { useNavigate } from 'react-router-dom';
 import { useDarkMode } from '../contexts/DarkModeContext';
-import DarkModeToggle from './DarkModeToggle';
-import { useEffect, useRef } from 'react';
 
 const LandingPage = () => {
   const navigate = useNavigate();
   const { isDarkMode } = useDarkMode();
   const [isVisible, setIsVisible] = useState({});
   const [scrollY, setScrollY] = useState(0);
+  const [isScrolled, setIsScrolled] = useState(false);
   const observerRef = useRef();
 
-  // Handle scroll animation
+  // Handle scroll animation and navbar transparency
   useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY);
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      setScrollY(currentScrollY);
+
+      // Change navbar style when scrolled more than 50px
+      if (currentScrollY > 50) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -127,8 +137,11 @@ const LandingPage = () => {
         <div className="absolute top-40 left-1/2 w-80 h-80 bg-emerald-200 dark:bg-emerald-800 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-30 animate-pulse"></div>
       </div>
 
-      {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 backdrop-blur-xl bg-white/90 dark:bg-gray-900/90 border-b border-teal-200 dark:border-gray-700 shadow-lg transition-all duration-300">
+      {/* Navigation - Dynamic Transparency */}
+      <nav className={`fixed top-0 w-full z-50 transition-all duration-500 ${isScrolled
+          ? 'backdrop-blur-xl bg-white/90 dark:bg-gray-900/90 border-b border-teal-200 dark:border-gray-700 shadow-lg'
+          : 'bg-transparent border-b border-transparent'
+        }`}>
         <div className="container mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
@@ -138,27 +151,40 @@ const LandingPage = () => {
                   alt="Logo"
                   width="150"
                   height="150"
-                  className="w-32 md:w-30 lg:w-40 object-contain drop-shadow-lg filter invert dark:invert-0"
+                  className={`w-32 md:w-30 lg:w-40 object-contain drop-shadow-lg transition-all duration-500 ${isScrolled
+                      ? 'filter invert dark:invert-0'
+                      : 'filter invert-0 brightness-0 dark:invert'
+                    }`}
                 />
               </div>
-              <div>
-                <h1 className="text-xl font-bold text-teal-600 dark:text-teal-400">
+              {/* <div>
+                <h1 className={`text-xl font-bold transition-all duration-500 ${
+                  isScrolled 
+                    ? 'text-teal-600 dark:text-teal-400' 
+                    : 'text-white drop-shadow-lg'
+                }`}>
                   PT. Medianusa Permana
                 </h1>
-              </div>
+              </div> */}
             </div>
 
             <div className="flex items-center space-x-4">
               <DarkModeToggle />
               <button
                 onClick={() => navigate('/login')}
-                className="text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 px-4 py-2 rounded-xl font-medium transition-all duration-300 hover:bg-teal-50 dark:hover:bg-gray-700"
+                className={`px-4 py-2 rounded-xl font-medium transition-all duration-500 ${isScrolled
+                    ? 'text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 hover:bg-teal-50 dark:hover:bg-gray-700'
+                    : 'text-white hover:bg-white/20 backdrop-blur-sm'
+                  }`}
               >
                 Login
               </button>
               <button
                 onClick={() => navigate('/dashboard')}
-                className="bg-gradient-to-r from-teal-600 to-blue-600 dark:from-teal-500 dark:to-blue-500 text-white px-6 py-2 rounded-xl font-semibold shadow-lg hover:shadow-teal-500/50 transition-all duration-300 transform hover:scale-105"
+                className={`px-6 py-2 rounded-xl font-semibold shadow-lg transition-all duration-500 transform hover:scale-105 ${isScrolled
+                    ? 'bg-gradient-to-r from-teal-600 to-blue-600 dark:from-teal-500 dark:to-blue-500 text-white hover:shadow-teal-500/50'
+                    : 'bg-white text-teal-600 hover:shadow-white/50'
+                  }`}
               >
                 Dashboard
               </button>
@@ -234,7 +260,6 @@ const LandingPage = () => {
                     </svg>
                   </span>
                 </button>
-
               </div>
             </div>
 
@@ -254,7 +279,6 @@ const LandingPage = () => {
                 <div className="relative z-10 bg-white/20 backdrop-blur-sm rounded-3xl p-8 border border-white/30">
                   <div className="h-500 w-500 bg-gradient-to-br from-white/30 to-white/10 rounded-2xl flex items-center justify-center">
                     <div className="text-center text-white/80">
-                      {/* <p className="text-lg font-medium">Teknisi Ni Boss</p> */}
                       <div className="group relative px-3 py-2 rounded-xl shadow-lg hover:shadow-teal-300 dark:hover:shadow-teal-600 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1">
                         <img src={teknisi} alt="Teknisi" width="400" height="400" />
                       </div>
@@ -448,5 +472,8 @@ const LandingPage = () => {
     </div>
   );
 };
+
+// Add missing import for DarkModeToggle at the top of the file
+import DarkModeToggle from './DarkModeToggle';
 
 export default LandingPage;

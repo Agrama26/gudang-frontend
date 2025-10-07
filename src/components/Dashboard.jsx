@@ -332,22 +332,6 @@ const Dashboard = ({ user, onLogout }) => {
         pointHoverRadius: 8,
         borderWidth: 3,
       },
-      {
-        label: 'New Items',
-        data: [
-          kondisiCounts['Baru'] || 0,
-        ],
-        fill: true,
-        backgroundColor: 'rgba(59, 130, 246, 0.2)',
-        borderColor: '#3B82F6',
-        pointBackgroundColor: '#3B82F6',
-        pointBorderColor: '#2563EB',
-        pointHoverBackgroundColor: '#2563EB',
-        pointHoverBorderColor: '#3B82F6',
-        pointRadius: 6,
-        pointHoverRadius: 8,
-        borderWidth: 3,
-      }
     ],
   };
 
@@ -464,19 +448,34 @@ const Dashboard = ({ user, onLogout }) => {
                 />
               </div>
 
-              <div>
+              {/* <div>
                 <h1 className="text-1xl sm:text-2xl md:text-3xl font-bold text-teal-600 dark:text-teal-400">
                   Dashboard
                 </h1>
-              </div>
+              </div> */}
             </div>
 
             <div className="flex items-center space-x-3">
               <DarkModeToggle />
 
+              {/* Show Admin Panel button only for admin users */}
+              {user?.role === 'admin' && (
+                <button
+                  onClick={() => navigate('/admin')}
+                  className="group relative bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-500 dark:to-pink-500 text-white px-4 py-3 rounded-xl font-semibold shadow-lg hover:shadow-purple-500/50 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
+                >
+                  <span className="relative z-10 flex items-center space-x-2">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+                    </svg>
+                    <span>Admin Panel</span>
+                  </span>
+                </button>
+              )}
+
               <button
                 onClick={() => navigate('/add-item')}
-                className="group md:text-base lg:text-sm relative bg-teal-600 dark:bg-teal-700 text-white px-3 py-1 m:px-6 sm:py-3 text-sm sm:text-base rounded-xl font-semibold shadow-lg hover:shadow-teal-500/50 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
+                className="group relative bg-teal-600 dark:bg-teal-700 text-white px-4 py-3 rounded-xl font-semibold shadow-lg hover:shadow-teal-500/50 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
               >
                 <span className="relative z-10">+ Add Item</span>
                 <div className="absolute inset-0 bg-teal-700 dark:bg-teal-600 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -484,7 +483,7 @@ const Dashboard = ({ user, onLogout }) => {
 
               <button
                 onClick={() => navigate('/')}
-                className="bg-white md:text-base lg:text-sm px-4 py-3 sm:px-6 sm:py-3 text-sm sm:text-base dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl font-semibold border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
+                className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-4 py-3 rounded-xl font-semibold border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
               >
                 Home
               </button>

@@ -1,17 +1,21 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDarkMode } from '../contexts/DarkModeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import DarkModeToggle from './DarkModeToggle';
+import LanguageToggle from './LanguageToggle';
 
 const Login = ({ onLogin }) => {
   const navigate = useNavigate();
   const { isDarkMode } = useDarkMode();
+  const { t, isIndonesian } = useLanguage();
   const [formData, setFormData] = useState({
     username: '',
     password: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -20,17 +24,14 @@ const Login = ({ onLogin }) => {
     });
   };
 
-  // Tambahkan state baru
-  const [showPassword, setShowPassword] = useState(false);
-
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
-      handleSubmit(e); // Login dengan Enter
+      handleSubmit(e);
     }
     if (e.key === "Delete") {
       setFormData((prev) => ({
         ...prev,
-        [e.target.name]: "" // Kosongkan input yang aktif
+        [e.target.name]: ""
       }));
     }
   };
@@ -54,7 +55,7 @@ const Login = ({ onLogin }) => {
       navigate('/dashboard');
     } catch (error) {
       console.error('Login error:', error);
-      setError('Username atau password salah');
+      setError(t('invalidCredentials'));
     } finally {
       setLoading(false);
     }
@@ -66,8 +67,9 @@ const Login = ({ onLogin }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 text-black relative overflow-hidden flex items-center justify-center transition-colors duration-300">
-      {/* Dark Mode Toggle - Fixed Position */}
-      <div className="fixed top-6 right-6 z-50">
+      {/* Dark Mode & Language Toggle - Fixed Position */}
+      <div className="fixed top-6 right-6 z-50 flex items-center space-x-3">
+        <LanguageToggle />
         <DarkModeToggle />
       </div>
 
@@ -82,7 +84,6 @@ const Login = ({ onLogin }) => {
                 <stop offset="100%" stopColor={isDarkMode ? "#3b82f6" : "#0080ff"} />
               </linearGradient>
             </defs>
-            {/* Network nodes and connections */}
             <circle cx="100" cy="100" r="3" fill="url(#networkGradient)" className="animate-pulse" />
             <circle cx="300" cy="200" r="3" fill="url(#networkGradient)" className="animate-pulse" style={{ animationDelay: '1s' }} />
             <circle cx="500" cy="150" r="3" fill="url(#networkGradient)" className="animate-pulse" style={{ animationDelay: '2s' }} />
@@ -183,10 +184,10 @@ const Login = ({ onLogin }) => {
                 ? 'from-cyan-300 via-blue-300 to-cyan-300'
                 : 'from-teal-600 via-blue-400 to-teal-400'
                 } bg-clip-text text-transparent animate-shimmer`}>
-                LOGIN SYSTEM
+                {t('loginSystem')}
               </h1>
               <p className="text-teal-700 dark:text-cyan-300 font-mono text-sm uppercase tracking-[0.2em]">
-                PT. Medianusa Permana
+                {t('companyName')}
               </p>
 
               {/* Status Indicators */}
@@ -204,7 +205,7 @@ const Login = ({ onLogin }) => {
                 <label className="block text-teal-700 dark:text-cyan-300 text-sm font-mono uppercase tracking-wider mb-3">
                   <span className="flex items-center">
                     <div className="w-2 h-2 bg-teal-700 dark:bg-cyan-300 rounded-full mr-2 animate-pulse"></div>
-                    User Identification
+                    {t('userIdentification')}
                   </span>
                 </label>
                 <div className="relative">
@@ -214,12 +215,12 @@ const Login = ({ onLogin }) => {
                     required
                     value={formData.username}
                     onChange={handleChange}
-                    onKeyDown={handleKeyDown}   // << Tambah ini
+                    onKeyDown={handleKeyDown}
                     className={`w-full ${isDarkMode
                       ? 'bg-gray-700/50 border-gray-500 text-gray-100'
                       : 'bg-white/50 border-gray-500 text-black'
                       } border p-4 rounded-sm font-mono focus:border-cyan-400 dark:focus:border-cyan-300 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 hover:border-gray-400 dark:hover:border-gray-400`}
-                    placeholder="Enter username..."
+                    placeholder={isIndonesian ? "Masukkan username..." : "Enter username..."}
                   />
                   <div className="absolute inset-0 border border-cyan-400/20 dark:border-cyan-300/20 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                   <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
@@ -233,37 +234,34 @@ const Login = ({ onLogin }) => {
                 <label className="block text-teal-700 dark:text-cyan-300 text-sm font-mono uppercase tracking-wider mb-3">
                   <span className="flex items-center">
                     <div className="w-2 h-2 bg-teal-700 dark:bg-cyan-300 rounded-full mr-2 animate-pulse"></div>
-                    Security Key
+                    {t('securityKey')}
                   </span>
                 </label>
                 <div className="relative">
                   <input
-                    type={showPassword ? "text" : "password"}   // toggle tipe input
+                    type={showPassword ? "text" : "password"}
                     name="password"
                     required
                     value={formData.password}
                     onChange={handleChange}
-                    onKeyDown={handleKeyDown}   // enter + delete handler
+                    onKeyDown={handleKeyDown}
                     className={`w-full ${isDarkMode
                       ? 'bg-gray-700/50 border-gray-500 text-gray-100'
                       : 'bg-white/50 border-gray-600 text-black'
                       } border p-4 rounded-sm font-mono focus:border-cyan-400 dark:focus:border-cyan-300 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 hover:border-gray-400 dark:hover:border-gray-400`}
-                    placeholder="Enter security key..."
+                    placeholder={isIndonesian ? "Masukkan security key..." : "Enter security key..."}
                   />
 
-                  {/* Toggle Show/Hide Password dengan Icon */}
+                  {/* Toggle Show/Hide Password */}
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-lg"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-lg z-10"
                   >
                     {showPassword ? "🙈" : "👁️"}
                   </button>
 
                   <div className="absolute inset-0 border border-cyan-400/20 dark:border-cyan-300/20 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                    <div className="w-2 h-2 bg-cyan-400 dark:bg-cyan-300 rounded-full animate-ping opacity-50"></div>
-                  </div>
                 </div>
               </div>
 
@@ -275,7 +273,7 @@ const Login = ({ onLogin }) => {
                   } border px-4 py-3 rounded-sm font-mono text-sm animate-shake`}>
                   <span className="flex items-center">
                     <div className="w-2 h-2 bg-red-700 dark:bg-red-300 rounded-full mr-2 animate-ping"></div>
-                    ACCESS DENIED: {error}
+                    {t('accessDenied')}: {error}
                   </span>
                 </div>
               )}
@@ -297,12 +295,12 @@ const Login = ({ onLogin }) => {
                   {loading ? (
                     <>
                       <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-3"></div>
-                      Authenticating...
+                      {t('authenticating')}
                     </>
                   ) : (
                     <>
                       <span className="mr-2">▶</span>
-                      Initialize Access
+                      {t('initializeAccess')}
                     </>
                   )}
                 </span>
@@ -315,7 +313,7 @@ const Login = ({ onLogin }) => {
               : 'bg-white/30 border-gray-600/50'
               } border rounded-sm`}>
               <p className="text-teal-700 dark:text-cyan-300 font-mono text-xs uppercase tracking-wider mb-3">
-                Demo Access Credentials:
+                {t('demoAccessCredentials')}
               </p>
               <div className="space-y-1 text-gray-400 dark:text-gray-400 font-mono text-xs">
                 <p className="flex justify-between">
@@ -335,7 +333,7 @@ const Login = ({ onLogin }) => {
                 onClick={handleBackToHome}
                 className="text-teal-800/80 dark:text-cyan-300/80 hover:text-teal-400 dark:hover:text-cyan-300 font-mono text-sm uppercase tracking-wider transition-colors duration-300"
               >
-                ← Return to Main System
+                ← {t('returnToMainSystem')}
               </button>
             </div>
           </div>
@@ -419,7 +417,6 @@ const Login = ({ onLogin }) => {
           animation: shake 0.5s ease-in-out;
         }
         
-        /* Custom scrollbar */
         ::-webkit-scrollbar {
           width: 8px;
         }
@@ -437,7 +434,7 @@ const Login = ({ onLogin }) => {
           background: rgba(0, 255, 255, 0.8);
         }
       `}</style>
-    </div >
+    </div>
   );
 };
 

@@ -1,11 +1,11 @@
-// src/utils/api.js
+// src/utils/api.js - Enhanced with Admin APIs
 const API_BASE_URL =
-  import.meta.env.VITE_API_URL || // Production URL dari .env.production
+  import.meta.env.VITE_API_URL ||
   (typeof window !== "undefined" && window.location.hostname === "localhost"
-    ? "http://localhost:5000/api" // Development
-    : "http://gudang-backend-production-c3da.up.railway.app/api"); // Fallback production
+    ? "http://localhost:5000/api"
+    : "http://gudang-backend-production-c3da.up.railway.app/api");
 
-console.log("🔗 API Base URL:", API_BASE_URL); // Debug log
+console.log("🔗 API Base URL:", API_BASE_URL);
 
 const getAuthToken = () => {
   try {
@@ -20,7 +20,7 @@ const getAuthToken = () => {
 const apiRequest = async (endpoint, options = {}) => {
   const token = getAuthToken();
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+  const timeoutId = setTimeout(() => controller.abort(), 30000);
 
   const config = {
     method: options.method || "GET",
@@ -63,7 +63,6 @@ const apiRequest = async (endpoint, options = {}) => {
   console.log(`📡 Response Status: ${response.status} ${response.statusText}`);
 
   if (!response.ok) {
-    // Handle authentication errors
     if (response.status === 401 || response.status === 403) {
       console.warn("🔒 Authentication error - clearing local storage");
       localStorage.removeItem("user");
@@ -90,7 +89,6 @@ const apiRequest = async (endpoint, options = {}) => {
     throw new Error(errorMessage);
   }
 
-  // Parse successful response
   try {
     return responseText ? JSON.parse(responseText) : null;
   } catch (error) {
@@ -120,6 +118,59 @@ export const authAPI = {
     }
 
     return data;
+  },
+};
+
+// Admin User Management API
+export const adminUserAPI = {
+  // Get all users
+  getAllUsers: () => {
+    console.log("👥 Fetching all users (Admin)");
+    return apiRequest("/admin/users");
+  },
+
+  // Create new user
+  createUser: (userData) => {
+    console.log("➕ Creating new user (Admin):", userData.username);
+    return apiRequest("/admin/users", {
+      method: "POST",
+      body: JSON.stringify(userData),
+    });
+  },
+
+  // Update user
+  updateUser: (id, userData) => {
+    console.log("🔄 Updating user (Admin), ID:", id);
+    return apiRequest(`/admin/users/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(userData),
+    });
+  },
+
+  // Delete user
+  deleteUser: (id) => {
+    console.log("🗑️ Deleting user (Admin), ID:", id);
+    return apiRequest(`/admin/users/${id}`, {
+      method: "DELETE",
+    });
+  },
+
+  // Get activity logs
+  getActivityLogs: (limit = 100, offset = 0) => {
+    console.log("📊 Fetching activity logs (Admin)");
+    return apiRequest(`/admin/activity-logs?limit=${limit}&offset=${offset}`);
+  },
+
+  // Get statistics
+  getStatistics: () => {
+    console.log("📈 Fetching admin statistics");
+    return apiRequest("/admin/statistics");
+  },
+
+  // Test email connection
+  testEmailConnection: () => {
+    console.log("📧 Testing email connection");
+    return apiRequest("/admin/test-email");
   },
 };
 
