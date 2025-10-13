@@ -31,6 +31,15 @@ const translations = {
     error: 'Error',
     warning: 'Peringatan',
     info: 'Informasi',
+    adminPanel: 'Panel Admin',
+
+    // Modal Hapus
+    confirmDelete: 'Konfirmasi Hapus Barang',
+    deleteMessage: 'Apakah Anda yakin ingin menghapus barang ini?',
+    deleteWarning: 'Tindakan ini tidak dapat dibatalkan!',
+    deleting: 'Menghapus...',
+    deleteConfirmButton: 'Ya, Hapus',
+    deleteCancelButton: 'Batal',
 
     // Authentication
     loginSystem: 'SISTEM LOGIN',
@@ -85,6 +94,11 @@ const translations = {
     goodCondition: 'Baik',
     lightDamage: 'Rusak Ringan',
     heavyDamage: 'Rusak Berat',
+    backToDashboard: 'Kembali ke Dashboard',
+    information: 'Informasi Peralatan Jaringan',
+    newStatus: 'Status Baru',
+    newLocation: 'Lokasi Baru',
+    historyKeluarMasuk: 'Sejarah Keluar Masuk',
 
     // Scanner & QR
     barcodeScanner: 'Scanner Barcode',
@@ -160,7 +174,7 @@ const translations = {
     heroSubtitle1: 'Keunggulan Inovasi',
     heroSubtitle2: 'Solusi dan Teknologi',
     heroDescription: 'untuk Meningkatkan Management Barang',
-    start: 'Start',
+    start: 'Mulai',
     getStarted: 'Mulai Sekarang',
     featuredFeatures: 'Fitur Unggulan',
     featuresDescription: 'Kelola inventori peralatan jaringan Anda dengan mudah menggunakan fitur-fitur canggih yang kami sediakan',
@@ -206,7 +220,7 @@ const translations = {
     loadingData: 'Memuat data barang...',
 
     // Footer
-    allRightsReserved: 'All rights reserved.',
+    allRightsReserved: 'Semua hak dilindungi undang-undang.',
     privacyPolicy: 'Kebijakan Privasi',
     termsOfService: 'Syarat Layanan',
     contact: 'Kontak'
@@ -230,6 +244,15 @@ const translations = {
     error: 'Error',
     warning: 'Warning',
     info: 'Information',
+    adminPanel: 'Admin Panel',
+
+    // Modal Hapus
+    confirmDelete: 'Confirm Delete Item',
+    deleteMessage: 'Are you sure you want to delete this item?',
+    deleteWarning: 'This action cannot be undone!',
+    deleting: 'Deleting...',
+    deleteConfirmButton: 'Yes, Delete',
+    deleteCancelButton: 'Cancel',
 
     // Authentication
     loginSystem: 'LOGIN SYSTEM',
@@ -284,6 +307,11 @@ const translations = {
     goodCondition: 'Good',
     lightDamage: 'Light Damage',
     heavyDamage: 'Heavy Damage',
+    backToDashboard: 'Back to Dashboard',
+    information: 'Network Equipment Information',
+    newStatus: 'New Status',
+    newLocation: 'New Location',
+    historyKeluarMasuk: 'In-Out History',
 
     // Scanner & QR
     barcodeScanner: 'Barcode Scanner',

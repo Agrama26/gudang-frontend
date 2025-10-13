@@ -4,6 +4,8 @@ import { useDarkMode } from '../contexts/DarkModeContext';
 import DarkModeToggle from './DarkModeToggle';
 import { toast } from 'react-toastify';
 import logo from '../assets/logo.png';
+import { useLanguage } from '../contexts/LanguageContext';
+import LanguageToggle from './LanguageToggle';
 
 const ItemDetail = () => {
   const [updating, setUpdating] = useState(false);
@@ -19,6 +21,29 @@ const ItemDetail = () => {
   const [newLokasi, setNewLokasi] = useState('');
   const [newKondisi, setNewKondisi] = useState('');
   const [newKeterangan, setNewKeterangan] = useState('');
+
+  const [scrollY, setScrollY] = useState(0);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  const { t, isIndonesian } = useLanguage();
+
+  // Handle scroll animation and navbar transparency
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      setScrollY(currentScrollY);
+
+      // Change navbar style when scrolled more than 50px
+      if (currentScrollY > 50) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Fetch data from API
   const fetchItemDetails = useCallback(async () => {
@@ -197,13 +222,13 @@ const ItemDetail = () => {
 
     if (hasUnsavedChanges) {
       const confirmLeave = window.confirm(
-        'Anda memiliki perubahan yang belum disimpan. Yakin ingin keluar?'
+        { en: 'You have unsaved changes. Are you sure you want to leave without saving?', id: 'Anda memiliki perubahan yang belum disimpan. Apakah Anda yakin ingin meninggalkan halaman tanpa menyimpan?' }[isIndonesian ? 'id' : 'en']
       );
       if (!confirmLeave) {
         return;
       }
 
-      toast.info('Perubahan yang belum disimpan telah diabaikan', {
+      toast.info({en: 'Unsaved changes were discarded', id: 'Perubahan yang belum disimpan dibatalkan'}[isIndonesian ? 'id' : 'en'], {
         icon: '🗑️',
         duration: 3000
       });
@@ -306,7 +331,7 @@ const ItemDetail = () => {
         <div className="text-center">
           <div className={'text-6xl mb-4 transition-colors duration-300 ' + (isDarkMode ? 'text-red-400' : 'text-red-500')}>⚠️</div>
           <p className={'text-xl mb-6 font-semibold transition-colors duration-300 ' + (isDarkMode ? 'text-red-400' : 'text-red-500')}>
-            ITEM NOT FOUND
+            {t('itemNotFound')}
           </p>
           <button
             onClick={handleBack}
@@ -314,7 +339,7 @@ const ItemDetail = () => {
               ? 'bg-gradient-to-r from-teal-600 to-blue-600 text-white hover:from-teal-700 hover:to-blue-700'
               : 'bg-gradient-to-r from-teal-500 to-blue-500 text-white hover:from-teal-600 hover:to-blue-600')}
           >
-            ← Kembali ke Dashboard
+            ← {t('returnToDashboard')}
           </button>
         </div>
       </div>
@@ -348,6 +373,7 @@ const ItemDetail = () => {
               </h1>
             </div>
             <div className="flex items-center space-x-4">
+              <LanguageToggle />
               <DarkModeToggle />
 
               <button
@@ -360,7 +386,7 @@ const ItemDetail = () => {
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd"></path>
                   </svg>
-                  <span>Kembali ke Dashboard</span>
+                  <span>{t('backToDashboard')}</span>
                 </span>
               </button>
             </div>
@@ -376,26 +402,26 @@ const ItemDetail = () => {
             <div className={'backdrop-blur-md rounded-2xl border shadow-xl p-8 transition-all duration-300 ' + cardClass}>
               <div className="flex items-center justify-between mb-6">
                 <h2 className={'text-xl font-bold transition-colors duration-300 ' + textPrimaryClass}>
-                  Informasi Peralatan Jaringan
+                  {t('information')}
                 </h2>
                 <div className="flex items-center space-x-2">
                   <div className={'w-2 h-2 rounded-full animate-ping ' + (isDarkMode ? 'bg-green-400' : 'bg-green-500')}></div>
                   <span className={'text-xs font-semibold uppercase tracking-wider transition-colors duration-300 ' + (isDarkMode ? 'text-green-400' : 'text-green-600')}>
-                    ACTIVE
+                    {t('active')}
                   </span>
                 </div>
               </div>
 
               <div className="text-left grid md:grid-cols-2 gap-6">
                 {[
-                  { label: 'Nama Peralatan', value: item.nama, icon: '🖧' },
-                  { label: 'Type/Model', value: item.type, icon: '📦' },
-                  { label: 'MAC Address', value: item.mac_address, mono: true, icon: '🏷️' },
-                  { label: 'Serial Number', value: item.serial_number, mono: true, icon: '#️⃣' },
-                  { label: 'Kondisi', value: item.kondisi, icon: '🔧' },
-                  { label: 'Cabang', value: item.kota, icon: '🏢' },
-                  { label: 'Lokasi Instalasi', value: item.lokasi, span: true, icon: '📍' },
-                  { label: 'Keterangan', value: item.keterangan, span: true, icon: '📝' }
+                  { label: t('itemName'), value: item.nama, icon: '🖧' },
+                  { label: t('typeModel'), value: item.type, icon: '📦' },
+                  { label: t('macAddress'), value: item.mac_address, mono: true, icon: '🏷️' },
+                  { label: t('serialNumber'), value: item.serial_number, mono: true, icon: '#️⃣' },
+                  { label: t('condition'), value: item.kondisi, icon: '🔧' },
+                  { label: t('branch'), value: item.kota, icon: '🏢' },
+                  { label: t('installationLocation'), value: item.lokasi, span: true, icon: '📍' },
+                  { label: t('description'), value: item.keterangan, span: true, icon: '📝' }
                 ].map((field, index) => (
                   <div key={index} className={`group ${field.span ? 'md:col-span-2' : ''}`}>
                     <label className={'block text-sm font-semibold uppercase tracking-wider mb-2 transition-colors duration-300 ' + textPrimaryClass}>
@@ -419,7 +445,7 @@ const ItemDetail = () => {
                   <label className={'block text-sm font-semibold uppercase tracking-wider mb-2 transition-colors duration-300 ' + textPrimaryClass}>
                     <span className="flex items-center">
                       <span className="mr-2">📊</span>
-                      Status Peralatan
+                      {t('status')}
                     </span>
                   </label>
                   <div className="relative">
@@ -435,12 +461,12 @@ const ItemDetail = () => {
             <div className={'backdrop-blur-md rounded-2xl border shadow-xl p-8 transition-all duration-300 ' + cardClass}>
               <div className="flex items-center justify-between mb-6">
                 <h2 className={'text-xl font-bold transition-colors duration-300 ' + textPrimaryClass}>
-                  Update Status & Lokasi
+                  {t('updateStatus')} & {t('location')}
                 </h2>
                 <div className="flex items-center space-x-2">
                   <div className={'w-2 h-2 rounded-full animate-ping ' + (isDarkMode ? 'bg-yellow-400' : 'bg-yellow-500')}></div>
                   <span className={'text-xs font-semibold uppercase tracking-wider transition-colors duration-300 ' + (isDarkMode ? 'text-yellow-400' : 'text-yellow-600')}>
-                    STANDBY
+                    {t('standby')}
                   </span>
                 </div>
               </div>
@@ -451,7 +477,7 @@ const ItemDetail = () => {
                     <label className={'block text-sm font-semibold uppercase tracking-wider mb-3 transition-colors duration-300 ' + textPrimaryClass}>
                       <span className="flex items-center">
                         <div className={'w-2 h-2 rounded-full mr-2 animate-pulse ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
-                        Status Baru
+                        {t('newStatus')}
                       </span>
                     </label>
                     <select
@@ -469,7 +495,7 @@ const ItemDetail = () => {
                     <label className={'block text-sm font-semibold uppercase tracking-wider mb-3 transition-colors duration-300 ' + textPrimaryClass}>
                       <span className="flex items-center">
                         <div className={'w-2 h-2 rounded-full mr-2 animate-pulse ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
-                        Lokasi Baru
+                        {t('newLocation')}
                       </span>
                     </label>
                     <input
@@ -485,7 +511,7 @@ const ItemDetail = () => {
                     <label className={'block text-sm font-semibold uppercase tracking-wider mb-3 transition-colors duration-300 ' + textPrimaryClass}>
                       <span className="flex items-center">
                         <div className={'w-2 h-2 rounded-full mr-2 animate-pulse ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
-                        Kondisi
+                        {t('condition')}
                       </span>
                     </label>
                     <select
@@ -504,7 +530,7 @@ const ItemDetail = () => {
                     <label className={'block text-sm font-semibold uppercase tracking-wider mb-3 transition-colors duration-300 ' + textPrimaryClass}>
                       <span className="flex items-center">
                         <div className={'w-2 h-2 rounded-full mr-2 animate-pulse ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
-                        Keterangan
+                        {t('description')}
                       </span>
                     </label>
                     <textarea
@@ -512,7 +538,7 @@ const ItemDetail = () => {
                       value={newKeterangan}
                       onChange={(e) => setNewKeterangan(e.target.value)}
                       className={'w-full p-4 border rounded-xl font-medium focus:ring-2 focus:ring-teal-400/20 transition-all duration-300 resize-none ' + inputClass + ' focus:border-teal-400'}
-                      placeholder="Masukkan keterangan tambahan..."
+                      placeholder={(isIndonesian ? 'Masukkan keterangan tambahan...' : 'Enter additional remarks...' )}
                     ></textarea>
                   </div>
                 </div>
@@ -532,21 +558,21 @@ const ItemDetail = () => {
                     {updating ? (
                       <>
                         <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-3"></div>
-                        Updating...
+                        {t('updating')}...
                       </>
                     ) : (newStatus !== item.status || newLokasi !== item.lokasi || newKondisi !== item.kondisi || newKeterangan !== item.keterangan) ? (
                       <>
                         <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
                         </svg>
-                        Execute Update
+                        {t('executeUpdate')}
                       </>
                     ) : (
                       <>
                         <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
                         </svg>
-                        No Changes Detected
+                        {t('noChangesDetected')}
                       </>
                     )}
                   </span>
@@ -557,27 +583,27 @@ const ItemDetail = () => {
                     <p className={'font-semibold text-sm uppercase tracking-wider mb-2 transition-colors duration-300 ' + (isDarkMode ? 'text-blue-400' : 'text-blue-600')}>
                       <span className="flex items-center">
                         <div className={'w-2 h-2 rounded-full mr-2 animate-ping ' + (isDarkMode ? 'bg-blue-400' : 'bg-blue-500')}></div>
-                        Pending Changes:
+                        {t('pendingChanges')}:
                       </span>
                     </p>
                     {newStatus !== item.status && (
                       <p className={'text-sm font-mono transition-colors duration-300 ' + (isDarkMode ? 'text-blue-300' : 'text-blue-700')}>
-                        • Status: {item.status} → {newStatus}
+                        • {t('newStatus')}: {item.status} → {newStatus}
                       </p>
                     )}
                     {newLokasi !== item.lokasi && (
                       <p className={'text-sm font-mono transition-colors duration-300 ' + (isDarkMode ? 'text-blue-300' : 'text-blue-700')}>
-                        • Lokasi: {item.lokasi} → {newLokasi}
+                        • {t('newLocation')}: {item.lokasi} → {newLokasi}
                       </p>
                     )}
                     {newKondisi !== item.kondisi && (
                       <p className={'text-sm font-mono transition-colors duration-300 ' + (isDarkMode ? 'text-blue-300' : 'text-blue-700')}>
-                        • Kondisi: {item.kondisi} → {newKondisi}
+                        • {t('condition')}: {item.kondisi} → {newKondisi}
                       </p>
                     )}
                     {newKeterangan !== item.keterangan && (
                       <p className={'text-sm font-mono transition-colors duration-300 ' + (isDarkMode ? 'text-blue-300' : 'text-blue-700')}>
-                        • Keterangan: Updated
+                        • {t('description')}: Updated
                       </p>
                     )}
                   </div>
@@ -589,12 +615,12 @@ const ItemDetail = () => {
             <div className={'backdrop-blur-md rounded-2xl border shadow-xl p-8 transition-all duration-300 ' + cardClass}>
               <div className="flex items-center justify-between mb-6">
                 <h2 className={'text-xl font-bold transition-colors duration-300 ' + textPrimaryClass}>
-                  History Keluar Masuk
+                  {t('historyKeluarMasuk')}
                 </h2>
                 <div className="flex items-center space-x-2">
                   <div className={'w-2 h-2 rounded-full animate-ping ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
                   <span className={'text-xs font-semibold uppercase tracking-wider transition-colors duration-300 ' + textPrimaryClass}>
-                    TRACKING
+                    {t('tracking')}
                   </span>
                 </div>
               </div>
@@ -614,17 +640,17 @@ const ItemDetail = () => {
                             </span>
                           </div>
                           <p className={'text-sm mb-1 text-left transition-colors duration-300 ' + textMainClass}>
-                            <span className={'font-semibold ' + textPrimaryClass}>KONDISI:</span> {entry.kondisi}
+                            <span className={'font-semibold ' + textPrimaryClass}>{t('condition')}:</span> {entry.kondisi}
                           </p>
                           <p className={'text-sm mb-1 text-left transition-colors duration-300 ' + textMainClass}>
-                            <span className={'font-semibold ' + textPrimaryClass}>LOKASI:</span> {entry.lokasi}
+                            <span className={'font-semibold ' + textPrimaryClass}>{t('location')}:</span> {entry.lokasi}
                           </p>
                           <p className={'text-sm text-left transition-colors duration-300 ' + textMainClass}>
-                            <span className={'font-semibold ' + textPrimaryClass}>INFO:</span> {entry.keterangan}
+                            <span className={'font-semibold ' + textPrimaryClass}>{t('info')}:</span> {entry.keterangan}
                           </p>
                         </div>
                         <span className={'text-xs font-mono transition-colors duration-300 ' + textSecondaryClass}>
-                          {entry.tanggal}
+                          {new Date(entry.tanggal).toLocaleString()}
                         </span>
                       </div>
                     </div>
@@ -797,14 +823,47 @@ const ItemDetail = () => {
                 </div>
                 <div className={'flex justify-between items-center p-3 rounded-xl transition-all duration-300 ' + (isDarkMode ? 'bg-gray-700/50' : 'bg-gray-50')}>
                   <span className={'text-sm font-semibold transition-colors duration-300 ' + textSecondaryClass}>Created</span>
-                  <span className={'text-sm font-mono transition-colors duration-300 ' + textMainClass}>{item.created_at}</span>
+                  <span className={'text-sm font-mono transition-colors duration-300 ' + textMainClass}>{new Date(item.created_at).toLocaleString()}</span>
                 </div>
                 <div className={'flex justify-between items-center p-3 rounded-xl transition-all duration-300 ' + (isDarkMode ? 'bg-gray-700/50' : 'bg-gray-50')}>
                   <span className={'text-sm font-semibold transition-colors duration-300 ' + textSecondaryClass}>Last Update</span>
-                  <span className={'text-sm font-mono transition-colors duration-300 ' + textMainClass}>{item.updated_at}</span>
+                  <span className={'text-sm font-mono transition-colors duration-300 ' + textMainClass}>{new Date(item.updated_at).toLocaleString()}</span>
                 </div>
               </div>
             </div>
+
+            {/* Scroll to Top Button */}
+            <button
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className={`fixed left-6 bottom-6 z-50 group bg-gradient-to-r from-teal-600 to-blue-600 dark:from-teal-500 dark:to-blue-500 text-white p-4 rounded-full shadow-2xl hover:shadow-teal-500/50 transition-all duration-500 transform ${isScrolled
+                ? 'opacity-100 translate-y-0 scale-100'
+                : 'opacity-0 translate-y-10 scale-0 pointer-events-none'
+                }`}
+              aria-label="Scroll to top"
+            >
+              <svg
+                className="w-6 h-6 transform group-hover:-translate-y-1 transition-transform duration-300"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 10l7-7m0 0l7 7m-7-7v18"
+                />
+              </svg>
+
+              {/* Ripple effect on hover */}
+              <span className="absolute inset-0 rounded-full bg-white opacity-0 group-hover:opacity-20 group-hover:scale-150 transition-all duration-500"></span>
+
+              {/* Tooltip */}
+              <span className="absolute left-full mr-3 top-1/2 transform -translate-y-1/2 bg-gray-900 dark:bg-gray-700 text-white text-sm font-medium px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap pointer-events-none">
+                Back to Top
+                <span className="absolute right-full top-1/2 transform -translate-y-1/2 border-4 border-transparent border-r-gray-900 dark:border-r-gray-700"></span>
+              </span>
+            </button>
           </div>
         </div>
       </div>

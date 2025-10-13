@@ -209,6 +209,68 @@ export const barangAPI = {
     console.log("🗑️ Deleting barang, ID:", id);
     return apiRequest(`/barang/${id}`, { method: "DELETE" });
   },
+
+   downloadTemplate: async () => {
+    console.log("📥 Downloading Excel template");
+    const token = getAuthToken();
+    
+    const response = await fetch(`${API_BASE_URL}/barang/template`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to download template');
+    }
+
+    return response.blob();
+  },
+
+  importExcel: async (file) => {
+    console.log("📤 Importing data from Excel:", file.name);
+    const token = getAuthToken();
+    
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(`${API_BASE_URL}/barang/import`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+        // Don't set Content-Type - browser will set it with boundary
+      },
+      body: formData
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Import failed');
+    }
+
+    return data;
+  },
+
+  exportExcel: async () => {
+    console.log("📥 Exporting data to Excel");
+    const token = getAuthToken();
+    
+    const response = await fetch(`${API_BASE_URL}/barang/export`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.message || 'Export failed');
+    }
+
+    return response.blob();
+  },
 };
 
 // QR & Other APIs

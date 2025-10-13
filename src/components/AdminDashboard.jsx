@@ -25,6 +25,27 @@ const AdminDashboard = ({ user, onLogout }) => {
         is_active: true
     });
 
+    const [scrollY, setScrollY] = useState(0);
+    const [isScrolled, setIsScrolled] = useState(false);
+
+    // Handle scroll animation and navbar transparency
+    useEffect(() => {
+        const handleScroll = () => {
+            const currentScrollY = window.scrollY;
+            setScrollY(currentScrollY);
+
+            // Change navbar style when scrolled more than 50px
+            if (currentScrollY > 50) {
+                setIsScrolled(true);
+            } else {
+                setIsScrolled(false);
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
     // Check if user is admin
     useEffect(() => {
         if (user?.role !== 'admin') {
@@ -590,8 +611,43 @@ const AdminDashboard = ({ user, onLogout }) => {
                     </div>
                 </div>
             )}
+
+            {/* Scroll to Top Button */}
+            <button
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                className={`fixed left-6 bottom-6 z-50 group bg-gradient-to-r from-teal-600 to-blue-600 dark:from-teal-500 dark:to-blue-500 text-white p-4 rounded-full shadow-2xl hover:shadow-teal-500/50 transition-all duration-500 transform ${isScrolled
+                    ? 'opacity-100 translate-y-0 scale-100'
+                    : 'opacity-0 translate-y-10 scale-0 pointer-events-none'
+                    }`}
+                aria-label="Scroll to top"
+            >
+                <svg
+                    className="w-6 h-6 transform group-hover:-translate-y-1 transition-transform duration-300"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 10l7-7m0 0l7 7m-7-7v18"
+                    />
+                </svg>
+
+                {/* Ripple effect on hover */}
+                <span className="absolute inset-0 rounded-full bg-white opacity-0 group-hover:opacity-20 group-hover:scale-150 transition-all duration-500"></span>
+
+                {/* Tooltip */}
+                <span className="absolute left-full mr-3 top-1/2 transform -translate-y-1/2 bg-gray-900 dark:bg-gray-700 text-white text-sm font-medium px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap pointer-events-none">
+                    Back to Top
+                    <span className="absolute right-full top-1/2 transform -translate-y-1/2 border-4 border-transparent border-r-gray-900 dark:border-r-gray-700"></span>
+                </span>
+            </button>
         </div>
     );
 };
+
+
 
 export default AdminDashboard;

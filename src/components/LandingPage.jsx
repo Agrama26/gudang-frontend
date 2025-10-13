@@ -6,6 +6,9 @@ import '../index.css';
 import '../App.css';
 import { useNavigate } from 'react-router-dom';
 import { useDarkMode } from '../contexts/DarkModeContext';
+import DarkModeToggle from './DarkModeToggle';
+import { useLanguage } from '../contexts/LanguageContext';
+import LanguageToggle from './LanguageToggle';
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -14,6 +17,7 @@ const LandingPage = () => {
   const [scrollY, setScrollY] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
   const observerRef = useRef();
+  const { t, isIndonesian } = useLanguage();
 
   // Handle scroll animation and navbar transparency
   useEffect(() => {
@@ -59,8 +63,8 @@ const LandingPage = () => {
 
   const features = [
     {
-      title: "Tambah Barang",
-      description: "Tambahkan barang baru dengan mudah ke dalam sistem inventori dengan validasi data yang akurat",
+      title: { en: "Add New Item", id: "Tambah Barang Baru" }[isIndonesian ? 'id' : 'en'],
+      description: { en: "Easily add new inventory items with detailed specifications and categories", id: "Tambah barang inventori dengan spesifikasi dan kategori lengkap" }[isIndonesian ? 'id' : 'en'],
       icon: (
         <div className="w-12 h-12 bg-gradient-to-r from-teal-500 to-blue-500 rounded-xl flex items-center justify-center shadow-lg hover:shadow-teal-500/50 transition-all duration-300 transform hover:scale-110">
           <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -70,8 +74,8 @@ const LandingPage = () => {
       )
     },
     {
-      title: "Update Status",
-      description: "Perbarui status barang secara real-time dengan sistem tracking otomatis dan riwayat lengkap",
+      title: { en: "Real-time Tracking", id: "Pelacakan Real-time" }[isIndonesian ? 'id' : 'en'],
+      description: { en: "Update item status in real-time with automatic tracking and complete history", id: "Perbarui status barang secara real-time dengan sistem tracking otomatis dan riwayat lengkap" }[isIndonesian ? 'id' : 'en'],
       icon: (
         <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg hover:shadow-blue-500/50 transition-all duration-300 transform hover:scale-110">
           <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -81,8 +85,8 @@ const LandingPage = () => {
       )
     },
     {
-      title: "Riwayat Barang",
-      description: "Lihat riwayat lengkap penggunaan dan perpindahan barang dengan timeline yang detail",
+      title: { en: "History Tracking", id: "Riwayat Barang" }[isIndonesian ? 'id' : 'en'],
+      description: { en: "View complete history of item usage and movement with a detailed timeline", id: "Lihat riwayat lengkap penggunaan dan perpindahan barang dengan timeline yang detail" }[isIndonesian ? 'id' : 'en'],
       icon: (
         <div className="w-12 h-12 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center shadow-lg hover:shadow-emerald-500/50 transition-all duration-300 transform hover:scale-110">
           <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -92,8 +96,8 @@ const LandingPage = () => {
       )
     },
     {
-      title: "Monitoring Kondisi",
-      description: "Monitor kondisi barang dengan sistem peringatan otomatis dan laporan maintenance",
+      title: { en: "Condition Monitoring", id: "Monitoring Kondisi" }[isIndonesian ? 'id' : 'en'],
+      description: { en: "Monitor item conditions with automated alerts and maintenance reports", id: "Monitor kondisi barang dengan sistem peringatan otomatis dan laporan maintenance" }[isIndonesian ? 'id' : 'en'],
       icon: (
         <div className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center shadow-lg hover:shadow-yellow-500/50 transition-all duration-300 transform hover:scale-110">
           <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -104,8 +108,8 @@ const LandingPage = () => {
       )
     },
     {
-      title: "Barcode/QR System",
-      description: "Generate dan scan QR code untuk identifikasi barang yang cepat dan akurat",
+      title: { en: "Barcode/QR System", id: "Sistem Barcode/QR" }[isIndonesian ? 'id' : 'en'],
+      description: { en: "Generate and scan QR codes for fast and accurate item identification", id: "Generate dan scan QR code untuk identifikasi barang yang cepat dan akurat" }[isIndonesian ? 'id' : 'en'],
       icon: (
         <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center shadow-lg hover:shadow-indigo-500/50 transition-all duration-300 transform hover:scale-110">
           <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -115,8 +119,8 @@ const LandingPage = () => {
       )
     },
     {
-      title: "Analytics Dashboard",
-      description: "Analisis mendalam data inventori dengan visualisasi interaktif dan laporan komprehensif",
+      title: { en: "Analytics & Reporting", id: "Analisis & Pelaporan" }[isIndonesian ? 'id' : 'en'],
+      description: { en: "Deep dive into inventory data with interactive visualizations and comprehensive reports", id: "Analisis mendalam data inventori dengan visualisasi interaktif dan laporan komprehensif" }[isIndonesian ? 'id' : 'en'],
       icon: (
         <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-red-500 rounded-xl flex items-center justify-center shadow-lg hover:shadow-pink-500/50 transition-all duration-300 transform hover:scale-110">
           <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -139,8 +143,8 @@ const LandingPage = () => {
 
       {/* Navigation - Dynamic Transparency */}
       <nav className={`fixed top-0 w-full z-50 transition-all duration-500 ${isScrolled
-          ? 'backdrop-blur-xl bg-white/90 dark:bg-gray-900/90 border-b border-teal-200 dark:border-gray-700 shadow-lg'
-          : 'bg-transparent border-b border-transparent'
+        ? 'backdrop-blur-xl bg-white/90 dark:bg-gray-900/90 border-b border-teal-200 dark:border-gray-700 shadow-lg'
+        : 'bg-transparent border-b border-transparent'
         }`}>
         <div className="container mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
@@ -152,41 +156,33 @@ const LandingPage = () => {
                   width="150"
                   height="150"
                   className={`w-32 md:w-30 lg:w-40 object-contain drop-shadow-lg transition-all duration-500 ${isScrolled
-                      ? 'filter invert dark:invert-0'
-                      : 'filter invert-0 brightness-0 dark:invert'
+                    ? 'filter invert dark:invert-0'
+                    : 'filter invert-0 brightness-0 dark:invert'
                     }`}
                 />
               </div>
-              {/* <div>
-                <h1 className={`text-xl font-bold transition-all duration-500 ${
-                  isScrolled 
-                    ? 'text-teal-600 dark:text-teal-400' 
-                    : 'text-white drop-shadow-lg'
-                }`}>
-                  PT. Medianusa Permana
-                </h1>
-              </div> */}
             </div>
 
             <div className="flex items-center space-x-4">
+              <LanguageToggle />
               <DarkModeToggle />
               <button
                 onClick={() => navigate('/login')}
                 className={`px-4 py-2 rounded-xl font-medium transition-all duration-500 ${isScrolled
-                    ? 'text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 hover:bg-teal-50 dark:hover:bg-gray-700'
-                    : 'text-white hover:bg-white/20 backdrop-blur-sm'
+                  ? 'text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 hover:bg-teal-50 dark:hover:bg-gray-700'
+                  : 'text-white hover:bg-white/20 backdrop-blur-sm'
                   }`}
               >
-                Login
+                {t('login')}
               </button>
               <button
                 onClick={() => navigate('/dashboard')}
                 className={`px-6 py-2 rounded-xl font-semibold shadow-lg transition-all duration-500 transform hover:scale-105 ${isScrolled
-                    ? 'bg-gradient-to-r from-teal-600 to-blue-600 dark:from-teal-500 dark:to-blue-500 text-white hover:shadow-teal-500/50'
-                    : 'bg-white text-teal-600 hover:shadow-white/50'
+                  ? 'bg-gradient-to-r from-teal-600 to-blue-600 dark:from-teal-500 dark:to-blue-500 text-white hover:shadow-teal-500/50'
+                  : 'bg-white text-teal-600 hover:shadow-white/50'
                   }`}
               >
-                Dashboard
+                {t('dashboard')}
               </button>
             </div>
           </div>
@@ -235,16 +231,16 @@ const LandingPage = () => {
             >
               <div className="space-y-6">
                 <h1 className="text-white text-4xl md:text-6xl font-bold leading-tight">
-                  Menghadirkan<br />
+                  {t('heroTitle')}<br />
                   <span className="bg-gradient-to-r from-cyan-200 to-blue-200 bg-clip-text text-transparent">
-                    Keunggulan Inovasi
+                    {t('heroSubtitle1')}
                   </span><br />
                   <span className="bg-gradient-to-r from-blue-200 to-cyan-200 bg-clip-text text-transparent">
-                    Solusi dan Teknologi
+                    {t('heroSubtitle2')}
                   </span>
                 </h1>
-                <p className="text-white/90 text-xl leading-relaxed max-w-2xl">
-                  untuk Meningkatkan Management Barang
+                <p className="text-white/90 text-xl leading-relaxed max-w-1xl">
+                  {t('heroDescription')}
                 </p>
               </div>
 
@@ -254,7 +250,7 @@ const LandingPage = () => {
                   className="group bg-white text-teal-600 px-8 py-4 rounded-xl font-bold shadow-xl hover:shadow-2xl transition-all duration-300 hover:bg-gray-50 transform hover:scale-105 hover:-translate-y-1"
                 >
                   <span className="flex items-center justify-center space-x-2">
-                    <span>Start</span>
+                    <span>{t('start')}</span>
                     <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd"></path>
                     </svg>
@@ -308,10 +304,10 @@ const LandingPage = () => {
         >
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-800 dark:text-gray-100 mb-4">
-              Fitur Unggulan
+              {t('featuredFeatures')}
             </h2>
             <p className="text-gray-600 dark:text-gray-300 text-lg max-w-2xl mx-auto">
-              Kelola inventori peralatan jaringan Anda dengan mudah menggunakan fitur-fitur canggih yang kami sediakan
+              {t('featuresDescription')}
             </p>
           </div>
 
@@ -347,18 +343,18 @@ const LandingPage = () => {
           <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-2xl p-12 border border-teal-100 dark:border-gray-700 shadow-2xl">
             <div className="text-center mb-12">
               <h3 className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-4">
-                Dipercaya untuk Mengelola Inventori Jaringan
+                {t('trustedForInventory')}
               </h3>
               <p className="text-gray-600 dark:text-gray-300 text-lg">
-                Statistik penggunaan sistem di PT. Medianusa Permana
+                {t('usageStatistics')}
               </p>
             </div>
             <div className="grid md:grid-cols-4 gap-8 text-center">
               {[
-                { number: '1000+', label: 'Barang Terdaftar', gradient: 'from-teal-600 to-blue-600 dark:from-teal-400 dark:to-blue-400' },
-                { number: '5', label: 'Cabang', gradient: 'from-blue-600 to-emerald-600 dark:from-blue-400 dark:to-emerald-400' },
-                { number: '24/7', label: 'Monitoring', gradient: 'from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400' },
-                { number: '99.9%', label: 'Akurasi Data', gradient: 'from-teal-600 to-blue-600 dark:from-teal-400 dark:to-blue-400' }
+                { number: '1000+', label: t('registeredItems'), gradient: 'from-teal-600 to-blue-600 dark:from-teal-400 dark:to-blue-400' },
+                { number: '5', label: t('branches'), gradient: 'from-blue-600 to-emerald-600 dark:from-blue-400 dark:to-emerald-400' },
+                { number: '24/7', label: t('monitoring'), gradient: 'from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400' },
+                { number: '99.9%', label: t('dataAccuracy'), gradient: 'from-teal-600 to-blue-600 dark:from-teal-400 dark:to-blue-400' }
               ].map((stat, index) => (
                 <div
                   key={index}
@@ -386,21 +382,18 @@ const LandingPage = () => {
           <div className="bg-gradient-to-r from-teal-600 to-blue-600 dark:from-teal-700 dark:to-blue-700 rounded-2xl p-12 text-white shadow-2xl">
             <div className="text-center">
               <h3 className="text-3xl font-bold mb-6">
-                Tentang PT. Medianusa Permana
+                {t('aboutCompany')}
               </h3>
               <p className="text-xl leading-relaxed max-w-4xl mx-auto mb-8">
-                PT. Medianusa Permana adalah perusahaan yang bergerak di bidang pelayanan jaringan
-                dengan 5 cabang di Indonesia: Medan, Batam, Pekan Baru, Tarutung, dan Jakarta.
-                Kami mengelola inventori peralatan jaringan seperti Mikrotik dan TP-Link dengan
-                sistem digital yang modern dan efisien.
+                {t('companyDescription')}
               </p>
               <div className="grid md:grid-cols-5 gap-6 mt-12">
                 {[
-                  { city: 'Batam', status: 'Kantor Pusat' },
-                  { city: 'Medan', status: 'Kantor Cabang' },
-                  { city: 'Pekan Baru', status: 'Kantor Cabang' },
-                  { city: 'Tarutung', status: 'Cabang Regional' },
-                  { city: 'Jakarta', status: 'Cabang Metropolitan' }
+                  { city: 'Batam', status: t('headOffice') },
+                  { city: 'Medan', status: t('branchOffice') },
+                  { city: 'Pekan Baru', status: t('branchOffice') },
+                  { city: 'Tarutung', status: t('regionalBranch') },
+                  { city: 'Jakarta', status: t('metropolitanBranch') }
                 ].map((office, index) => (
                   <div
                     key={index}
@@ -421,11 +414,10 @@ const LandingPage = () => {
         <div className="mt-32 text-center">
           <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-teal-200 dark:border-gray-700 rounded-2xl p-12 shadow-2xl shadow-teal-500/20">
             <h3 className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-4">
-              Siap Mengoptimalkan Inventori Anda?
+              {t('optimizeInventory')}
             </h3>
             <p className="text-gray-600 dark:text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
-              Bergabunglah dengan sistem manajemen inventori modern yang telah dipercaya
-              untuk mengelola ribuan peralatan jaringan
+              {t('optimizeDescription')}
             </p>
             <button
               onClick={() => navigate('/login')}
@@ -436,12 +428,45 @@ const LandingPage = () => {
                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
                 </svg>
-                <span>Mulai Sekarang</span>
+                <span>{t('getStarted')}</span>
               </span>
             </button>
           </div>
         </div>
       </div>
+
+      {/* Scroll to Top Button */}
+      <button
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        className={`fixed left-6 bottom-6 z-50 group bg-gradient-to-r from-teal-600 to-blue-600 dark:from-teal-500 dark:to-blue-500 text-white p-4 rounded-full shadow-2xl hover:shadow-teal-500/50 transition-all duration-500 transform ${isScrolled
+          ? 'opacity-100 translate-y-0 scale-100'
+          : 'opacity-0 translate-y-10 scale-0 pointer-events-none'
+          }`}
+        aria-label="Scroll to top"
+      >
+        <svg
+          className="w-6 h-6 transform group-hover:-translate-y-1 transition-transform duration-300"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M5 10l7-7m0 0l7 7m-7-7v18"
+          />
+        </svg>
+
+        {/* Ripple effect on hover */}
+        <span className="absolute inset-0 rounded-full bg-white opacity-0 group-hover:opacity-20 group-hover:scale-150 transition-all duration-500"></span>
+
+        {/* Tooltip */}
+        <span className="absolute left-full mr-3 top-1/2 transform -translate-y-1/2 bg-gray-900 dark:bg-gray-700 text-white text-sm font-medium px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap pointer-events-none">
+          Back to Top
+          <span className="absolute right-full top-1/2 transform -translate-y-1/2 border-4 border-transparent border-r-gray-900 dark:border-r-gray-700"></span>
+        </span>
+      </button>
 
       {/* Footer */}
       <footer className="relative mt-20 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-t border-teal-200 dark:border-gray-700">
@@ -459,12 +484,12 @@ const LandingPage = () => {
               </div>
             </div>
             <p className="text-gray-600 dark:text-gray-300 mb-6">
-              © 2025 PT. Medianusa Permana. All rights reserved.
+              © 2025 PT. Medianusa Permana. {t('allRightsReserved')}
             </p>
             <div className="flex justify-center space-x-6">
-              <a href="#" className="text-gray-600 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-300">Privacy Policy</a>
-              <a href="#" className="text-gray-600 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-300">Terms of Service</a>
-              <a href="#" className="text-gray-600 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-300">Contact</a>
+              <a href="#" className="text-gray-600 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-300">{t('privacyPolicy')}</a>
+              <a href="#" className="text-gray-600 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-300">{t('termsOfService')}</a>
+              <a href="#" className="text-gray-600 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-300">{t('contact')}</a>
             </div>
           </div>
         </div>
@@ -472,8 +497,5 @@ const LandingPage = () => {
     </div>
   );
 };
-
-// Add missing import for DarkModeToggle at the top of the file
-import DarkModeToggle from './DarkModeToggle';
 
 export default LandingPage;

@@ -1,9 +1,16 @@
+import ImportExportModal from './ImportExportModal';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { barangAPI } from '../utils/api';
 import logo from '../assets/logo.png';
 import { useDarkMode } from '../contexts/DarkModeContext';
 import DarkModeToggle from './DarkModeToggle';
+import 'tailwindcss/tailwind.css';
+import '../index.css';
+import '../App.css';
+import { useLanguage } from '../contexts/LanguageContext';
+import LanguageToggle from './LanguageToggle';
+
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -45,6 +52,9 @@ const Dashboard = ({ user, onLogout }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [kotaFilter, setKotaFilter] = useState('');
+  const [showImportExportModal, setShowImportExportModal] = useState(false);
+
+  const { t, isIndonesian } = useLanguage();
 
   // Animation states
   const [isVisible, setIsVisible] = useState({});
@@ -55,9 +65,47 @@ const Dashboard = ({ user, onLogout }) => {
   const [itemToDelete, setItemToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
+  const [scrollY, setScrollY] = useState(0);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  // Handle scroll animation and navbar transparency
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      setScrollY(currentScrollY);
+
+      // Change navbar style when scrolled more than 50px
+      if (currentScrollY > 50) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const handleDeleteClick = (item) => {
     setItemToDelete(item);
     setShowDeleteModal(true);
+  };
+
+  const handleImportExportSuccess = () => {
+    // Refresh data after successful import
+    const fetchItems = async () => {
+      try {
+        const data = await barangAPI.getAll();
+        setItems(data);
+        toast.success('Data refreshed successfully!', {
+          icon: '🔄',
+          duration: 3000
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchItems();
   };
 
   const handleDeleteConfirm = async () => {
@@ -77,7 +125,7 @@ const Dashboard = ({ user, onLogout }) => {
       alert(`Barang "${itemToDelete.nama}" berhasil dihapus!`);
     } catch (error) {
       console.error('Error deleting item:', error);
-      alert('Gagal menghapus barang. Silakan coba lagi.');
+      alert({ en: "Failed to delete item. Please try again.", id: "Gagal menghapus barang. Silakan coba lagi." }[isIndonesian ? 'id' : 'en']);
     } finally {
       setDeleting(false);
     }
@@ -137,7 +185,7 @@ const Dashboard = ({ user, onLogout }) => {
         const data = await barangAPI.getAll();
         setItems(data);
       } catch (err) {
-        setError('Gagal memuat data barang');
+        setError({ en: "Failed to load data. Please try again later.", id: "Gagal memuat data. Silakan coba lagi nanti." }[isIndonesian ? 'id' : 'en']);
         console.error(err);
       } finally {
         setLoading(false);
@@ -174,6 +222,21 @@ const Dashboard = ({ user, onLogout }) => {
     setFilteredItems(result);
     setChartAnimated(true);
   }, [chartAnimated, searchQuery, statusFilter, kotaFilter, kondisiFilter, items]);
+
+  const StatusBadge = ({ status }) => {
+    const { t } = useLanguage();
+
+    const getStatusText = () => {
+      switch (status) {
+        case 'READY': return t('ready');
+        case 'TERPAKAI': return t('inUse');
+        case 'RUSAK': return t('broken');
+        default: return status;
+      }
+    };
+
+    return <span>{getStatusText()}</span>;
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -397,7 +460,7 @@ const Dashboard = ({ user, onLogout }) => {
           <div className="relative">
             <div className="animate-spin h-16 w-16 border-4 border-teal-200 dark:border-gray-600 border-t-teal-600 dark:border-t-teal-400 rounded-full"></div>
           </div>
-          <p className="mt-6 text-gray-700 dark:text-gray-300 font-medium">Loading dashboard...</p>
+          <p className="mt-6 text-gray-700 dark:text-gray-300 font-medium">{t('loading')} dashboard...</p>
         </div>
       </div>
     );
@@ -447,15 +510,10 @@ const Dashboard = ({ user, onLogout }) => {
                   className="w-32 md:w-30 lg:w-40 object-contain drop-shadow-lg filter invert dark:invert-0"
                 />
               </div>
-
-              {/* <div>
-                <h1 className="text-1xl sm:text-2xl md:text-3xl font-bold text-teal-600 dark:text-teal-400">
-                  Dashboard
-                </h1>
-              </div> */}
             </div>
 
             <div className="flex items-center space-x-3">
+              <LanguageToggle />
               <DarkModeToggle />
 
               {/* Show Admin Panel button only for admin users */}
@@ -468,16 +526,28 @@ const Dashboard = ({ user, onLogout }) => {
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
                     </svg>
-                    <span>Admin Panel</span>
+                    <span>{t('adminPanel')}</span>
                   </span>
                 </button>
               )}
 
               <button
+                onClick={() => setShowImportExportModal(true)}
+                className="group relative bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-500 dark:to-teal-500 text-white px-4 py-3 rounded-xl font-semibold shadow-lg hover:shadow-emerald-500/50 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
+              >
+                <span className="relative z-10 flex items-center space-x-2">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                  </svg>
+                  <span>Import/Export</span>
+                </span>
+              </button>
+
+              <button
                 onClick={() => navigate('/add-item')}
                 className="group relative bg-teal-600 dark:bg-teal-700 text-white px-4 py-3 rounded-xl font-semibold shadow-lg hover:shadow-teal-500/50 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
               >
-                <span className="relative z-10">+ Add Item</span>
+                <span className="relative z-10">+ {t('addItem')}</span>
                 <div className="absolute inset-0 bg-teal-700 dark:bg-teal-600 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </button>
 
@@ -485,7 +555,7 @@ const Dashboard = ({ user, onLogout }) => {
                 onClick={() => navigate('/')}
                 className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-4 py-3 rounded-xl font-semibold border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
               >
-                Home
+                {t('home')}
               </button>
             </div>
           </div>
@@ -503,7 +573,7 @@ const Dashboard = ({ user, onLogout }) => {
             data-animate="pie-chart"
           >
             <div className="group bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border border-teal-100 dark:border-gray-700 h-full hover:bg-teal-50 dark:hover:bg-gray-750 transition-all duration-300 transform hover:scale-105 hover:-translate-y-2">
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-6 text-center">Status Distribution</h3>
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-6 text-center">{t('statusDistribution')}</h3>
               <div className="h-80">
                 <PolarArea data={PolarAreaData} options={PolarOptions} />
               </div>
@@ -517,7 +587,7 @@ const Dashboard = ({ user, onLogout }) => {
             data-animate="radar-chart"
           >
             <div className="group bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border border-teal-100 dark:border-gray-700 h-full hover:bg-teal-50 dark:hover:bg-gray-750 transition-all duration-300 transform hover:scale-105 hover:-translate-y-2">
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-6 text-center">Distribution by City</h3>
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-6 text-center">{t('distributionByCity')}</h3>
               <div className="h-80">
                 <Radar data={radarChartData} options={radarChartOptions} />
               </div>
@@ -539,7 +609,7 @@ const Dashboard = ({ user, onLogout }) => {
                   </svg>
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Total Items</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">{t('totalItems')}</p>
                   <p className="text-3xl font-bold text-gray-800 dark:text-gray-200">{filteredItems.length}</p>
                 </div>
               </div>
@@ -559,7 +629,7 @@ const Dashboard = ({ user, onLogout }) => {
                   </svg>
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Ready</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">{t('ready')}</p>
                   <p className="text-3xl font-bold text-gray-800 dark:text-gray-200">{statusCounts.READY}</p>
                 </div>
               </div>
@@ -579,7 +649,7 @@ const Dashboard = ({ user, onLogout }) => {
                   </svg>
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Terpakai</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">{t('inUse')}</p>
                   <p className="text-3xl font-bold text-gray-800 dark:text-gray-200">{statusCounts.TERPAKAI}</p>
                 </div>
               </div>
@@ -599,7 +669,7 @@ const Dashboard = ({ user, onLogout }) => {
                   </svg>
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Rusak</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">{t('broken')}</p>
                   <p className="text-3xl font-bold text-gray-800 dark:text-gray-200">{statusCounts.RUSAK}</p>
                 </div>
               </div>
@@ -624,7 +694,7 @@ const Dashboard = ({ user, onLogout }) => {
               <input
                 type="text"
                 className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-300"
-                placeholder="Cari barang..."
+                placeholder={isIndonesian ? "Cari Barang ..." : "Search Items ..."}
                 value={searchQuery}
                 onChange={handleSearchChange}
               />
@@ -637,7 +707,7 @@ const Dashboard = ({ user, onLogout }) => {
                 onChange={handleKotaFilterChange}
                 className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-300 appearance-none cursor-pointer"
               >
-                <option value="">Semua Kota</option>
+                <option value="">{t('allCities')}</option>
                 <option value="Medan">Medan</option>
                 <option value="Batam">Batam</option>
                 <option value="Pekan Baru">Pekan Baru</option>
@@ -653,11 +723,11 @@ const Dashboard = ({ user, onLogout }) => {
                 onChange={handleKondisiFilterChange}
                 className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-50 appearance-none cursor-pointer"
               >
-                <option value="">Semua Kondisi</option>
-                <option value="Baru">Baru</option>
-                <option value="Baik">Baik</option>
-                <option value="Rusak Ringan">Rusak Ringan</option>
-                <option value="Rusak Berat">Rusak Berat</option>
+                <option value="">{t('allConditions')}</option>
+                <option value="Baru">{t('newCondition')}</option>
+                <option value="Baik">{t('goodCondition')}</option>
+                <option value="Rusak Ringan">{t('lightDamage')}</option>
+                <option value="Rusak Berat">{t('heavyDamage')}</option>
               </select>
             </div>
 
@@ -668,10 +738,10 @@ const Dashboard = ({ user, onLogout }) => {
                 onChange={handleStatusFilterChange}
                 className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-50 appearance-none cursor-pointer"
               >
-                <option value="">Semua Status</option>
-                <option value="READY">READY</option>
-                <option value="TERPAKAI">TERPAKAI</option>
-                <option value="RUSAK">RUSAK</option>
+                <option value="">{t('allStatus')}</option>
+                <option value="READY">{t('ready')}</option>
+                <option value="TERPAKAI">{t('inUse')}</option>
+                <option value="RUSAK">{t('broken')}</option>
               </select>
             </div>
           </div>
@@ -684,8 +754,8 @@ const Dashboard = ({ user, onLogout }) => {
           data-animate="table"
         >
           <div className="px-8 py-6 border-b border-gray-100 dark:border-gray-700">
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">Daftar Barang</h2>
-            <p className="text-gray-500 dark:text-gray-400 mt-1">Menampilkan {filteredItems.length} dari {items.length} item</p>
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">{t('totalItems')}</h2>
+            <p className="text-gray-500 dark:text-gray-400 mt-1">{t('showing')} {filteredItems.length} {t('of')} {items.length} {t('items')}</p>
           </div>
 
           <div className="overflow-x-auto">
@@ -693,28 +763,28 @@ const Dashboard = ({ user, onLogout }) => {
               <thead className="bg-gray-50 dark:bg-gray-700 ">
                 <tr>
                   <th className="px-6 py-4 text-center text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider ">
-                    Nama Barang
+                    {t('itemName')}
                   </th>
                   <th className="px-6 py-4 text-center text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                    Type/Model
+                    {t('typeModel')}
                   </th>
                   <th className="px-6 py-4 text-center text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                    MAC Address
+                    {t('macAddress')}
                   </th>
                   <th className="px-6 py-4 text-center text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                    Serial Number
+                    {t('serialNumber')}
                   </th>
                   <th className="px-6 py-4 text-center text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                    Kondisi
+                    {t('condition')}
                   </th>
                   <th className="px-6 py-4 text-center text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                    Status
+                    {t('status')}
                   </th>
                   <th className="px-6 py-4 text-center text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                    Lokasi
+                    {t('location')}
                   </th>
                   <th className="px-6 py-4 text-center text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                    Action
+                    {t('action')}
                   </th>
                 </tr>
               </thead>
@@ -747,7 +817,7 @@ const Dashboard = ({ user, onLogout }) => {
                         {item.kondisi}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-3 py-2 text-xs font-bold rounded-xl ${getStatusColor(item.status)} transform transition-all duration-300 hover:scale-110 shadow-lg`}>
+                        <span className={`inline-flex px-3 py-2 text-xs font-bold rounded-xl ${getStatusColor(item.status)} ${StatusBadge(item.status)} transform transition-all duration-300 hover:scale-110 shadow-lg`}>
                           {item.status}
                         </span>
                       </td>
@@ -781,8 +851,8 @@ const Dashboard = ({ user, onLogout }) => {
                         <svg className="w-12 h-12 mb-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.47.908-6.06 2.39l-.993-.993A9.953 9.953 0 0112 13c2.59 0 4.973.982 6.76 2.593l-.993.993A7.962 7.962 0 0112 15z" />
                         </svg>
-                        <p className="text-lg font-medium">Tidak ada data yang ditemukan</p>
-                        <p className="text-sm">Coba ubah kata kunci pencarian atau filter</p>
+                        <p className="text-lg font-medium">{t('noDataFound')}</p>
+                        <p className="text-sm">{t('tryChangingSearchFilters')}</p>
                       </div>
                     </td>
                   </tr>
@@ -811,14 +881,14 @@ const Dashboard = ({ user, onLogout }) => {
                   </div>
                   <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                     <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
-                      Konfirmasi Hapus Barang
+                      {t('confirmDelete')}
                     </h3>
                     <div className="mt-2">
                       <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Apakah Anda yakin ingin menghapus barang <span className="font-semibold text-gray-900 dark:text-gray-100">"{itemToDelete.nama}"</span>?
+                        {t('deleteMessage')} <span className="font-semibold text-gray-900 dark:text-gray-100">"{itemToDelete.nama}"</span>?
                       </p>
                       <p className="text-sm text-red-600 dark:text-red-400 mt-2">
-                        Tindakan ini tidak dapat dibatalkan dan akan menghapus semua data riwayat barang.
+                        {t('deleteWarning')}
                       </p>
                     </div>
                   </div>
@@ -837,7 +907,7 @@ const Dashboard = ({ user, onLogout }) => {
                   {deleting ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                      Menghapus...
+                      {t('deleting')}
                     </>
                   ) : (
                     'Hapus Barang'
@@ -849,13 +919,53 @@ const Dashboard = ({ user, onLogout }) => {
                   disabled={deleting}
                   className="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition-all duration-300"
                 >
-                  Batal
+                  {t('deleteCancelButton')}
                 </button>
               </div>
             </div>
           </div>
         </div>
       )}
+
+      {/* Import/Export Modal */}
+      <ImportExportModal
+        isOpen={showImportExportModal}
+        onClose={() => setShowImportExportModal(false)}
+        onSuccess={handleImportExportSuccess}
+      />
+
+      {/* Scroll to Top Button */}
+      <button
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        className={`fixed left-6 bottom-6 z-50 group bg-gradient-to-r from-teal-600 to-blue-600 dark:from-teal-500 dark:to-blue-500 text-white p-4 rounded-full shadow-2xl hover:shadow-teal-500/50 transition-all duration-500 transform ${isScrolled
+          ? 'opacity-100 translate-y-0 scale-100'
+          : 'opacity-0 translate-y-10 scale-0 pointer-events-none'
+          }`}
+        aria-label="Scroll to top"
+      >
+        <svg
+          className="w-6 h-6 transform group-hover:-translate-y-1 transition-transform duration-300"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M5 10l7-7m0 0l7 7m-7-7v18"
+          />
+        </svg>
+
+        {/* Ripple effect on hover */}
+        <span className="absolute inset-0 rounded-full bg-white opacity-0 group-hover:opacity-20 group-hover:scale-150 transition-all duration-500"></span>
+
+        {/* Tooltip */}
+        <span className="absolute left-full mr-3 top-1/2 transform -translate-y-1/2 bg-gray-900 dark:bg-gray-700 text-white text-sm font-medium px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap pointer-events-none">
+          Back to Top
+          <span className="absolute right-full top-1/2 transform -translate-y-1/2 border-4 border-transparent border-r-gray-900 dark:border-r-gray-700"></span>
+        </span>
+      </button>
 
       {/* Footer */}
       <footer
@@ -877,7 +987,7 @@ const Dashboard = ({ user, onLogout }) => {
               </div>
             </div>
             <p className="text-gray-600 dark:text-gray-400">
-              &copy; 2025 PT. Medianusa Permana. All rights reserved.
+              &copy; 2025 PT. Medianusa Permana. {t('allRightsReserved')}
             </p>
           </div>
         </div>

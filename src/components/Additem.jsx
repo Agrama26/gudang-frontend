@@ -5,6 +5,8 @@ import { toast } from 'react-toastify';
 import logo from '../assets/logo.png';
 import { useDarkMode } from '../contexts/DarkModeContext';
 import DarkModeToggle from './DarkModeToggle';
+import ZXingBarcodeScanner from './BarcodeScanner';
+import HardwareBarcodeScanner from '../contexts/HardwareBarcodeScanner';
 
 const AddItem = () => {
   const { isDarkMode } = useDarkMode();
@@ -23,6 +25,26 @@ const AddItem = () => {
   const [scanning, setScanning] = useState(false);
   const [scanResult, setScanResult] = useState(null);
   const navigate = useNavigate();
+  const [scrollY, setScrollY] = useState(0);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  // Handle scroll animation and navbar transparency
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      setScrollY(currentScrollY);
+
+      // Change navbar style when scrolled more than 50px
+      if (currentScrollY > 50) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleChange = (e) => {
     setFormData({
@@ -363,76 +385,61 @@ const AddItem = () => {
       <div className="relative z-10 container mx-auto px-6 py-8">
         <div className="max-w-4xl mx-auto">
           {/* Scanner Section */}
-          <div className={'backdrop-blur-md rounded-2xl border shadow-xl mb-8 p-8 transition-all duration-300 ' + cardClass}>
-            <div className="text-center mb-6">
-              <div className="flex items-center justify-center mb-4">
-                <div className={'w-12 h-12 rounded-xl flex items-center justify-center shadow-lg ' + (isDarkMode ? 'bg-indigo-600' : 'bg-indigo-500')}>
-                  <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M3 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm2 2V5h1v1H5zM3 13a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1v-3zm2 2v-1h1v1H5zM13 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1V4zm2 2V5h1v1h-1z" clipRule="evenodd"></path>
-                  </svg>
-                </div>
-              </div>
-              <h2 className={'text-xl font-bold mb-2 transition-colors duration-300 ' + textPrimaryClass}>
-                Barcode Scanner 
-              </h2>
-              <p className={'text-sm transition-colors duration-300 ' + textSecondaryClass}>
-                Scan barcode to add MacAddress and Serial Number automatically
-              </p>
-            </div>
+          <ZXingBarcodeScanner
+            isDarkMode={isDarkMode}
+            onScanSuccess={(scannedData) => {
+              // Auto-fill form
+              setFormData(prev => ({
+                ...prev,
+                nama: scannedData.nama || prev.nama,
+                type: scannedData.model || prev.type,
+                mac_address: scannedData.mac_address || prev.mac_address,
+                serial_number: scannedData.serial_number || prev.serial_number
+              }));
 
-            {scanning ? (
-              <div className={'p-8 border-2 border-dashed rounded-xl text-center transition-all duration-300 ' + (isDarkMode ? 'border-indigo-400 bg-indigo-900/20' : 'border-indigo-400 bg-indigo-50')}>
-                <div className="flex flex-col items-center space-y-4">
-                  <div className={'w-16 h-16 border-4 border-t-transparent rounded-full animate-spin ' + (isDarkMode ? 'border-indigo-400' : 'border-indigo-500')}></div>
-                  <div className={'animate-pulse transition-colors duration-300 ' + (isDarkMode ? 'text-indigo-400' : 'text-indigo-600')}>
-                    <p className="text-lg font-semibold">Scanning...</p>
-                    <p className="text-sm">Point the camera at the network equipment barcode</p>
+              // Show success notification
+              toast.success(
+                <>
+                  <div className="flex flex-col">
+                    <span className="font-semibold">✅ Data berhasil terisi!</span>
+                    <span className="text-sm opacity-80">
+                      {scannedData.manufacturer} {scannedData.model || 'Network Device'}
+                    </span>
                   </div>
-                  <button
-                    onClick={stopScanning}
-                    className={'px-6 py-2 rounded-xl font-semibold transition-all duration-300 ' + (isDarkMode
-                      ? 'bg-red-600 text-white hover:bg-red-700'
-                      : 'bg-red-500 text-white hover:bg-red-600')}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center">
-                <button
-                  onClick={startScanning}
-                  className={'group px-8 py-4 rounded-xl font-bold text-lg shadow-lg transition-all duration-300 transform hover:scale-105 ' + (isDarkMode
-                    ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:shadow-indigo-500/50'
-                    : 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:shadow-indigo-500/50')}
-                >
-                  <span className="flex items-center space-x-2">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M3 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm2 2V5h1v1H5zM3 13a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1v-3zm2 2v-1h1v1H5zM13 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1V4zm2 2V5h1v1h-1z" clipRule="evenodd"></path>
-                    </svg>
-                    <span>Start Barcode Scan</span>
-                  </span>
-                </button>
-                <p className={'text-xs mt-2 transition-colors duration-300 ' + textSecondaryClass}>
-                  Supports Mikrotik, TP-Link barcodes and other network equipment
-                </p>
-              </div>
-            )}
+                </>,
+                { duration: 5000 }
+              );
 
-            {scanResult && (
-              <div className={'mt-6 p-4 rounded-xl border transition-all duration-300 ' + (isDarkMode ? 'bg-green-900/20 border-green-600' : 'bg-green-50 border-green-400')}>
-                <div className="flex items-center space-x-2 mb-2">
-                  <svg className={'w-5 h-5 ' + (isDarkMode ? 'text-green-400' : 'text-green-600')} fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
-                  </svg>
-                  <span className={'font-semibold transition-colors duration-300 ' + (isDarkMode ? 'text-green-400' : 'text-green-700')}>Scan Successful!</span>
-                </div>
-                <p className={'text-sm transition-colors duration-300 ' + (isDarkMode ? 'text-green-300' : 'text-green-600')}>
-                  Data has been filled in automatically: {scanResult.nama} (MAC: {scanResult.mac_address})
-                </p>
-              </div>
-            )}
-          </div>
+              // Clear draft jika ada
+              localStorage.removeItem('addItemDraft');
+            }}
+          />
+
+          <HardwareBarcodeScanner
+            isDarkMode={isDarkMode}
+            onScanSuccess={(scannedData) => {
+              // Auto-fill form
+              setFormData(prev => ({
+                ...prev,
+                nama: scannedData.nama || prev.nama,
+                type: scannedData.model || prev.type,
+                mac_address: scannedData.mac_address || prev.mac_address,
+                serial_number: scannedData.serial_number || prev.serial_number
+              }));
+
+              toast.success(
+                <>
+                  <div className="flex flex-col">
+                    <span className="font-semibold">✅ Barcode Scanned!</span>
+                    <span className="text-sm opacity-80">
+                      {scannedData.manufacturer} - {scannedData.serial_number}
+                    </span>
+                  </div>
+                </>,
+                { duration: 4000 }
+              );
+            }}
+          />
 
           {/* Form Fields */}
           <div className={'backdrop-blur-md rounded-2xl border shadow-xl p-8 transition-all duration-300 ' + cardClass}>
@@ -729,6 +736,39 @@ const AddItem = () => {
               </div>
             </div>
           </div>
+
+          {/* Scroll to Top Button */}
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className={`fixed left-6 bottom-6 z-50 group bg-gradient-to-r from-teal-600 to-blue-600 dark:from-teal-500 dark:to-blue-500 text-white p-4 rounded-full shadow-2xl hover:shadow-teal-500/50 transition-all duration-500 transform ${isScrolled
+              ? 'opacity-100 translate-y-0 scale-100'
+              : 'opacity-0 translate-y-10 scale-0 pointer-events-none'
+              }`}
+            aria-label="Scroll to top"
+          >
+            <svg
+              className="w-6 h-6 transform group-hover:-translate-y-1 transition-transform duration-300"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 10l7-7m0 0l7 7m-7-7v18"
+              />
+            </svg>
+
+            {/* Ripple effect on hover */}
+            <span className="absolute inset-0 rounded-full bg-white opacity-0 group-hover:opacity-20 group-hover:scale-150 transition-all duration-500"></span>
+
+            {/* Tooltip */}
+            <span className="absolute left-full mr-3 top-1/2 transform -translate-y-1/2 bg-gray-900 dark:bg-gray-700 text-white text-sm font-medium px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap pointer-events-none">
+              Back to Top
+              <span className="absolute right-full top-1/2 transform -translate-y-1/2 border-4 border-transparent border-r-gray-900 dark:border-r-gray-700"></span>
+            </span>
+          </button>
         </div>
       </div>
     </div>

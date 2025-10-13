@@ -56,6 +56,7 @@ const AppContent = () => {
   const [loading, setLoading] = useState(true);
   const { t } = useLanguage();
 
+  // ✅ FIX: useEffect hanya dijalankan saat mount (tidak depend on 't')
   useEffect(() => {
     // Check if user is logged in
     const storedUser = localStorage.getItem('user');
@@ -63,7 +64,10 @@ const AppContent = () => {
       try {
         const userData = JSON.parse(storedUser);
         setUser(userData);
-        toast.success(`${t('Welcome Back')}, ${userData.username}!`, {
+        
+        // ✅ FIX: Hanya show welcome toast saat pertama kali load
+        // Tidak show saat language toggle
+        toast.success(`Welcome back, ${userData.username}!`, {
           icon: '👋',
           duration: 3000
         });
@@ -73,11 +77,13 @@ const AppContent = () => {
       }
     }
     setLoading(false);
-  }, [t]);
+  }, []); // ✅ Empty dependency array - hanya run sekali saat mount
 
   const handleLogin = (userData) => {
     setUser(userData);
-    toast.success(`${t('Login Successful')}, ${userData.username}`, {
+    
+    // ✅ Menggunakan translation untuk login success
+    toast.success(t('loginSuccessful') + `, ${userData.username}`, {
       icon: '✅',
       duration: 4000
     });
@@ -87,7 +93,9 @@ const AppContent = () => {
     localStorage.removeItem('user');
     localStorage.removeItem('token');
     setUser(null);
-    toast.info(`${t('Logged Out Successfully')}`, {
+    
+    // ✅ Menggunakan translation untuk logout
+    toast.info(t('loggedOutSuccessfully'), {
       icon: '👋',
       duration: 3000
     });
@@ -107,7 +115,7 @@ const AppContent = () => {
     }
 
     if (!user) {
-      toast.error(t('Please login to access this page'), {
+      toast.error(t('pleaseLoginToAccess'), {
         icon: '🔒',
         duration: 4000
       });
@@ -147,7 +155,7 @@ const AppContent = () => {
               <div className="flex items-center space-x-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                 <span className="text-sm text-gray-600 dark:text-gray-300">
-                  Welcome,{' '}
+                  {t('welcomeBack')},{' '}
                   <span className="font-semibold text-teal-600 dark:text-teal-400">{user.username}</span>
                   <span className={`ml-2 px-2 py-1 rounded-full text-xs border ${user.role === 'admin'
                     ? 'bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-200 border-purple-200 dark:border-purple-700'
@@ -173,16 +181,13 @@ const AppContent = () => {
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
-          {/* <Route
+          <Route
             path="/login"
             element={
-              user ? <Navigate to="/dashboard" /> : <Login onLogin={handleLogin} />
+              user ? <Navigate to={user.role === 'admin' ? "/admin" : "/dashboard"} />
+                : <Login onLogin={handleLogin} />
             }
-          /> */}
-          <Route path="/login" element={
-            user ? <Navigate to={user.role === 'admin' ? "/admin" : "/dashboard"} />
-              : <Login onLogin={handleLogin} />
-          } />
+          />
 
           {/* Protected Routes */}
           <Route
