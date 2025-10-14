@@ -125,13 +125,13 @@ export const authAPI = {
 export const adminUserAPI = {
   // Get all users
   getAllUsers: () => {
-    console.log("👥 Fetching all users (Admin)");
+    console.log("Fetching all users (Admin)");
     return apiRequest("/admin/users");
   },
 
   // Create new user
   createUser: (userData) => {
-    console.log("➕ Creating new user (Admin):", userData.username);
+    console.log("Creating new user (Admin):", userData.username);
     return apiRequest("/admin/users", {
       method: "POST",
       body: JSON.stringify(userData),
@@ -140,7 +140,7 @@ export const adminUserAPI = {
 
   // Update user
   updateUser: (id, userData) => {
-    console.log("🔄 Updating user (Admin), ID:", id);
+    console.log("Updating user (Admin), ID:", id);
     return apiRequest(`/admin/users/${id}`, {
       method: "PUT",
       body: JSON.stringify(userData),
@@ -149,7 +149,7 @@ export const adminUserAPI = {
 
   // Delete user
   deleteUser: (id) => {
-    console.log("🗑️ Deleting user (Admin), ID:", id);
+    console.log("Deleting user (Admin), ID:", id);
     return apiRequest(`/admin/users/${id}`, {
       method: "DELETE",
     });
@@ -157,19 +157,19 @@ export const adminUserAPI = {
 
   // Get activity logs
   getActivityLogs: (limit = 100, offset = 0) => {
-    console.log("📊 Fetching activity logs (Admin)");
+    console.log("Fetching activity logs (Admin)");
     return apiRequest(`/admin/activity-logs?limit=${limit}&offset=${offset}`);
   },
 
   // Get statistics
   getStatistics: () => {
-    console.log("📈 Fetching admin statistics");
+    console.log("Fetching admin statistics");
     return apiRequest("/admin/statistics");
   },
 
   // Test email connection
   testEmailConnection: () => {
-    console.log("📧 Testing email connection");
+    console.log("Testing email connection");
     return apiRequest("/admin/test-email");
   },
 };
@@ -177,7 +177,7 @@ export const adminUserAPI = {
 // Barang API
 export const barangAPI = {
   getAll: (kotaFilter = "") => {
-    console.log("📋 Fetching all barang, kota filter:", kotaFilter);
+    console.log("Fetching all barang, kota filter:", kotaFilter);
     const queryString = kotaFilter
       ? `?kotaFilter=${encodeURIComponent(kotaFilter)}`
       : "";
@@ -185,12 +185,12 @@ export const barangAPI = {
   },
 
   getById: (id) => {
-    console.log("📋 Fetching barang by ID:", id);
+    console.log("Fetching barang by ID:", id);
     return apiRequest(`/barang/${id}`);
   },
 
   create: (data) => {
-    console.log("➕ Creating new barang:", data.nama);
+    console.log("Creating new barang:", data.nama);
     return apiRequest("/barang", {
       method: "POST",
       body: JSON.stringify(data),
@@ -198,7 +198,7 @@ export const barangAPI = {
   },
 
   updateStatus: (id, data) => {
-    console.log("🔄 Updating barang status, ID:", id);
+    console.log("Updating barang status, ID:", id);
     return apiRequest(`/barang/${id}/status`, {
       method: "PUT",
       body: JSON.stringify(data),
@@ -206,67 +206,68 @@ export const barangAPI = {
   },
 
   delete: (id) => {
-    console.log("🗑️ Deleting barang, ID:", id);
+    console.log("Deleting barang, ID:", id);
     return apiRequest(`/barang/${id}`, { method: "DELETE" });
   },
 
-   downloadTemplate: async () => {
-    console.log("📥 Downloading Excel template");
+  // Excel Import/Export
+  downloadTemplate: async () => {
+    console.log("Downloading Excel template");
     const token = getAuthToken();
-    
+
     const response = await fetch(`${API_BASE_URL}/barang/template`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     if (!response.ok) {
-      throw new Error('Failed to download template');
+      throw new Error("Failed to download template");
     }
 
     return response.blob();
   },
 
   importExcel: async (file) => {
-    console.log("📤 Importing data from Excel:", file.name);
+    console.log("Importing data from Excel:", file.name);
     const token = getAuthToken();
-    
+
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append("file", file);
 
     const response = await fetch(`${API_BASE_URL}/barang/import`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
         // Don't set Content-Type - browser will set it with boundary
       },
-      body: formData
+      body: formData,
     });
 
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.message || 'Import failed');
+      throw new Error(data.message || "Import failed");
     }
 
     return data;
   },
 
   exportExcel: async () => {
-    console.log("📥 Exporting data to Excel");
+    console.log("Exporting data to Excel");
     const token = getAuthToken();
-    
+
     const response = await fetch(`${API_BASE_URL}/barang/export`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     if (!response.ok) {
       const data = await response.json();
-      throw new Error(data.message || 'Export failed');
+      throw new Error(data.message || "Export failed");
     }
 
     return response.blob();

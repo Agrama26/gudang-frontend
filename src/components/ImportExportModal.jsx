@@ -33,7 +33,7 @@ const ImportExportModal = ({ isOpen, onClose, onSuccess }) => {
     try {
       const token = getAuthToken();
 
-      toast.info('📥 Downloading template...', { icon: '⏳' });
+      toast.info('Downloading template...', { icon: '⏳' });
 
       const response = await fetch(`${API_BASE_URL}/barang/template`, {
         method: 'GET',
@@ -57,7 +57,7 @@ const ImportExportModal = ({ isOpen, onClose, onSuccess }) => {
       document.body.removeChild(a);
 
       toast.success('✅ Template downloaded successfully!', {
-        icon: '📥',
+        icon: '',
         duration: 3000
       });
 
@@ -258,7 +258,7 @@ const ImportExportModal = ({ isOpen, onClose, onSuccess }) => {
           <div className="font-semibold">✅ Export Successful!</div>
           <div className="text-xs">Data exported to Excel file</div>
         </div>,
-        { duration: 4000, icon: '📥' }
+        { duration: 4000, icon: '' }
       );
 
       setTimeout(() => {
