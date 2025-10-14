@@ -32,7 +32,7 @@ const ImportExportModal = ({ isOpen, onClose, onSuccess }) => {
   const handleDownloadTemplate = async () => {
     try {
       const token = getAuthToken();
-      
+
       toast.info('📥 Downloading template...', { icon: '⏳' });
 
       const response = await fetch(`${API_BASE_URL}/barang/template`, {
@@ -113,7 +113,7 @@ const ImportExportModal = ({ isOpen, onClose, onSuccess }) => {
     }
 
     setImporting(true);
-    const importToastId = toast.loading('📤 Importing data from Excel...', {
+    const importToastId = toast.loading('Importing data from Excel...', {
       icon: '⏳'
     });
 
@@ -189,8 +189,8 @@ const ImportExportModal = ({ isOpen, onClose, onSuccess }) => {
             { duration: 5000 }
           );
         }, 1000);
-        
-        setValidationErrors(data.failedItems.map(item => 
+
+        setValidationErrors(data.failedItems.map(item =>
           `${item.serial_number}: ${item.error}`
         ));
       } else {
@@ -219,7 +219,7 @@ const ImportExportModal = ({ isOpen, onClose, onSuccess }) => {
   // Export to Excel
   const handleExport = async () => {
     setExporting(true);
-    const exportToastId = toast.loading('📥 Exporting data to Excel...', {
+    const exportToastId = toast.loading('Exporting data to Excel...', {
       icon: '⏳'
     });
 
@@ -242,11 +242,11 @@ const ImportExportModal = ({ isOpen, onClose, onSuccess }) => {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      
+
       // Generate filename with current date
       const date = new Date().toISOString().split('T')[0];
       a.download = `Data_Barang_${date}.xlsx`;
-      
+
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -302,12 +302,12 @@ const ImportExportModal = ({ isOpen, onClose, onSuccess }) => {
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center p-4">
       <div className={`relative ${modalBg} rounded-2xl shadow-2xl max-w-3xl w-full border ${borderColor} transition-colors duration-300`}>
-        
+
         {/* Header */}
         <div className={`px-8 py-6 border-b ${borderColor} flex justify-between items-center`}>
           <div>
             <h2 className={`text-2xl font-bold ${textPrimary}`}>
-              📊 Import / Export Data
+              Import / Export Data
             </h2>
             <p className={`text-sm ${textSecondary} mt-1`}>
               Manage your inventory data with Excel files
@@ -327,23 +327,21 @@ const ImportExportModal = ({ isOpen, onClose, onSuccess }) => {
         <div className={`flex border-b ${borderColor}`}>
           <button
             onClick={() => setActiveTab('import')}
-            className={`flex-1 px-6 py-4 font-semibold transition-all duration-300 ${
-              activeTab === 'import'
-                ? `bg-teal-600 dark:bg-teal-700 text-white`
-                : `${textSecondary} hover:bg-gray-100 dark:hover:bg-gray-700`
-            }`}
+            className={`flex-1 px-6 py-4 font-semibold transition-all duration-300 ${activeTab === 'import'
+              ? `bg-teal-600 dark:bg-teal-700 text-white`
+              : `${textSecondary} hover:bg-gray-100 dark:hover:bg-gray-700`
+              }`}
           >
-            📤 Import from Excel
+            Import from Excel
           </button>
           <button
             onClick={() => setActiveTab('export')}
-            className={`flex-1 px-6 py-4 font-semibold transition-all duration-300 ${
-              activeTab === 'export'
-                ? `bg-teal-600 dark:bg-teal-700 text-white`
-                : `${textSecondary} hover:bg-gray-100 dark:hover:bg-gray-700`
-            }`}
+            className={`flex-1 px-6 py-4 font-semibold transition-all duration-300 ${activeTab === 'export'
+              ? `bg-teal-600 dark:bg-teal-700 text-white`
+              : `${textSecondary} hover:bg-gray-100 dark:hover:bg-gray-700`
+              }`}
           >
-            📥 Export to Excel
+            Export to Excel
           </button>
         </div>
 
@@ -354,7 +352,7 @@ const ImportExportModal = ({ isOpen, onClose, onSuccess }) => {
               {/* Instructions */}
               <div className={`${bgSecondary} rounded-xl p-6 border ${borderColor}`}>
                 <h3 className={`font-bold ${textPrimary} mb-3 flex items-center`}>
-                  <span className="mr-2">ℹ️</span>
+                  <span className="mr-2"></span>
                   Import Instructions
                 </h3>
                 <ol className={`space-y-2 text-sm ${textSecondary} list-decimal list-inside`}>
@@ -443,11 +441,10 @@ const ImportExportModal = ({ isOpen, onClose, onSuccess }) => {
               <button
                 onClick={handleImport}
                 disabled={!selectedFile || importing}
-                className={`w-full py-4 rounded-xl font-bold transition-all duration-300 ${
-                  !selectedFile || importing
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-teal-600 to-blue-600 dark:from-teal-500 dark:to-blue-500 text-white hover:shadow-lg transform hover:scale-105'
-                }`}
+                className={`w-full py-4 rounded-xl font-bold transition-all duration-300 ${!selectedFile || importing
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-teal-600 to-blue-600 dark:from-teal-500 dark:to-blue-500 text-white hover:shadow-lg transform hover:scale-105'
+                  }`}
               >
                 {importing ? (
                   <span className="flex items-center justify-center">
@@ -469,7 +466,7 @@ const ImportExportModal = ({ isOpen, onClose, onSuccess }) => {
               {/* Export Info */}
               <div className={`${bgSecondary} rounded-xl p-6 border ${borderColor}`}>
                 <h3 className={`font-bold ${textPrimary} mb-3 flex items-center`}>
-                  <span className="mr-2">📥</span>
+                  <span className="mr-2"></span>
                   Export Information
                 </h3>
                 <p className={`text-sm ${textSecondary}`}>
@@ -488,11 +485,10 @@ const ImportExportModal = ({ isOpen, onClose, onSuccess }) => {
               <button
                 onClick={handleExport}
                 disabled={exporting}
-                className={`w-full py-4 rounded-xl font-bold transition-all duration-300 ${
-                  exporting
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-500 dark:to-teal-500 text-white hover:shadow-lg transform hover:scale-105'
-                }`}
+                className={`w-full py-4 rounded-xl font-bold transition-all duration-300 ${exporting
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-500 dark:to-teal-500 text-white hover:shadow-lg transform hover:scale-105'
+                  }`}
               >
                 {exporting ? (
                   <span className="flex items-center justify-center">
@@ -516,11 +512,10 @@ const ImportExportModal = ({ isOpen, onClose, onSuccess }) => {
         <div className={`px-8 py-4 border-t ${borderColor} flex justify-end`}>
           <button
             onClick={handleClose}
-            className={`px-6 py-2 rounded-xl font-semibold transition-all duration-300 ${
-              isDarkMode
-                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
+            className={`px-6 py-2 rounded-xl font-semibold transition-all duration-300 ${isDarkMode
+              ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
           >
             Close
           </button>

@@ -731,7 +731,7 @@ const AddItem = () => {
               </div>
               <div className={'mt-4 p-3 rounded-xl transition-all duration-300 ' + (isDarkMode ? 'bg-teal-900/30 text-teal-400' : 'bg-teal-50 text-teal-700')}>
                 <p className="text-xs">
-                  💡 <strong>Tips:</strong> Pastikan barcode dalam kondisi bersih dan pencahayaan cukup untuk hasil scan yang optimal
+                  <strong>Tips:</strong> Pastikan barcode dalam kondisi bersih dan pencahayaan cukup untuk hasil scan yang optimal
                 </p>
               </div>
             </div>

@@ -246,9 +246,9 @@ const AdminDashboard = ({ user, onLogout }) => {
                                     : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
                                     }`}
                             >
-                                {tab === 'users' && '👥 '}
-                                {tab === 'statistics' && '📊 '}
-                                {tab === 'activity' && '📝 '}
+                                {tab === 'users' && ' '}
+                                {tab === 'statistics' && ' '}
+                                {tab === 'activity' && ' '}
                                 {tab}
                             </button>
                         ))}
@@ -272,7 +272,7 @@ const AdminDashboard = ({ user, onLogout }) => {
                                         onClick={handleCreateUser}
                                         className="bg-gradient-to-r from-teal-600 to-blue-600 dark:from-teal-500 dark:to-blue-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-teal-500/50 transition-all duration-300 transform hover:scale-105"
                                     >
-                                        ➕ Add New User
+                                        Add New User
                                     </button>
                                 </div>
 
@@ -373,19 +373,19 @@ const AdminDashboard = ({ user, onLogout }) => {
                                     <h3 className={'text-xl font-bold mb-4 ' + textPrimaryClass}>Inventory Overview</h3>
                                     <div className="space-y-4">
                                         <div className="flex justify-between">
-                                            <span className={textSecondaryClass}>Total Items:</span>
+                                            <span className={textSecondaryClass}>Total Items :</span>
                                             <span className="font-bold text-gray-800 dark:text-gray-200">{statistics.barang.total_barang}</span>
                                         </div>
                                         <div className="flex justify-between">
-                                            <span className={textSecondaryClass}>Ready:</span>
+                                            <span className={textSecondaryClass}>Ready :</span>
                                             <span className="font-bold text-green-600 dark:text-green-400">{statistics.barang.ready_count}</span>
                                         </div>
                                         <div className="flex justify-between">
-                                            <span className={textSecondaryClass}>In Use:</span>
+                                            <span className={textSecondaryClass}>In Use :</span>
                                             <span className="font-bold text-blue-600 dark:text-blue-400">{statistics.barang.terpakai_count}</span>
                                         </div>
                                         <div className="flex justify-between">
-                                            <span className={textSecondaryClass}>Damaged:</span>
+                                            <span className={textSecondaryClass}>Damaged :</span>
                                             <span className="font-bold text-red-600 dark:text-red-400">{statistics.barang.rusak_count}</span>
                                         </div>
                                     </div>
@@ -404,7 +404,7 @@ const AdminDashboard = ({ user, onLogout }) => {
                                 <div className="md:col-span-2 lg:col-span-3">
                                     <div className="backdrop-blur-md rounded-2xl border shadow-xl p-8 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-purple-200 dark:border-purple-700">
                                         <h3 className="text-xl font-bold mb-4 text-purple-700 dark:text-purple-400">
-                                            📧 Email System Status
+                                            Email System Status
                                         </h3>
                                         <div className="space-y-4">
                                             <div className="flex items-center justify-between">
@@ -428,7 +428,7 @@ const AdminDashboard = ({ user, onLogout }) => {
                                                 }}
                                                 className="w-full bg-purple-600 dark:bg-purple-700 text-white px-4 py-3 rounded-xl font-semibold hover:bg-purple-700 dark:hover:bg-purple-600 transition-all duration-300"
                                             >
-                                                🧪 Test Email Connection
+                                                Test Email Connection
                                             </button>
                                         </div>
                                     </div>
@@ -514,7 +514,7 @@ const AdminDashboard = ({ user, onLogout }) => {
                                         type="email"
                                         value={formData.email}
                                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                        required={emailSettings.sendWelcomeEmail} // ⬅️ TAMBAHKAN INI
+                                        required={emailSettings.sendWelcomeEmail} 
                                         className={'w-full p-3 border rounded-xl bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-800 dark:text-white'}
                                         placeholder="user@company.com"
                                     />
@@ -526,7 +526,7 @@ const AdminDashboard = ({ user, onLogout }) => {
                                 <div className="md:col-span-2 space-y-3">
                                     <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
                                         <h4 className="text-sm font-semibold text-teal-700 dark:text-teal-400 mb-3">
-                                            📧 Email Notifications
+                                            Email Notifications
                                         </h4>
 
                                         <label className="flex items-center space-x-3 cursor-pointer">

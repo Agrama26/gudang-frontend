@@ -112,7 +112,7 @@ const ZXingBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
                 device.label.toLowerCase().includes('rear')
             ) || videoInputDevices[0];
 
-            toast.info('📷 Starting camera...', { duration: 2000 });
+            toast.info('Starting camera...', { duration: 2000 });
 
             setIsScanning(true);
 
@@ -161,7 +161,7 @@ const ZXingBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
             codeReaderRef.current.reset();
         }
         setIsScanning(false);
-        toast.info('⏹️ Scanner stopped', { duration: 2000 });
+        toast.info('Scanner stopped', { duration: 2000 });
     };
 
     // Handle barcode detected
@@ -244,7 +244,7 @@ const ZXingBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
                     </div>
                 </div>
                 <h2 className={`text-xl font-bold mb-2 ${isDarkMode ? 'text-teal-400' : 'text-teal-600'}`}>
-                    📷 Professional Barcode Scanner
+                    Professional Barcode Scanner
                 </h2>
                 <p className={`text-sm ${textClass}`}>
                     Supports Mikrotik, TP-Link, Cisco & all standard barcodes
@@ -256,35 +256,35 @@ const ZXingBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
                 <button
                     onClick={() => setScanMode('auto')}
                     className={`px-4 py-2 rounded-lg font-semibold transition-all ${scanMode === 'auto'
-                            ? 'bg-teal-600 text-white'
-                            : isDarkMode
-                                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        ? 'bg-teal-600 text-white'
+                        : isDarkMode
+                            ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                         }`}
                 >
-                    📷 Camera
+                    Camera
                 </button>
                 <button
                     onClick={() => setScanMode('manual')}
                     className={`px-4 py-2 rounded-lg font-semibold transition-all ${scanMode === 'manual'
-                            ? 'bg-teal-600 text-white'
-                            : isDarkMode
-                                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        ? 'bg-teal-600 text-white'
+                        : isDarkMode
+                            ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                         }`}
                 >
-                    ⌨️ Manual
+                    Manual
                 </button>
                 <button
                     onClick={() => setScanMode('file')}
                     className={`px-4 py-2 rounded-lg font-semibold transition-all ${scanMode === 'file'
-                            ? 'bg-teal-600 text-white'
-                            : isDarkMode
-                                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        ? 'bg-teal-600 text-white'
+                        : isDarkMode
+                            ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                         }`}
                 >
-                    🖼️ Image
+                    Image
                 </button>
             </div>
 
@@ -296,26 +296,26 @@ const ZXingBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
                             <button
                                 onClick={startScanning}
                                 className={`w-full py-4 rounded-xl font-bold text-white transition-all transform hover:scale-105 shadow-lg ${isDarkMode
-                                        ? 'bg-gradient-to-r from-teal-600 to-blue-600 hover:from-teal-700 hover:to-blue-700'
-                                        : 'bg-gradient-to-r from-teal-500 to-blue-500 hover:from-teal-600 hover:to-blue-600'
+                                    ? 'bg-gradient-to-r from-teal-600 to-blue-600 hover:from-teal-700 hover:to-blue-700'
+                                    : 'bg-gradient-to-r from-teal-500 to-blue-500 hover:from-teal-600 hover:to-blue-600'
                                     }`}
                             >
                                 <span className="flex items-center justify-center">
                                     <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                         <path fillRule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
                                     </svg>
-                                    🚀 Start Camera Scanner
+                                    Start Camera Scanner
                                 </span>
                             </button>
 
                             {error && (
                                 <div className={`mt-4 p-4 rounded-xl border ${isDarkMode
-                                        ? 'bg-red-900/20 border-red-600 text-red-400'
-                                        : 'bg-red-50 border-red-300 text-red-700'
+                                    ? 'bg-red-900/20 border-red-600 text-red-400'
+                                    : 'bg-red-50 border-red-300 text-red-700'
                                     }`}>
                                     <p className="font-semibold mb-1">❌ Camera Error:</p>
                                     <p className="text-sm">{error}</p>
-                                    <p className="text-xs mt-2">💡 Try manual input or image upload mode</p>
+                                    <p className="text-xs mt-2">Try manual input or image upload mode</p>
                                 </div>
                             )}
                         </div>
@@ -376,7 +376,7 @@ const ZXingBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
                                     <div className="flex items-center justify-center space-x-2">
                                         <div className="w-2 h-2 bg-green-400 rounded-full animate-ping"></div>
                                         <span className="text-white text-sm font-semibold">
-                                            🔍 SCANNING... Point barcode at center
+                                            SCANNING... Point barcode at center
                                         </span>
                                     </div>
                                 </div>
@@ -387,11 +387,11 @@ const ZXingBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
                                 <button
                                     onClick={stopScanning}
                                     className={`flex-1 py-3 rounded-xl font-bold transition-all shadow-lg ${isDarkMode
-                                            ? 'bg-red-600 text-white hover:bg-red-700'
-                                            : 'bg-red-500 text-white hover:bg-red-600'
+                                        ? 'bg-red-600 text-white hover:bg-red-700'
+                                        : 'bg-red-500 text-white hover:bg-red-600'
                                         }`}
                                 >
-                                    ⏹️ Stop
+                                    Stop
                                 </button>
                                 <button
                                     onClick={() => {
@@ -399,11 +399,11 @@ const ZXingBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
                                         setTimeout(startScanning, 500);
                                     }}
                                     className={`flex-1 py-3 rounded-xl font-bold transition-all shadow-lg ${isDarkMode
-                                            ? 'bg-blue-600 text-white hover:bg-blue-700'
-                                            : 'bg-blue-500 text-white hover:bg-blue-600'
+                                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                        : 'bg-blue-500 text-white hover:bg-blue-600'
                                         }`}
                                 >
-                                    🔄 Restart
+                                    Restart
                                 </button>
                             </div>
                         </div>
@@ -415,7 +415,7 @@ const ZXingBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
             {scanMode === 'manual' && (
                 <div className="mb-6">
                     <label className={`block text-sm font-semibold mb-3 ${textClass}`}>
-                        📝 Enter Barcode Data Manually
+                        Enter Barcode Data Manually
                     </label>
                     <textarea
                         value={manualInput}
@@ -428,8 +428,8 @@ const ZXingBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
                     <button
                         onClick={handleManualSubmit}
                         className={`w-full mt-3 py-3 rounded-xl font-bold text-white transition-all shadow-lg ${isDarkMode
-                                ? 'bg-teal-600 hover:bg-teal-700'
-                                : 'bg-teal-500 hover:bg-teal-600'
+                            ? 'bg-teal-600 hover:bg-teal-700'
+                            : 'bg-teal-500 hover:bg-teal-600'
                             }`}
                     >
                         ✓ Process Manual Input
@@ -439,15 +439,15 @@ const ZXingBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
                     <div className={`mt-4 p-4 rounded-xl text-xs ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-100 border-gray-300'
                         } border`}>
                         <p className="font-semibold mb-2 text-teal-600 dark:text-teal-400">
-                            📋 Supported Barcode Formats:
+                            Supported Barcode Formats:
                         </p>
                         <div className="space-y-2">
                             <div>
-                                <p className="font-semibold text-purple-600 dark:text-purple-400">Mikrotik:</p>
+                                <p className="font-semibold text-purple-600 dark:text-purple-400">Mikrotik :</p>
                                 <code className={textClass}>SN:ABC123 MAC:AA:BB:CC:DD:EE:FF</code>
                             </div>
                             <div>
-                                <p className="font-semibold text-blue-600 dark:text-blue-400">TP-Link:</p>
+                                <p className="font-semibold text-blue-600 dark:text-blue-400">TP-Link :</p>
                                 <code className={textClass}>Model:TL-R480 SN:123456 MAC:AABB...</code>
                             </div>
                             <div>
@@ -455,7 +455,7 @@ const ZXingBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
                                 <code className={textClass}>PID:C2960X SN:FOC1234ABCD</code>
                             </div>
                             <div>
-                                <p className="font-semibold text-orange-600 dark:text-orange-400">Generic:</p>
+                                <p className="font-semibold text-orange-600 dark:text-orange-400">Generic :</p>
                                 <code className={textClass}>Any MAC: AA:BB:CC:DD:EE:FF or serial</code>
                             </div>
                         </div>
@@ -467,11 +467,11 @@ const ZXingBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
             {scanMode === 'file' && (
                 <div className="mb-6">
                     <label className={`block text-sm font-semibold mb-3 ${textClass}`}>
-                        🖼️ Upload Barcode Image
+                        Upload Barcode Image
                     </label>
                     <div className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${isDarkMode
-                            ? 'border-gray-600 hover:border-teal-400 bg-gray-700/30'
-                            : 'border-gray-300 hover:border-teal-500 bg-gray-50'
+                        ? 'border-gray-600 hover:border-teal-400 bg-gray-700/30'
+                        : 'border-gray-300 hover:border-teal-500 bg-gray-50'
                         }`}>
                         <input
                             type="file"
@@ -499,7 +499,7 @@ const ZXingBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
 
                     <div className={`mt-4 p-3 rounded-lg text-xs ${isDarkMode ? 'bg-blue-900/20 text-blue-400' : 'bg-blue-50 text-blue-700'
                         }`}>
-                        <p className="font-semibold mb-1">💡 Pro Tip:</p>
+                        <p className="font-semibold mb-1">Pro Tip:</p>
                         <p>Take a clear, well-lit photo of the barcode label. Make sure the barcode is straight and fills most of the frame.</p>
                     </div>
                 </div>
@@ -508,8 +508,8 @@ const ZXingBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
             {/* Scanned Data Display */}
             {scannedData && (
                 <div className={`p-5 rounded-xl border-2 shadow-lg ${isDarkMode
-                        ? 'bg-green-900/20 border-green-600'
-                        : 'bg-green-50 border-green-400'
+                    ? 'bg-green-900/20 border-green-600'
+                    : 'bg-green-50 border-green-400'
                     }`}>
                     <div className="flex items-center space-x-2 mb-4">
                         <svg className={`w-6 h-6 ${isDarkMode ? 'text-green-400' : 'text-green-600'}`} fill="currentColor" viewBox="0 0 20 20">
@@ -523,25 +523,25 @@ const ZXingBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
                     <div className={`space-y-3 text-sm ${isDarkMode ? 'text-green-300' : 'text-green-900'}`}>
                         {scannedData.manufacturer && (
                             <div className="flex items-center space-x-2">
-                                <span className="font-semibold min-w-32">🏢 Manufacturer:</span>
+                                <span className="font-semibold min-w-32">Manufacturer:</span>
                                 <span className="font-mono bg-white/20 px-2 py-1 rounded">{scannedData.manufacturer}</span>
                             </div>
                         )}
                         {scannedData.model && (
                             <div className="flex items-center space-x-2">
-                                <span className="font-semibold min-w-32">📦 Model:</span>
+                                <span className="font-semibold min-w-32">Model:</span>
                                 <span className="font-mono bg-white/20 px-2 py-1 rounded">{scannedData.model}</span>
                             </div>
                         )}
                         {scannedData.serial_number && (
                             <div className="flex items-center space-x-2">
-                                <span className="font-semibold min-w-32">#️⃣ Serial Number:</span>
+                                <span className="font-semibold min-w-32">Serial Number:</span>
                                 <span className="font-mono bg-white/20 px-2 py-1 rounded">{scannedData.serial_number}</span>
                             </div>
                         )}
                         {scannedData.mac_address && (
                             <div className="flex items-center space-x-2">
-                                <span className="font-semibold min-w-32">🏷️ MAC Address:</span>
+                                <span className="font-semibold min-w-32">MAC Address:</span>
                                 <span className="font-mono bg-white/20 px-2 py-1 rounded">{scannedData.mac_address}</span>
                             </div>
                         )}
@@ -554,11 +554,11 @@ const ZXingBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
                                 setManualInput('');
                             }}
                             className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${isDarkMode
-                                    ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                                : 'bg-white text-gray-700 hover:bg-gray-100'
                                 }`}
                         >
-                            🔄 Scan Another
+                            Scan Another
                         </button>
                     </div>
                 </div>
@@ -568,7 +568,7 @@ const ZXingBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
             <div className={`mt-6 p-4 rounded-xl text-xs border ${isDarkMode ? 'bg-blue-900/20 border-blue-700 text-blue-300' : 'bg-blue-50 border-blue-300 text-blue-800'
                 }`}>
                 <p className="font-semibold mb-2 flex items-center">
-                    <span className="mr-2">💡</span>
+                    <span className="mr-2"></span>
                     Scanning Tips for Best Results:
                 </p>
                 <ul className="list-disc list-inside space-y-1 ml-4">

@@ -360,13 +360,13 @@ const ItemDetail = () => {
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
               <div className="group relative">
-                <img
+                {/* <img
                   src={logo}
                   alt="Logo"
                   width="150"
                   height="150"
                   className="w-32 md:w-30 lg:w-40 object-contain drop-shadow-lg filter invert dark:invert-0"
-                />
+                /> */}
               </div>
               <h1 className={'text-2xl font-bold transition-colors duration-300 ' + textPrimaryClass}>
                 Detail {item?.nama}
@@ -414,14 +414,14 @@ const ItemDetail = () => {
 
               <div className="text-left grid md:grid-cols-2 gap-6">
                 {[
-                  { label: t('itemName'), value: item.nama, icon: '🖧' },
-                  { label: t('typeModel'), value: item.type, icon: '📦' },
-                  { label: t('macAddress'), value: item.mac_address, mono: true, icon: '🏷️' },
-                  { label: t('serialNumber'), value: item.serial_number, mono: true, icon: '#️⃣' },
-                  { label: t('condition'), value: item.kondisi, icon: '🔧' },
-                  { label: t('branch'), value: item.kota, icon: '🏢' },
-                  { label: t('installationLocation'), value: item.lokasi, span: true, icon: '📍' },
-                  { label: t('description'), value: item.keterangan, span: true, icon: '📝' }
+                  { label: t('itemName'), value: item.nama, icon: '' },
+                  { label: t('typeModel'), value: item.type, icon: '' },
+                  { label: t('macAddress'), value: item.mac_address, mono: true, icon: '' },
+                  { label: t('serialNumber'), value: item.serial_number, mono: true, icon: '' },
+                  { label: t('condition'), value: item.kondisi, icon: '' },
+                  { label: t('branch'), value: item.kota, icon: '' },
+                  { label: t('installationLocation'), value: item.lokasi, span: true, icon: '' },
+                  { label: t('description'), value: item.keterangan, span: true, icon: '' }
                 ].map((field, index) => (
                   <div key={index} className={`group ${field.span ? 'md:col-span-2' : ''}`}>
                     <label className={'block text-sm font-semibold uppercase tracking-wider mb-2 transition-colors duration-300 ' + textPrimaryClass}>
@@ -444,7 +444,7 @@ const ItemDetail = () => {
                 <div className="group">
                   <label className={'block text-sm font-semibold uppercase tracking-wider mb-2 transition-colors duration-300 ' + textPrimaryClass}>
                     <span className="flex items-center">
-                      <span className="mr-2">📊</span>
+                      <span className="mr-2"></span>
                       {t('status')}
                     </span>
                   </label>
@@ -710,7 +710,7 @@ const ItemDetail = () => {
                     ? 'bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-indigo-500/50'
                     : 'bg-indigo-500 text-white hover:bg-indigo-600 hover:shadow-indigo-500/50')}
                 >
-                  🔄 Regenerate QR
+                  Regenerate QR
                 </button>
                 <button
                   onClick={handleQRDownload}
@@ -718,7 +718,7 @@ const ItemDetail = () => {
                     ? 'border-teal-400 text-teal-400 hover:bg-teal-400 hover:text-black'
                     : 'border-teal-600 text-teal-600 hover:bg-teal-600 hover:text-white')}
                 >
-                  📥 Download QR
+                  Download QR
                 </button>
               </div>
             </div>

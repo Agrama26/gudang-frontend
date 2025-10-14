@@ -68,6 +68,36 @@ const Dashboard = ({ user, onLogout }) => {
   const [scrollY, setScrollY] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
 
+  const isFirstLoad = useRef(true);
+
+  // ✅ FIX: Fetch data tanpa toast yang depend on 't'
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        setLoading(true);
+        const data = await barangAPI.getAll();
+        setItems(data);
+        setError(null);
+      } catch (err) {
+        setError('Failed to load data. Please try again later.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchItems();
+  }, []); // ✅ Empty dependency - hanya run sekali
+
+  // ✅ FIX: Pisahkan logic yang butuh translation
+  // Jangan show toast di useEffect yang depend on 't'
+  useEffect(() => {
+    // Hanya untuk update ref, tidak ada side effect
+    if (isFirstLoad.current) {
+      isFirstLoad.current = false;
+    }
+  }, []);
+
   // Handle scroll animation and navbar transparency
   useEffect(() => {
     const handleScroll = () => {
@@ -458,14 +488,17 @@ const Dashboard = ({ user, onLogout }) => {
       <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center transition-colors duration-300">
         <div className="text-center">
           <div className="relative">
-            <div className="animate-spin h-16 w-16 border-4 border-teal-200 dark:border-gray-600 border-t-teal-600 dark:border-t-teal-400 rounded-full"></div>
+            <div className="w-16 h-16 border-4 border-teal-200 dark:border-gray-600 border-t-teal-600 dark:border-t-teal-400 rounded-full animate-spin"></div>
           </div>
-          <p className="mt-6 text-gray-700 dark:text-gray-300 font-medium">{t('loading')} dashboard...</p>
+          <p className="mt-6 text-gray-700 dark:text-gray-300 font-medium">
+            {t('loading')} dashboard...
+          </p>
         </div>
       </div>
     );
   }
 
+  // Render error state
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center transition-colors duration-300">

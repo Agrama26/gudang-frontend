@@ -82,7 +82,7 @@ const HardwareBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
     const handleBarcodeScanned = (barcodeData) => {
         if (!barcodeData || barcodeData.trim().length < 3) return;
 
-        console.log('📦 Barcode scanned:', barcodeData);
+        console.log('Barcode scanned:', barcodeData);
 
         const parsed = parseNetworkEquipmentBarcode(barcodeData);
         setScannedData(parsed);
@@ -185,9 +185,9 @@ const HardwareBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
         setScanBuffer('');
         setScannedData(null);
 
-        toast.info('🔓 Scanner ready! Scan your barcode now...', {
+        toast.info('Scanner ready! Scan your barcode now...', {
             duration: 3000,
-            icon: '📡'
+            icon: ''
         });
 
         // Focus input
@@ -225,7 +225,7 @@ const HardwareBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
                     </div>
                 </div>
                 <h2 className={`text-2xl font-bold mb-2 ${isDarkMode ? 'text-purple-400' : 'text-purple-600'}`}>
-                    📡 Hardware Barcode Scanner
+                    Hardware Barcode Scanner
                 </h2>
                 <p className={`text-sm ${textClass}`}>
                     Use USB or Bluetooth barcode scanner
@@ -243,7 +243,7 @@ const HardwareBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
                                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                         }`}
                 >
-                    📡 USB/Bluetooth Scanner
+                    USB/Bluetooth Scanner
                 </button>
                 <button
                     onClick={() => setScannerMode('manual')}
@@ -254,7 +254,7 @@ const HardwareBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
                                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                         }`}
                 >
-                    ⌨️ Manual Input
+                    Manual Input
                 </button>
             </div>
 
@@ -297,7 +297,7 @@ const HardwareBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
                                 <p className="text-xs text-gray-500 mb-2">Buffer:</p>
                                 <p className={isDarkMode ? 'text-green-400' : 'text-green-700'}>
                                     {scanBuffer}
-                                    <span className="animate-pulse">▋</span>
+                                    <span className="animate-pulse"></span>
                                 </p>
                             </div>
                         )}
@@ -306,7 +306,7 @@ const HardwareBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
                         {isListening && (
                             <div className="mt-4 text-sm">
                                 <p className={isDarkMode ? 'text-green-400' : 'text-green-700'}>
-                                    👉 Point your scanner at the barcode and press trigger
+                                    Point your scanner at the barcode and press trigger
                                 </p>
                             </div>
                         )}
@@ -326,7 +326,7 @@ const HardwareBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
                                     <svg className="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
                                     </svg>
-                                    🚀 Activate Scanner
+                                    Activate Scanner
                                 </span>
                             </button>
                         ) : (
@@ -341,7 +341,7 @@ const HardwareBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
                                     <svg className="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clipRule="evenodd" />
                                     </svg>
-                                    ⏹️ Stop Scanner
+                                    Stop Scanner
                                 </span>
                             </button>
                         )}
@@ -350,7 +350,7 @@ const HardwareBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
                     {/* Scanner Info */}
                     <div className={`p-4 rounded-xl text-xs ${isDarkMode ? 'bg-blue-900/20 border-blue-700 text-blue-300' : 'bg-blue-50 border-blue-300 text-blue-800'
                         } border`}>
-                        <p className="font-semibold mb-2">ℹ️ How Hardware Scanner Works:</p>
+                        <p className="font-semibold mb-2">How Hardware Scanner Works :</p>
                         <ul className="space-y-1 list-disc list-inside">
                             <li>Scanner acts like a keyboard - types barcode data automatically</li>
                             <li>Click "Activate Scanner" to start listening</li>
@@ -366,7 +366,7 @@ const HardwareBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
             {scannerMode === 'manual' && (
                 <div className="space-y-4">
                     <label className={`block text-sm font-semibold mb-2 ${textClass}`}>
-                        📝 Enter Barcode Data Manually
+                        Enter Barcode Data Manually
                     </label>
                     <textarea
                         placeholder="Paste or type barcode data here...&#10;&#10;Examples:&#10;• SN:ABC123456 MAC:AA:BB:CC:DD:EE:FF&#10;• Model:TL-R480 SN:123456 MAC:AABBCCDDEEFF"
@@ -380,7 +380,7 @@ const HardwareBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
                         }}
                     />
                     <p className="text-xs text-gray-500">
-                        💡 Tip: You can also paste barcode data directly here
+                        Tip: You can also paste barcode data directly here
                     </p>
                 </div>
             )}
@@ -403,25 +403,25 @@ const HardwareBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
                     <div className={`space-y-3 text-sm ${isDarkMode ? 'text-green-300' : 'text-green-900'}`}>
                         {scannedData.manufacturer && (
                             <div className="flex items-center space-x-2">
-                                <span className="font-semibold min-w-32">🏢 Manufacturer:</span>
+                                <span className="font-semibold min-w-32">Manufacturer :</span>
                                 <span className="font-mono bg-white/20 px-3 py-1 rounded">{scannedData.manufacturer}</span>
                             </div>
                         )}
                         {scannedData.model && (
                             <div className="flex items-center space-x-2">
-                                <span className="font-semibold min-w-32">📦 Model:</span>
+                                <span className="font-semibold min-w-32">Model :</span>
                                 <span className="font-mono bg-white/20 px-3 py-1 rounded">{scannedData.model}</span>
                             </div>
                         )}
                         {scannedData.serial_number && (
                             <div className="flex items-center space-x-2">
-                                <span className="font-semibold min-w-32">#️⃣ Serial Number:</span>
+                                <span className="font-semibold min-w-32">Serial Number :</span>
                                 <span className="font-mono bg-white/20 px-3 py-1 rounded">{scannedData.serial_number}</span>
                             </div>
                         )}
                         {scannedData.mac_address && (
                             <div className="flex items-center space-x-2">
-                                <span className="font-semibold min-w-32">🏷️ MAC Address:</span>
+                                <span className="font-semibold min-w-32">MAC Address :</span>
                                 <span className="font-mono bg-white/20 px-3 py-1 rounded">{scannedData.mac_address}</span>
                             </div>
                         )}
@@ -439,7 +439,7 @@ const HardwareBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
                                 : 'bg-white text-gray-700 hover:bg-gray-100'
                             }`}
                     >
-                        🔄 Scan Another Barcode
+                        Scan Another Barcode
                     </button>
                 </div>
             )}
