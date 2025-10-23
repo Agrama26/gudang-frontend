@@ -553,7 +553,7 @@ const Dashboard = ({ user, onLogout }) => {
               {user?.role === 'admin' && (
                 <button
                   onClick={() => navigate('/admin')}
-                  className="group relative bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-500 dark:to-pink-500 text-white px-4 py-3 rounded-xl font-semibold shadow-lg hover:shadow-purple-500/50 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
+                  className="group relative bg-gradient-to-r from-blue-600 to-cyan-600 dark:from-blue-500 dark:to-cyan-500 text-white px-4 py-3 rounded-xl font-semibold shadow-lg hover:shadow-blue-500/50 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
                 >
                   <span className="relative z-10 flex items-center space-x-2">
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">

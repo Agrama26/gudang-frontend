@@ -74,7 +74,7 @@ const LandingPage = () => {
       )
     },
     {
-      title: { en: "Real-time Tracking", id: "Pelacakan Real-time" }[isIndonesian ? 'id' : 'en'],
+      title: { en: "Real-time Tracking", id: "Pelacakan waktu nyata" }[isIndonesian ? 'id' : 'en'],
       description: { en: "Update item status in real-time with automatic tracking and complete history", id: "Perbarui status barang secara real-time dengan sistem tracking otomatis dan riwayat lengkap" }[isIndonesian ? 'id' : 'en'],
       icon: (
         <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg hover:shadow-blue-500/50 transition-all duration-300 transform hover:scale-110">
@@ -108,7 +108,7 @@ const LandingPage = () => {
       )
     },
     {
-      title: { en: "Barcode/QR System", id: "Sistem Barcode/QR" }[isIndonesian ? 'id' : 'en'],
+      title: { en: "Barcode Scanner", id: "Pemindai Kode Batang" }[isIndonesian ? 'id' : 'en'],
       description: { en: "Generate and scan QR codes for fast and accurate item identification", id: "Generate dan scan QR code untuk identifikasi barang yang cepat dan akurat" }[isIndonesian ? 'id' : 'en'],
       icon: (
         <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center shadow-lg hover:shadow-indigo-500/50 transition-all duration-300 transform hover:scale-110">
@@ -268,14 +268,14 @@ const LandingPage = () => {
               <div className="relative">
                 {/* Decorative circle background */}
                 <div className="absolute -inset-8">
-                  <div className="w-full h-full bg-white/10 rounded-full animate-pulse"></div>
+                  <div className="w-full h-full bg-white/10 rounded-full"></div>
                 </div>
 
                 {/* Placeholder for woman image - you'll need to add the actual image */}
-                <div className="relative z-10 bg-white/20 backdrop-blur-sm rounded-3xl p-8 border border-white/30">
-                  <div className="h-500 w-500 bg-gradient-to-br from-white/30 to-white/10 rounded-2xl flex items-center justify-center">
+                <div className="relative z-10 ">
+                  <div className="flex items-center justify-center">
                     <div className="text-center text-white/80">
-                      <div className="group relative px-3 py-2 rounded-xl shadow-lg hover:shadow-teal-300 dark:hover:shadow-teal-600 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1">
+                      <div className="group relative transition-all duration-300 transform">
                         <img src={teknisi} alt="Teknisi" width="400" height="400" />
                       </div>
                     </div>

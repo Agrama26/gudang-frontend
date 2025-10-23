@@ -228,7 +228,7 @@ const ItemDetail = () => {
         return;
       }
 
-      toast.info({en: 'Unsaved changes were discarded', id: 'Perubahan yang belum disimpan dibatalkan'}[isIndonesian ? 'id' : 'en'], {
+      toast.info({ en: 'Unsaved changes were discarded', id: 'Perubahan yang belum disimpan dibatalkan' }[isIndonesian ? 'id' : 'en'], {
         icon: '🗑️',
         duration: 3000
       });
@@ -457,6 +457,57 @@ const ItemDetail = () => {
               </div>
             </div>
 
+            {/* History */}
+            <div className={'backdrop-blur-md rounded-2xl border shadow-xl p-8 transition-all duration-300 ' + cardClass}>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className={'text-xl font-bold transition-colors duration-300 ' + textPrimaryClass}>
+                  {t('historyKeluarMasuk')}
+                </h2>
+                <div className="flex items-center space-x-2">
+                  <div className={'w-2 h-2 rounded-full animate-ping ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
+                  <span className={'text-xs font-semibold uppercase tracking-wider transition-colors duration-300 ' + textPrimaryClass}>
+                    {t('tracking')}
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {history.map((entry, index) => (
+                  <div key={entry.id} className="relative group">
+                    <div className={'border-l-4 pl-6 py-4 rounded-r-xl transition-all duration-300 ' +
+                      (isDarkMode ? 'border-teal-400/50 bg-gray-700/30 hover:bg-gray-700/50' : 'border-teal-600/50 bg-teal-50/30 hover:bg-teal-50/50')}>
+                      <div className={'absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-1/2 w-3 h-3 rounded-full animate-pulse ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <div className="flex items-center space-x-3 mb-2">
+                            <span className={'font-semibold text-sm transition-colors duration-300 ' + textPrimaryClass}>STATUS:</span>
+                            <span className={'px-3 py-1 text-xs font-bold rounded-xl border transition-all duration-300 ' + getStatusColor(entry.status)}>
+                              {entry.status}
+                            </span>
+                          </div>
+                          <p className={'text-sm mb-1 text-left transition-colors duration-300 ' + textMainClass}>
+                            <span className={'font-semibold ' + textPrimaryClass}>{t('condition')}:</span> {entry.kondisi}
+                          </p>
+                          <p className={'text-sm mb-1 text-left transition-colors duration-300 ' + textMainClass}>
+                            <span className={'font-semibold ' + textPrimaryClass}>{t('location')}:</span> {entry.lokasi}
+                          </p>
+                          <p className={'text-sm text-left transition-colors duration-300 ' + textMainClass}>
+                            <span className={'font-semibold ' + textPrimaryClass}>{t('info')}:</span> {entry.keterangan}
+                          </p>
+                        </div>
+                        <span className={'text-xs font-mono transition-colors duration-300 ' + textSecondaryClass}>
+                          {new Date(entry.tanggal).toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Info Side */}
+          <div className="space-y-8">
             {/* Status Update Module */}
             <div className={'backdrop-blur-md rounded-2xl border shadow-xl p-8 transition-all duration-300 ' + cardClass}>
               <div className="flex items-center justify-between mb-6">
@@ -472,7 +523,7 @@ const ItemDetail = () => {
               </div>
 
               <div className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid md:grid-cols-1 gap-6">
                   <div className="group">
                     <label className={'block text-sm font-semibold uppercase tracking-wider mb-3 transition-colors duration-300 ' + textPrimaryClass}>
                       <span className="flex items-center">
@@ -538,7 +589,7 @@ const ItemDetail = () => {
                       value={newKeterangan}
                       onChange={(e) => setNewKeterangan(e.target.value)}
                       className={'w-full p-4 border rounded-xl font-medium focus:ring-2 focus:ring-teal-400/20 transition-all duration-300 resize-none ' + inputClass + ' focus:border-teal-400'}
-                      placeholder={(isIndonesian ? 'Masukkan keterangan tambahan...' : 'Enter additional remarks...' )}
+                      placeholder={(isIndonesian ? 'Masukkan keterangan tambahan...' : 'Enter additional remarks...')}
                     ></textarea>
                   </div>
                 </div>
@@ -609,206 +660,6 @@ const ItemDetail = () => {
                   </div>
                 )}
               </div>
-            </div>
-
-            {/* History */}
-            <div className={'backdrop-blur-md rounded-2xl border shadow-xl p-8 transition-all duration-300 ' + cardClass}>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className={'text-xl font-bold transition-colors duration-300 ' + textPrimaryClass}>
-                  {t('historyKeluarMasuk')}
-                </h2>
-                <div className="flex items-center space-x-2">
-                  <div className={'w-2 h-2 rounded-full animate-ping ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
-                  <span className={'text-xs font-semibold uppercase tracking-wider transition-colors duration-300 ' + textPrimaryClass}>
-                    {t('tracking')}
-                  </span>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                {history.map((entry, index) => (
-                  <div key={entry.id} className="relative group">
-                    <div className={'border-l-4 pl-6 py-4 rounded-r-xl transition-all duration-300 ' +
-                      (isDarkMode ? 'border-teal-400/50 bg-gray-700/30 hover:bg-gray-700/50' : 'border-teal-600/50 bg-teal-50/30 hover:bg-teal-50/50')}>
-                      <div className={'absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-1/2 w-3 h-3 rounded-full animate-pulse ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <div className="flex items-center space-x-3 mb-2">
-                            <span className={'font-semibold text-sm transition-colors duration-300 ' + textPrimaryClass}>STATUS:</span>
-                            <span className={'px-3 py-1 text-xs font-bold rounded-xl border transition-all duration-300 ' + getStatusColor(entry.status)}>
-                              {entry.status}
-                            </span>
-                          </div>
-                          <p className={'text-sm mb-1 text-left transition-colors duration-300 ' + textMainClass}>
-                            <span className={'font-semibold ' + textPrimaryClass}>{t('condition')}:</span> {entry.kondisi}
-                          </p>
-                          <p className={'text-sm mb-1 text-left transition-colors duration-300 ' + textMainClass}>
-                            <span className={'font-semibold ' + textPrimaryClass}>{t('location')}:</span> {entry.lokasi}
-                          </p>
-                          <p className={'text-sm text-left transition-colors duration-300 ' + textMainClass}>
-                            <span className={'font-semibold ' + textPrimaryClass}>{t('info')}:</span> {entry.keterangan}
-                          </p>
-                        </div>
-                        <span className={'text-xs font-mono transition-colors duration-300 ' + textSecondaryClass}>
-                          {new Date(entry.tanggal).toLocaleString()}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* QR Code Section */}
-          <div className="space-y-8">
-            {/* QR Code Display */}
-            <div className={'backdrop-blur-md rounded-2xl border shadow-xl p-8 transition-all duration-300 ' + cardClass}>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className={'text-xl font-bold transition-colors duration-300 ' + textPrimaryClass}>
-                  QR Identity
-                </h2>
-                <div className="flex items-center space-x-2">
-                  <div className={'w-2 h-2 rounded-full animate-ping ' + (isDarkMode ? 'bg-green-400' : 'bg-green-500')}></div>
-                  <span className={'text-xs font-semibold uppercase tracking-wider transition-colors duration-300 ' + (isDarkMode ? 'text-green-400' : 'text-green-600')}>
-                    ENCODED
-                  </span>
-                </div>
-              </div>
-
-              <div className="text-center">
-                <div className={'p-6 rounded-xl inline-block relative transition-all duration-300 ' + (isDarkMode ? 'bg-white' : 'bg-white')}>
-                  <div className={'absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 ' + (isDarkMode ? 'border-gray-800' : 'border-black')}></div>
-                  <div className={'absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 ' + (isDarkMode ? 'border-gray-800' : 'border-black')}></div>
-                  <div className={'absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 ' + (isDarkMode ? 'border-gray-800' : 'border-black')}></div>
-
-                  {/* Mock QR Code */}
-                  <div className={'w-48 h-48 flex items-center justify-center ' + (isDarkMode ? 'bg-gray-100' : 'bg-white')}>
-                    <div className="grid grid-cols-8 gap-px">
-                      {[...Array(64)].map((_, i) => (
-                        <div
-                          key={i}
-                          className={'w-2 h-2 ' + (Math.random() > 0.5 ? (isDarkMode ? 'bg-gray-800' : 'bg-black') : (isDarkMode ? 'bg-gray-100' : 'bg-white'))}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                <p className={'mt-4 text-sm font-semibold uppercase tracking-wider transition-colors duration-300 ' + textPrimaryClass}>
-                  SCAN FOR INSTANT ACCESS
-                </p>
-                <p className={'mt-1 text-xs transition-colors duration-300 ' + textSecondaryClass}>
-                  ID: {item.id} | MAC: {item.mac_address}
-                </p>
-              </div>
-
-              {/* QR Actions */}
-              <div className="mt-6 space-y-3">
-                <button
-                  onClick={handleQRGeneration}
-                  className={'w-full py-3 px-4 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 ' + (isDarkMode
-                    ? 'bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-indigo-500/50'
-                    : 'bg-indigo-500 text-white hover:bg-indigo-600 hover:shadow-indigo-500/50')}
-                >
-                  Regenerate QR
-                </button>
-                <button
-                  onClick={handleQRDownload}
-                  className={'w-full py-3 px-4 rounded-xl font-semibold border-2 transition-all duration-300 transform hover:scale-105 ' + (isDarkMode
-                    ? 'border-teal-400 text-teal-400 hover:bg-teal-400 hover:text-black'
-                    : 'border-teal-600 text-teal-600 hover:bg-teal-600 hover:text-white')}
-                >
-                  Download QR
-                </button>
-              </div>
-            </div>
-
-            {/* QR Scanner */}
-            <div className={'backdrop-blur-md rounded-2xl border shadow-xl p-8 transition-all duration-300 ' + cardClass}>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className={'text-xl font-bold transition-colors duration-300 ' + textPrimaryClass}>
-                  QR Scanner
-                </h2>
-                <div className="flex items-center space-x-2">
-                  <div className={'w-2 h-2 rounded-full animate-ping ' + (
-                    showQRScanner
-                      ? (isDarkMode ? 'bg-red-400' : 'bg-red-500')
-                      : (isDarkMode ? 'bg-gray-400' : 'bg-gray-500')
-                  )}></div>
-                  <span className={'text-xs font-semibold uppercase tracking-wider transition-colors duration-300 ' + (
-                    showQRScanner
-                      ? (isDarkMode ? 'text-red-400' : 'text-red-500')
-                      : (isDarkMode ? 'text-gray-400' : 'text-gray-500')
-                  )}>
-                    {showQRScanner ? 'SCANNING' : 'STANDBY'}
-                  </span>
-                </div>
-              </div>
-
-              <button
-                onClick={() => {
-                  setShowQRScanner(!showQRScanner);
-                  if (!showQRScanner) {
-                    toast.info('QR Scanner diaktifkan', {
-                      icon: '📱',
-                      duration: 2000
-                    });
-                  } else {
-                    toast.info('QR Scanner dinonaktifkan', {
-                      icon: '⏹️',
-                      duration: 2000
-                    });
-                  }
-                }}
-                className={'w-full group relative overflow-hidden py-4 px-6 rounded-xl font-bold uppercase tracking-wider transition-all duration-300 transform hover:scale-105 ' + (
-                  showQRScanner
-                    ? (isDarkMode
-                      ? 'bg-gradient-to-r from-red-600 to-orange-600 text-white hover:from-red-700 hover:to-orange-700'
-                      : 'bg-gradient-to-r from-red-500 to-orange-500 text-white hover:from-red-600 hover:to-orange-600')
-                    : (isDarkMode
-                      ? 'bg-gradient-to-r from-teal-600 to-blue-600 text-white hover:from-teal-700 hover:to-blue-700'
-                      : 'bg-gradient-to-r from-teal-500 to-blue-500 text-white hover:from-teal-600 hover:to-blue-600')
-                ) + ' hover:shadow-2xl'}
-              >
-                <span className="relative z-10 flex items-center justify-center">
-                  {showQRScanner ? (
-                    <>
-                      <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"></path>
-                      </svg>
-                      Deactivate Scanner
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M3 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm2 2V5h1v1H5zM3 13a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1v-3zm2 2v-1h1v1H5zM13 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1V4zm2 2V5h1v1h-1z" clipRule="evenodd"></path>
-                      </svg>
-                      Activate Scanner
-                    </>
-                  )}
-                </span>
-              </button>
-
-              {showQRScanner && (
-                <div className={'mt-6 p-6 border rounded-xl text-center relative transition-all duration-300 ' + (isDarkMode ? 'bg-gray-700/50 border-red-600/50' : 'bg-red-50 border-red-200')}>
-                  <div className={'absolute top-4 left-4 w-8 h-8 border-t-2 border-l-2 animate-pulse ' + (isDarkMode ? 'border-red-400' : 'border-red-500')}></div>
-                  <div className={'absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 animate-pulse ' + (isDarkMode ? 'border-red-400' : 'border-red-500')}></div>
-                  <div className={'absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 animate-pulse ' + (isDarkMode ? 'border-red-400' : 'border-red-500')}></div>
-                  <div className={'absolute bottom-4 right-4 w-8 h-8 border-b-2 border-r-2 animate-pulse ' + (isDarkMode ? 'border-red-400' : 'border-red-500')}></div>
-
-                  <div className={'w-32 h-32 border-2 rounded-xl mx-auto mb-4 relative ' + (isDarkMode ? 'border-red-400/50' : 'border-red-500/50')}>
-                    <div className={'absolute inset-0 border animate-pulse ' + (isDarkMode ? 'border-red-400' : 'border-red-500')}></div>
-                    <div className={'absolute top-1/2 left-0 w-full h-0.5 animate-pulse ' + (isDarkMode ? 'bg-red-400' : 'bg-red-500')}></div>
-                  </div>
-
-                  <p className={'font-bold text-sm uppercase tracking-wider transition-colors duration-300 ' + (isDarkMode ? 'text-red-400' : 'text-red-500')}>
-                    Camera Module Required
-                  </p>
-                  <p className={'text-xs mt-2 transition-colors duration-300 ' + (isDarkMode ? 'text-red-400/80' : 'text-red-600/80')}>
-                    Browser camera access needed for QR scanning
-                  </p>
-                </div>
-              )}
             </div>
 
             {/* Device Info Card */}

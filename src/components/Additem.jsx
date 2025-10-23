@@ -5,8 +5,7 @@ import { toast } from 'react-toastify';
 import logo from '../assets/logo.png';
 import { useDarkMode } from '../contexts/DarkModeContext';
 import DarkModeToggle from './DarkModeToggle';
-import ZXingBarcodeScanner from './BarcodeScanner';
-import HardwareBarcodeScanner from '../contexts/HardwareBarcodeScanner';
+import BarcodeScanner from '../contexts/BarcodeScanner';
 
 const AddItem = () => {
   const { isDarkMode } = useDarkMode();
@@ -230,65 +229,6 @@ const AddItem = () => {
     navigate('/dashboard');
   };
 
-  // Mock barcode scanner with better feedback
-  const startScanning = () => {
-    setScanning(true);
-    setScanResult(null);
-
-    // Show scanning toast
-    const scanToastId = toast.loading(
-      'Scanning barcode... Arahkan kamera ke barcode peralatan',
-      {
-        icon: '📱'
-      }
-    );
-
-    // Simulate scanning process
-    setTimeout(() => {
-      const mockScanData = {
-        nama: 'Mikrotik RouterBOARD RB750Gr3',
-        mac_address: '4C:5E:0C:' + Math.random().toString(16).substr(2, 2).toUpperCase() + ':' +
-          Math.random().toString(16).substr(2, 2).toUpperCase() + ':' +
-          Math.random().toString(16).substr(2, 2).toUpperCase(),
-        type: 'Network Router',
-        serial_number: 'RB750-' + Math.random().toString(36).substr(2, 8).toUpperCase()
-      };
-
-      setScanResult(mockScanData);
-      setFormData(prev => ({
-        ...prev,
-        ...mockScanData
-      }));
-      setScanning(false);
-
-      // Dismiss scanning toast and show success
-      toast.dismiss(scanToastId);
-      toast.success(
-        <>
-          <div className="flex flex-col">
-            <span className="font-semibold">Scan berhasil!</span>
-            <span className="text-sm opacity-80">
-              Data {mockScanData.nama} telah terisi otomatis
-            </span>
-          </div>
-        </>,
-        {
-          icon: '📷',
-          duration: 5000
-        }
-      );
-    }, 3000);
-  };
-
-  const stopScanning = () => {
-    setScanning(false);
-    setScanResult(null);
-    toast.info('Scanning dibatalkan', {
-      icon: '⏹️',
-      duration: 2000
-    });
-  };
-
   // Auto-save draft (optional feature)
   useEffect(() => {
     const draftData = localStorage.getItem('addItemDraft');
@@ -320,11 +260,6 @@ const AddItem = () => {
 
     return () => clearTimeout(timer);
   }, [formData]);
-
-  // Clear draft on successful submit
-  // const clearDraft = () => {
-  //   localStorage.removeItem('addItemDraft');
-  // };
 
   // Style classes
   const containerClass = isDarkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-teal-50 to-blue-50';
@@ -383,359 +318,336 @@ const AddItem = () => {
 
       {/* Form */}
       <div className="relative z-10 container mx-auto px-6 py-8">
-        <div className="max-w-4xl mx-auto">
-          {/* Scanner Section */}
-          <ZXingBarcodeScanner
-            isDarkMode={isDarkMode}
-            onScanSuccess={(scannedData) => {
-              // Auto-fill form
-              setFormData(prev => ({
-                ...prev,
-                nama: scannedData.nama || prev.nama,
-                type: scannedData.model || prev.type,
-                mac_address: scannedData.mac_address || prev.mac_address,
-                serial_number: scannedData.serial_number || prev.serial_number
-              }));
+        <div className='grid lg:grid-cols-3 gap-8'>
+          <div className="lg:col-span-2 space-y-8">
 
-              // Show success notification
-              toast.success(
-                <>
-                  <div className="flex flex-col">
-                    <span className="font-semibold">✅ Data berhasil terisi!</span>
-                    <span className="text-sm opacity-80">
-                      {scannedData.manufacturer} {scannedData.model || 'Network Device'}
-                    </span>
-                  </div>
-                </>,
-                { duration: 5000 }
-              );
-
-              // Clear draft jika ada
-              localStorage.removeItem('addItemDraft');
-            }}
-          />
-
-          <HardwareBarcodeScanner
-            isDarkMode={isDarkMode}
-            onScanSuccess={(scannedData) => {
-              // Auto-fill form
-              setFormData(prev => ({
-                ...prev,
-                nama: scannedData.nama || prev.nama,
-                type: scannedData.model || prev.type,
-                mac_address: scannedData.mac_address || prev.mac_address,
-                serial_number: scannedData.serial_number || prev.serial_number
-              }));
-
-              toast.success(
-                <>
-                  <div className="flex flex-col">
-                    <span className="font-semibold">✅ Barcode Scanned!</span>
-                    <span className="text-sm opacity-80">
-                      {scannedData.manufacturer} - {scannedData.serial_number}
-                    </span>
-                  </div>
-                </>,
-                { duration: 4000 }
-              );
-            }}
-          />
-
-          {/* Form Fields */}
-          <div className={'backdrop-blur-md rounded-2xl border shadow-xl p-8 transition-all duration-300 ' + cardClass}>
-            <div className="mb-8 text-center">
-              <div className="flex items-center justify-center space-x-2 mb-4">
-                <div className={'w-2 h-2 rounded-full animate-ping ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
-                <span className={'font-semibold uppercase tracking-wider text-sm transition-colors duration-300 ' + textPrimaryClass}>
-                  Data Input Form
-                </span>
-                <div className={'w-2 h-2 rounded-full animate-ping ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
+            {/* Form Fields */}
+            <div className={'backdrop-blur-md rounded-2xl border shadow-xl p-8 transition-all duration-300 ' + cardClass}>
+              <div className="mb-8 text-center">
+                <div className="flex items-center justify-center space-x-2 mb-4">
+                  <div className={'w-2 h-2 rounded-full animate-ping ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
+                  <span className={'font-semibold uppercase tracking-wider text-sm transition-colors duration-300 ' + textPrimaryClass}>
+                    Data Input Form
+                  </span>
+                  <div className={'w-2 h-2 rounded-full animate-ping ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
+                </div>
               </div>
-            </div>
 
-            <form onSubmit={handleSubmit} className="space-y-8">
-              <div className="grid md:grid-cols-2 gap-8">
-                {/* Nama Barang */}
-                <div className="group">
-                  <label htmlFor="nama" className={'block text-sm font-semibold uppercase tracking-wider mb-3 transition-colors duration-300 ' + textPrimaryClass}>
-                    <span className="flex items-center">
-                      <div className={'w-2 h-2 rounded-full mr-2 animate-pulse ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
-                      Item Name *
-                    </span>
-                  </label>
-                  <input
-                    type="text"
-                    id="nama"
-                    name="nama"
-                    required
-                    value={formData.nama}
-                    onChange={handleChange}
-                    className={'w-full p-4 border rounded-xl font-medium focus:ring-2 focus:ring-teal-400/20 transition-all duration-300 ' + inputClass + ' focus:border-teal-400'}
-                    placeholder="Masukkan nama peralatan jaringan..."
-                  />
-                </div>
-
-                {/* Type/Model */}
-                <div className="group">
-                  <label htmlFor="type" className={'block text-sm font-semibold uppercase tracking-wider mb-3 transition-colors duration-300 ' + textPrimaryClass}>
-                    <span className="flex items-center">
-                      <div className={'w-2 h-2 rounded-full mr-2 animate-pulse ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
-                      Type/Model *
-                    </span>
-                  </label>
-                  <input
-                    type="text"
-                    id="type"
-                    name="type"
-                    required
-                    value={formData.type}
-                    onChange={handleChange}
-                    className={'w-full p-4 border rounded-xl font-medium focus:ring-2 focus:ring-teal-400/20 transition-all duration-300 ' + inputClass + ' focus:border-teal-400'}
-                    placeholder="Contoh: RouterBOARD RB750Gr3"
-                  />
-                </div>
-
-                {/* MAC Address */}
-                <div className="group">
-                  <label htmlFor="mac_address" className={'block text-sm font-semibold uppercase tracking-wider mb-3 transition-colors duration-300 ' + textPrimaryClass}>
-                    <span className="flex items-center">
-                      <div className={'w-2 h-2 rounded-full mr-2 animate-pulse ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
-                      MAC Address
-                      <span className={'ml-2 text-xs px-2 py-1 rounded-full ' + (isDarkMode ? 'bg-indigo-600 text-indigo-200' : 'bg-indigo-100 text-indigo-700')}>
-                        Auto From Scanner
+              <form onSubmit={handleSubmit} className="space-y-8">
+                <div className="grid md:grid-cols-2 gap-8">
+                  {/* Nama Barang */}
+                  <div className="group">
+                    <label htmlFor="nama" className={'block text-sm font-semibold uppercase tracking-wider mb-3 transition-colors duration-300 ' + textPrimaryClass}>
+                      <span className="flex items-center">
+                        <div className={'w-2 h-2 rounded-full mr-2 animate-pulse ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
+                        Item Name *
                       </span>
+                    </label>
+                    <input
+                      type="text"
+                      id="nama"
+                      name="nama"
+                      required
+                      value={formData.nama}
+                      onChange={handleChange}
+                      className={'w-full p-4 border rounded-xl font-medium focus:ring-2 focus:ring-teal-400/20 transition-all duration-300 ' + inputClass + ' focus:border-teal-400'}
+                      placeholder="Masukkan nama peralatan jaringan..."
+                    />
+                  </div>
+
+                  {/* Type/Model */}
+                  <div className="group">
+                    <label htmlFor="type" className={'block text-sm font-semibold uppercase tracking-wider mb-3 transition-colors duration-300 ' + textPrimaryClass}>
+                      <span className="flex items-center">
+                        <div className={'w-2 h-2 rounded-full mr-2 animate-pulse ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
+                        Type/Model *
+                      </span>
+                    </label>
+                    <input
+                      type="text"
+                      id="type"
+                      name="type"
+                      required
+                      value={formData.type}
+                      onChange={handleChange}
+                      className={'w-full p-4 border rounded-xl font-medium focus:ring-2 focus:ring-teal-400/20 transition-all duration-300 ' + inputClass + ' focus:border-teal-400'}
+                      placeholder="Contoh: RouterBOARD RB750Gr3"
+                    />
+                  </div>
+
+                  {/* MAC Address */}
+                  <div className="group">
+                    <label htmlFor="mac_address" className={'block text-sm font-semibold uppercase tracking-wider mb-3 transition-colors duration-300 ' + textPrimaryClass}>
+                      <span className="flex items-center">
+                        <div className={'w-2 h-2 rounded-full mr-2 animate-pulse ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
+                        MAC Address
+                        <span className={'ml-2 text-xs px-2 py-1 rounded-full ' + (isDarkMode ? 'bg-indigo-600 text-indigo-200' : 'bg-indigo-100 text-indigo-700')}>
+                          Auto From Scanner
+                        </span>
+                      </span>
+                    </label>
+                    <input
+                      type="text"
+                      id="mac_address"
+                      name="mac_address"
+                      value={formData.mac_address}
+                      onChange={handleChange}
+                      className={'w-full p-4 border rounded-xl font-mono font-medium focus:ring-2 focus:ring-teal-400/20 transition-all duration-300 ' + inputClass + ' focus:border-teal-400'}
+                      placeholder="00:1B:44:11:3A:B7 (akan terisi otomatis dari scanner)"
+                      pattern="([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})"
+                    />
+                  </div>
+
+                  {/* Serial Number */}
+                  <div className="group">
+                    <label htmlFor="serial_number" className={'block text-sm font-semibold uppercase tracking-wider mb-3 transition-colors duration-300 ' + textPrimaryClass}>
+                      <span className="flex items-center">
+                        <div className={'w-2 h-2 rounded-full mr-2 animate-pulse ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
+                        Serial Number *
+                      </span>
+                    </label>
+                    <input
+                      type="text"
+                      id="serial_number"
+                      name="serial_number"
+                      required
+                      value={formData.serial_number}
+                      onChange={handleChange}
+                      className={'w-full p-4 border rounded-xl font-mono font-medium focus:ring-2 focus:ring-teal-400/20 transition-all duration-300 ' + inputClass + ' focus:border-teal-400'}
+                      placeholder="Masukkan serial number peralatan"
+                    />
+                  </div>
+
+                  {/* Kondisi */}
+                  <div className="group">
+                    <label htmlFor="kondisi" className={'block text-sm font-semibold uppercase tracking-wider mb-3 transition-colors duration-300 ' + textPrimaryClass}>
+                      <span className="flex items-center">
+                        <div className={'w-2 h-2 rounded-full mr-2 animate-pulse ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
+                        Item Condition *
+                      </span>
+                    </label>
+                    <select
+                      id="kondisi"
+                      name="kondisi"
+                      required
+                      value={formData.kondisi}
+                      onChange={handleChange}
+                      className={'w-full p-4 border rounded-xl font-medium focus:ring-2 focus:ring-teal-400/20 transition-all duration-300 cursor-pointer ' + inputClass + ' focus:border-teal-400'}
+                    >
+                      <option value="Baru">New</option>
+                      <option value="Baik">Good</option>
+                      <option value="Rusak Ringan">Slightly Damaged</option>
+                      <option value="Rusak Berat">Heavily Damaged</option>
+                    </select>
+                  </div>
+
+                  {/* Status */}
+                  <div className="group">
+                    <label htmlFor="status" className={'block text-sm font-semibold uppercase tracking-wider mb-3 transition-colors duration-300 ' + textPrimaryClass}>
+                      <span className="flex items-center">
+                        <div className={'w-2 h-2 rounded-full mr-2 animate-pulse ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
+                        Status *
+                      </span>
+                    </label>
+                    <select
+                      id="status"
+                      name="status"
+                      required
+                      value={formData.status}
+                      onChange={handleChange}
+                      className={'w-full p-4 border rounded-xl font-medium focus:ring-2 focus:ring-teal-400/20 transition-all duration-300 cursor-pointer ' + inputClass + ' focus:border-teal-400'}
+                    >
+                      <option value="READY">READY</option>
+                      <option value="TERPAKAI">TERPAKAI</option>
+                      <option value="RUSAK">RUSAK</option>
+                    </select>
+                  </div>
+
+                  {/* Kota */}
+                  <div className="group md:col-span-2">
+                    <label htmlFor="kota" className={'block text-sm font-semibold uppercase tracking-wider mb-3 transition-colors duration-300 ' + textPrimaryClass}>
+                      <span className="flex items-center">
+                        <div className={'w-2 h-2 rounded-full mr-2 animate-pulse ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
+                        Cabang PT. Medianusa Permana *
+                      </span>
+                    </label>
+                    <select
+                      id="kota"
+                      name="kota"
+                      required
+                      value={formData.kota}
+                      onChange={handleChange}
+                      className={'w-full p-4 border rounded-xl font-medium focus:ring-2 focus:ring-teal-400/20 transition-all duration-300 cursor-pointer ' + inputClass + ' focus:border-teal-400'}
+                    >
+                      <option value="">Select Branch</option>
+                      <option value="Medan">Medan</option>
+                      <option value="Batam">Batam (Kantor Pusat)</option>
+                      <option value="Pekan Baru">Pekan Baru</option>
+                      <option value="Jakarta">Jakarta</option>
+                      <option value="Tarutung">Tarutung</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Lokasi */}
+                <div className="group">
+                  <label htmlFor="lokasi" className={'block text-sm font-semibold uppercase tracking-wider mb-3 transition-colors duration-300 ' + textPrimaryClass}>
+                    <span className="flex items-center">
+                      <div className={'w-2 h-2 rounded-full mr-2 animate-pulse ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
+                      Lokasi Penempatan/Instalasi *
                     </span>
                   </label>
                   <input
                     type="text"
-                    id="mac_address"
-                    name="mac_address"
-                    value={formData.mac_address}
+                    id="lokasi"
+                    name="lokasi"
+                    required
+                    value={formData.lokasi}
                     onChange={handleChange}
-                    className={'w-full p-4 border rounded-xl font-mono font-medium focus:ring-2 focus:ring-teal-400/20 transition-all duration-300 ' + inputClass + ' focus:border-teal-400'}
-                    placeholder="00:1B:44:11:3A:B7 (akan terisi otomatis dari scanner)"
-                    pattern="([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})"
+                    className={'w-full p-4 border rounded-xl font-medium focus:ring-2 focus:ring-teal-400/20 transition-all duration-300 ' + inputClass + ' focus:border-teal-400'}
+                    placeholder="Contoh: Server Room A-1, Lantai 3 Ruang Network"
                   />
                 </div>
 
-                {/* Serial Number */}
+                {/* Keterangan */}
                 <div className="group">
-                  <label htmlFor="serial_number" className={'block text-sm font-semibold uppercase tracking-wider mb-3 transition-colors duration-300 ' + textPrimaryClass}>
+                  <label htmlFor="keterangan" className={'block text-sm font-semibold uppercase tracking-wider mb-3 transition-colors duration-300 ' + textPrimaryClass}>
                     <span className="flex items-center">
                       <div className={'w-2 h-2 rounded-full mr-2 animate-pulse ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
-                      Serial Number *
+                      Keterangan Tambahan
                     </span>
                   </label>
-                  <input
-                    type="text"
-                    id="serial_number"
-                    name="serial_number"
-                    required
-                    value={formData.serial_number}
+                  <textarea
+                    id="keterangan"
+                    name="keterangan"
+                    rows="4"
+                    value={formData.keterangan}
                     onChange={handleChange}
-                    className={'w-full p-4 border rounded-xl font-mono font-medium focus:ring-2 focus:ring-teal-400/20 transition-all duration-300 ' + inputClass + ' focus:border-teal-400'}
-                    placeholder="Masukkan serial number peralatan"
-                  />
+                    className={'w-full p-4 border rounded-xl font-medium focus:ring-2 focus:ring-teal-400/20 transition-all duration-300 resize-none ' + inputClass + ' focus:border-teal-400'}
+                    placeholder="Catatan tambahan, spesifikasi khusus, atau informasi penting lainnya..."
+                  ></textarea>
                 </div>
 
-                {/* Kondisi */}
-                <div className="group">
-                  <label htmlFor="kondisi" className={'block text-sm font-semibold uppercase tracking-wider mb-3 transition-colors duration-300 ' + textPrimaryClass}>
-                    <span className="flex items-center">
-                      <div className={'w-2 h-2 rounded-full mr-2 animate-pulse ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
-                      Item Condition *
-                    </span>
-                  </label>
-                  <select
-                    id="kondisi"
-                    name="kondisi"
-                    required
-                    value={formData.kondisi}
-                    onChange={handleChange}
-                    className={'w-full p-4 border rounded-xl font-medium focus:ring-2 focus:ring-teal-400/20 transition-all duration-300 cursor-pointer ' + inputClass + ' focus:border-teal-400'}
+                {/* Buttons */}
+                <div className="flex space-x-6 pt-8">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className={'flex-1 group relative overflow-hidden py-4 px-8 rounded-xl font-bold uppercase tracking-wider transition-all duration-300 transform hover:scale-105 ' + (loading
+                      ? 'opacity-50 cursor-not-allowed bg-gray-400'
+                      : (isDarkMode
+                        ? 'bg-gradient-to-r from-teal-600 to-blue-600 text-white hover:from-teal-700 hover:to-blue-700 hover:shadow-teal-500/50'
+                        : 'bg-gradient-to-r from-teal-500 to-blue-500 text-white hover:from-teal-600 hover:to-blue-600 hover:shadow-teal-500/50'))}
                   >
-                    <option value="Baru">New</option>
-                    <option value="Baik">Good</option>
-                    <option value="Rusak Ringan">Slightly Damaged</option>
-                    <option value="Rusak Berat">Heavily Damaged</option>
-                  </select>
-                </div>
-
-                {/* Status */}
-                <div className="group">
-                  <label htmlFor="status" className={'block text-sm font-semibold uppercase tracking-wider mb-3 transition-colors duration-300 ' + textPrimaryClass}>
-                    <span className="flex items-center">
-                      <div className={'w-2 h-2 rounded-full mr-2 animate-pulse ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
-                      Status *
+                    <span className="relative z-10 flex items-center justify-center">
+                      {loading ? (
+                        <>
+                          <div className={'w-5 h-5 border-2 border-t-transparent rounded-full animate-spin mr-3 ' + (isDarkMode ? 'border-white' : 'border-white')}>
+                          </div>
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
+                          </svg>
+                          Simpan Barang
+                        </>
+                      )}
                     </span>
-                  </label>
-                  <select
-                    id="status"
-                    name="status"
-                    required
-                    value={formData.status}
-                    onChange={handleChange}
-                    className={'w-full p-4 border rounded-xl font-medium focus:ring-2 focus:ring-teal-400/20 transition-all duration-300 cursor-pointer ' + inputClass + ' focus:border-teal-400'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleBack}
+                    className={'flex-1 group border-2 py-4 px-8 rounded-xl font-bold uppercase tracking-wider transition-all duration-300 transform hover:scale-105 ' + (isDarkMode
+                      ? 'border-red-500 text-red-400 hover:bg-red-500 hover:text-white'
+                      : 'border-red-500 text-red-500 hover:bg-red-500 hover:text-white')}
                   >
-                    <option value="READY">READY</option>
-                    <option value="TERPAKAI">TERPAKAI</option>
-                    <option value="RUSAK">RUSAK</option>
-                  </select>
-                </div>
-
-                {/* Kota */}
-                <div className="group md:col-span-2">
-                  <label htmlFor="kota" className={'block text-sm font-semibold uppercase tracking-wider mb-3 transition-colors duration-300 ' + textPrimaryClass}>
-                    <span className="flex items-center">
-                      <div className={'w-2 h-2 rounded-full mr-2 animate-pulse ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
-                      Cabang PT. Medianusa Permana *
+                    <span className="flex items-center justify-center">
+                      <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"></path>
+                      </svg>
+                      Batal
                     </span>
-                  </label>
-                  <select
-                    id="kota"
-                    name="kota"
-                    required
-                    value={formData.kota}
-                    onChange={handleChange}
-                    className={'w-full p-4 border rounded-xl font-medium focus:ring-2 focus:ring-teal-400/20 transition-all duration-300 cursor-pointer ' + inputClass + ' focus:border-teal-400'}
-                  >
-                    <option value="">Select Branch</option>
-                    <option value="Medan">Medan</option>
-                    <option value="Batam">Batam (Kantor Pusat)</option>
-                    <option value="Pekan Baru">Pekan Baru</option>
-                    <option value="Jakarta">Jakarta</option>
-                    <option value="Tarutung">Tarutung</option>
-                  </select>
+                  </button>
                 </div>
-              </div>
-
-              {/* Lokasi */}
-              <div className="group">
-                <label htmlFor="lokasi" className={'block text-sm font-semibold uppercase tracking-wider mb-3 transition-colors duration-300 ' + textPrimaryClass}>
-                  <span className="flex items-center">
-                    <div className={'w-2 h-2 rounded-full mr-2 animate-pulse ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
-                    Lokasi Penempatan/Instalasi *
-                  </span>
-                </label>
-                <input
-                  type="text"
-                  id="lokasi"
-                  name="lokasi"
-                  required
-                  value={formData.lokasi}
-                  onChange={handleChange}
-                  className={'w-full p-4 border rounded-xl font-medium focus:ring-2 focus:ring-teal-400/20 transition-all duration-300 ' + inputClass + ' focus:border-teal-400'}
-                  placeholder="Contoh: Server Room A-1, Lantai 3 Ruang Network"
-                />
-              </div>
-
-              {/* Keterangan */}
-              <div className="group">
-                <label htmlFor="keterangan" className={'block text-sm font-semibold uppercase tracking-wider mb-3 transition-colors duration-300 ' + textPrimaryClass}>
-                  <span className="flex items-center">
-                    <div className={'w-2 h-2 rounded-full mr-2 animate-pulse ' + (isDarkMode ? 'bg-teal-400' : 'bg-teal-600')}></div>
-                    Keterangan Tambahan
-                  </span>
-                </label>
-                <textarea
-                  id="keterangan"
-                  name="keterangan"
-                  rows="4"
-                  value={formData.keterangan}
-                  onChange={handleChange}
-                  className={'w-full p-4 border rounded-xl font-medium focus:ring-2 focus:ring-teal-400/20 transition-all duration-300 resize-none ' + inputClass + ' focus:border-teal-400'}
-                  placeholder="Catatan tambahan, spesifikasi khusus, atau informasi penting lainnya..."
-                ></textarea>
-              </div>
-
-              {/* Buttons */}
-              <div className="flex space-x-6 pt-8">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className={'flex-1 group relative overflow-hidden py-4 px-8 rounded-xl font-bold uppercase tracking-wider transition-all duration-300 transform hover:scale-105 ' + (loading
-                    ? 'opacity-50 cursor-not-allowed bg-gray-400'
-                    : (isDarkMode
-                      ? 'bg-gradient-to-r from-teal-600 to-blue-600 text-white hover:from-teal-700 hover:to-blue-700 hover:shadow-teal-500/50'
-                      : 'bg-gradient-to-r from-teal-500 to-blue-500 text-white hover:from-teal-600 hover:to-blue-600 hover:shadow-teal-500/50'))}
-                >
-                  <span className="relative z-10 flex items-center justify-center">
-                    {loading ? (
-                      <>
-                        <div className={'w-5 h-5 border-2 border-t-transparent rounded-full animate-spin mr-3 ' + (isDarkMode ? 'border-white' : 'border-white')}>
-                        </div>
-                        Processing...
-                      </>
-                    ) : (
-                      <>
-                        <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
-                        </svg>
-                        Simpan Barang
-                      </>
-                    )}
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  onClick={handleBack}
-                  className={'flex-1 group border-2 py-4 px-8 rounded-xl font-bold uppercase tracking-wider transition-all duration-300 transform hover:scale-105 ' + (isDarkMode
-                    ? 'border-red-500 text-red-400 hover:bg-red-500 hover:text-white'
-                    : 'border-red-500 text-red-500 hover:bg-red-500 hover:text-white')}
-                >
-                  <span className="flex items-center justify-center">
-                    <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"></path>
-                    </svg>
-                    Batal
-                  </span>
-                </button>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
 
-          {/* Help Section */}
-          <div className={'mt-8 backdrop-blur-md rounded-2xl border shadow-xl p-6 transition-all duration-300 ' + cardClass}>
-            <div className="text-center">
-              <h3 className={'text-lg font-bold mb-4 transition-colors duration-300 ' + textPrimaryClass}>
-                Bantuan Penggunaan Scanner
-              </h3>
-              <div className="grid md:grid-cols-3 gap-4 text-sm">
-                <div className={'p-4 rounded-xl transition-all duration-300 ' + (isDarkMode ? 'bg-gray-700/50' : 'bg-gray-50')}>
-                  <div className={'w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center ' + (isDarkMode ? 'bg-blue-600' : 'bg-blue-500')}>
-                    <span className="text-white font-bold text-sm">1</span>
+          {/* Scanner Section */}
+          <div className="space-y-8">
+            <BarcodeScanner
+              isDarkMode={isDarkMode}
+              onScanSuccess={(scannedData) => {
+                // Auto-fill form
+                setFormData(prev => ({
+                  ...prev,
+                  nama: scannedData.nama || prev.nama,
+                  type: scannedData.model || prev.type,
+                  mac_address: scannedData.mac_address || prev.mac_address,
+                  serial_number: scannedData.serial_number || prev.serial_number
+                }));
+
+                toast.success(
+                  <>
+                    <div className="flex flex-col">
+                      <span className="font-semibold">✅ Barcode Scanned!</span>
+                      <span className="text-sm opacity-80">
+                        {scannedData.manufacturer} - {scannedData.serial_number}
+                      </span>
+                    </div>
+                  </>,
+                  { duration: 4000 }
+                );
+              }}
+            />
+
+            {/* Help Section */}
+            <div className={'mt-8 backdrop-blur-md rounded-2xl border shadow-xl p-6 transition-all duration-300 ' + cardClass}>
+              <div className="text-center">
+                <h3 className={'text-lg font-bold mb-4 transition-colors duration-300 ' + textPrimaryClass}>
+                  Bantuan Penggunaan Scanner
+                </h3>
+                <div className="grid md:grid-cols-1 gap-4 text-sm">
+                  <div className={'p-4 rounded-xl transition-all duration-300 ' + (isDarkMode ? 'bg-gray-700/50' : 'bg-gray-50')}>
+                    <div className={'w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center ' + (isDarkMode ? 'bg-blue-600' : 'bg-blue-500')}>
+                      <span className="text-white font-bold text-sm">1</span>
+                    </div>
+                    <p className={'font-semibold mb-1 transition-colors duration-300 ' + (isDarkMode ? 'text-white' : 'text-gray-800')}>Posisikan Barcode</p>
+                    <p className={'transition-colors duration-300 ' + textSecondaryClass}>
+                      Arahkan kamera ke barcode pada peralatan jaringan
+                    </p>
                   </div>
-                  <p className={'font-semibold mb-1 transition-colors duration-300 ' + (isDarkMode ? 'text-white' : 'text-gray-800')}>Posisikan Barcode</p>
-                  <p className={'transition-colors duration-300 ' + textSecondaryClass}>
-                    Arahkan kamera ke barcode pada peralatan jaringan
+                  <div className={'p-4 rounded-xl transition-all duration-300 ' + (isDarkMode ? 'bg-gray-700/50' : 'bg-gray-50')}>
+                    <div className={'w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center ' + (isDarkMode ? 'bg-green-600' : 'bg-green-500')}>
+                      <span className="text-white font-bold text-sm">2</span>
+                    </div>
+                    <p className={'font-semibold mb-1 transition-colors duration-300 ' + (isDarkMode ? 'text-white' : 'text-gray-800')}>Scan Otomatis</p>
+                    <p className={'transition-colors duration-300 ' + textSecondaryClass}>
+                      MAC address dan info peralatan terisi otomatis
+                    </p>
+                  </div>
+                  <div className={'p-4 rounded-xl transition-all duration-300 ' + (isDarkMode ? 'bg-gray-700/50' : 'bg-gray-50')}>
+                    <div className={'w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center ' + (isDarkMode ? 'bg-purple-600' : 'bg-purple-500')}>
+                      <span className="text-white font-bold text-sm">3</span>
+                    </div>
+                    <p className={'font-semibold mb-1 transition-colors duration-300 ' + (isDarkMode ? 'text-white' : 'text-gray-800')}>Lengkapi Form</p>
+                    <p className={'transition-colors duration-300 ' + textSecondaryClass}>
+                      Isi data tambahan dan simpan barang
+                    </p>
+                  </div>
+                </div>
+                <div className={'mt-4 p-3 rounded-xl transition-all duration-300 ' + (isDarkMode ? 'bg-teal-900/30 text-teal-400' : 'bg-teal-50 text-teal-700')}>
+                  <p className="text-xs">
+                    <strong>Tips :</strong> Pastikan barcode dalam kondisi bersih dan pencahayaan cukup untuk hasil scan yang optimal
                   </p>
                 </div>
-                <div className={'p-4 rounded-xl transition-all duration-300 ' + (isDarkMode ? 'bg-gray-700/50' : 'bg-gray-50')}>
-                  <div className={'w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center ' + (isDarkMode ? 'bg-green-600' : 'bg-green-500')}>
-                    <span className="text-white font-bold text-sm">2</span>
-                  </div>
-                  <p className={'font-semibold mb-1 transition-colors duration-300 ' + (isDarkMode ? 'text-white' : 'text-gray-800')}>Scan Otomatis</p>
-                  <p className={'transition-colors duration-300 ' + textSecondaryClass}>
-                    MAC address dan info peralatan terisi otomatis
-                  </p>
-                </div>
-                <div className={'p-4 rounded-xl transition-all duration-300 ' + (isDarkMode ? 'bg-gray-700/50' : 'bg-gray-50')}>
-                  <div className={'w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center ' + (isDarkMode ? 'bg-purple-600' : 'bg-purple-500')}>
-                    <span className="text-white font-bold text-sm">3</span>
-                  </div>
-                  <p className={'font-semibold mb-1 transition-colors duration-300 ' + (isDarkMode ? 'text-white' : 'text-gray-800')}>Lengkapi Form</p>
-                  <p className={'transition-colors duration-300 ' + textSecondaryClass}>
-                    Isi data tambahan dan simpan barang
-                  </p>
-                </div>
-              </div>
-              <div className={'mt-4 p-3 rounded-xl transition-all duration-300 ' + (isDarkMode ? 'bg-teal-900/30 text-teal-400' : 'bg-teal-50 text-teal-700')}>
-                <p className="text-xs">
-                  <strong>Tips:</strong> Pastikan barcode dalam kondisi bersih dan pencahayaan cukup untuk hasil scan yang optimal
-                </p>
               </div>
             </div>
           </div>
+
+
 
           {/* Scroll to Top Button */}
           <button

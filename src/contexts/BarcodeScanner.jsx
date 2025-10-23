@@ -217,19 +217,16 @@ const HardwareBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
             {/* Header */}
             <div className="text-center mb-6">
                 <div className="flex items-center justify-center mb-4">
-                    <div className={`w-16 h-16 rounded-xl flex items-center justify-center shadow-lg ${isDarkMode ? 'bg-gradient-to-br from-purple-600 to-blue-600' : 'bg-gradient-to-br from-purple-500 to-blue-500'
+                    <div className={`w-16 h-16 rounded-xl flex items-center justify-center shadow-lg ${isDarkMode ? 'bg-gradient-to-br from-blue-600 to-cyan-600' : 'bg-gradient-to-br from-blue-500 to-teal-500'
                         }`}>
                         <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M3 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm2 2V5h1v1H5zM3 13a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1v-3zm2 2v-1h1v1H5zM13 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1V4zm2 2V5h1v1h-1z" clipRule="evenodd" />
                         </svg>
                     </div>
                 </div>
-                <h2 className={`text-2xl font-bold mb-2 ${isDarkMode ? 'text-purple-400' : 'text-purple-600'}`}>
-                    Hardware Barcode Scanner
+                <h2 className={`text-2xl font-bold mb-2 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                    Use Barcode Scanner
                 </h2>
-                <p className={`text-sm ${textClass}`}>
-                    Use USB or Bluetooth barcode scanner
-                </p>
             </div>
 
             {/* Scanner Mode Tabs */}
@@ -237,21 +234,21 @@ const HardwareBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
                 <button
                     onClick={() => setScannerMode('hardware')}
                     className={`px-6 py-3 rounded-lg font-semibold transition-all ${scannerMode === 'hardware'
-                            ? 'bg-purple-600 text-white shadow-lg'
-                            : isDarkMode
-                                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        ? 'bg-blue-600 text-white shadow-lg'
+                        : isDarkMode
+                            ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                         }`}
                 >
-                    USB/Bluetooth Scanner
+                    Use Scanner
                 </button>
                 <button
                     onClick={() => setScannerMode('manual')}
                     className={`px-6 py-3 rounded-lg font-semibold transition-all ${scannerMode === 'manual'
-                            ? 'bg-purple-600 text-white shadow-lg'
-                            : isDarkMode
-                                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        ? 'bg-blue-600 text-white shadow-lg'
+                        : isDarkMode
+                            ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                         }`}
                 >
                     Manual Input
@@ -262,22 +259,22 @@ const HardwareBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
             {scannerMode === 'hardware' && (
                 <div className="space-y-6">
                     {/* Scanner Status */}
-                    <div className={`p-6 rounded-xl border-2 text-center transition-all ${isListening
-                            ? isDarkMode
-                                ? 'bg-green-900/20 border-green-600'
-                                : 'bg-green-50 border-green-400'
-                            : isDarkMode
-                                ? 'bg-gray-700/50 border-gray-600'
-                                : 'bg-gray-100 border-gray-300'
+                    <div className={`p-4 rounded-xl text-center transition-all ${isListening
+                        ? isDarkMode
+                            ? 'bg-green-900/20 border-green-600'
+                            : 'bg-green-50 border-green-400'
+                        : isDarkMode
+                            ? 'bg-gray-700/50 border-gray-600'
+                            : 'bg-gray-100 border-gray-300'
                         }`}>
-                        <div className="flex items-center justify-center space-x-3 mb-4">
+                        <div className="flex items-center justify-center space-x-3">
                             <div className={`w-4 h-4 rounded-full ${isListening ? 'bg-green-500 animate-ping' : 'bg-gray-400'
                                 }`}></div>
                             <span className={`text-lg font-bold ${isListening
-                                    ? isDarkMode ? 'text-green-400' : 'text-green-700'
-                                    : textClass
+                                ? isDarkMode ? 'text-green-400' : 'text-green-700'
+                                : textClass
                                 }`}>
-                                {isListening ? '🟢 SCANNER ACTIVE - Ready to scan' : '⚫ SCANNER INACTIVE'}
+                                {isListening ? 'Ready to scan' : 'Scanner Inactive'}
                             </span>
                         </div>
 
@@ -294,7 +291,7 @@ const HardwareBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
                         {isListening && scanBuffer && (
                             <div className={`mt-4 p-4 rounded-lg font-mono text-sm ${isDarkMode ? 'bg-gray-800' : 'bg-white'
                                 }`}>
-                                <p className="text-xs text-gray-500 mb-2">Buffer:</p>
+                                <p className="text-xs text-gray-500 mb-2">Buffer :</p>
                                 <p className={isDarkMode ? 'text-green-400' : 'text-green-700'}>
                                     {scanBuffer}
                                     <span className="animate-pulse"></span>
@@ -318,8 +315,8 @@ const HardwareBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
                             <button
                                 onClick={startListening}
                                 className={`flex-1 py-4 rounded-xl font-bold text-white text-lg transition-all transform hover:scale-105 shadow-lg ${isDarkMode
-                                        ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700'
-                                        : 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600'
+                                    ? 'bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700'
+                                    : 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-teal-600'
                                     }`}
                             >
                                 <span className="flex items-center justify-center">
@@ -333,8 +330,8 @@ const HardwareBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
                             <button
                                 onClick={stopListening}
                                 className={`flex-1 py-4 rounded-xl font-bold text-white text-lg transition-all shadow-lg ${isDarkMode
-                                        ? 'bg-red-600 hover:bg-red-700'
-                                        : 'bg-red-500 hover:bg-red-600'
+                                    ? 'bg-red-600 hover:bg-red-700'
+                                    : 'bg-red-500 hover:bg-red-600'
                                     }`}
                             >
                                 <span className="flex items-center justify-center">
@@ -345,19 +342,6 @@ const HardwareBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
                                 </span>
                             </button>
                         )}
-                    </div>
-
-                    {/* Scanner Info */}
-                    <div className={`p-4 rounded-xl text-xs ${isDarkMode ? 'bg-blue-900/20 border-blue-700 text-blue-300' : 'bg-blue-50 border-blue-300 text-blue-800'
-                        } border`}>
-                        <p className="font-semibold mb-2">How Hardware Scanner Works :</p>
-                        <ul className="space-y-1 list-disc list-inside">
-                            <li>Scanner acts like a keyboard - types barcode data automatically</li>
-                            <li>Click "Activate Scanner" to start listening</li>
-                            <li>Point scanner at barcode and pull trigger</li>
-                            <li>Data will be captured and processed automatically</li>
-                            <li>Works with USB and Bluetooth barcode scanners</li>
-                        </ul>
                     </div>
                 </div>
             )}
@@ -380,7 +364,7 @@ const HardwareBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
                         }}
                     />
                     <p className="text-xs text-gray-500">
-                        Tip: You can also paste barcode data directly here
+                        Tip : You can also paste barcode data directly here
                     </p>
                 </div>
             )}
@@ -388,15 +372,15 @@ const HardwareBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
             {/* Scanned Data Display */}
             {scannedData && (
                 <div className={`mt-6 p-5 rounded-xl border-2 shadow-lg ${isDarkMode
-                        ? 'bg-green-900/20 border-green-600'
-                        : 'bg-green-50 border-green-400'
+                    ? 'bg-green-900/20 border-green-600'
+                    : 'bg-green-50 border-green-400'
                     }`}>
                     <div className="flex items-center space-x-2 mb-4">
                         <svg className={`w-6 h-6 ${isDarkMode ? 'text-green-400' : 'text-green-600'}`} fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                         </svg>
                         <span className={`text-lg font-bold ${isDarkMode ? 'text-green-400' : 'text-green-700'}`}>
-                            ✅ Scan Successful!
+                            Scan Successful!
                         </span>
                     </div>
 
@@ -435,31 +419,14 @@ const HardwareBarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
                             }
                         }}
                         className={`w-full mt-4 py-2 rounded-lg text-sm font-semibold transition-all ${isDarkMode
-                                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                                : 'bg-white text-gray-700 hover:bg-gray-100'
+                            ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                            : 'bg-white text-gray-700 hover:bg-gray-100'
                             }`}
                     >
                         Scan Another Barcode
                     </button>
                 </div>
             )}
-
-            {/* Setup Instructions */}
-            <div className={`mt-6 p-4 rounded-xl border ${isDarkMode ? 'bg-purple-900/20 border-purple-700 text-purple-300' : 'bg-purple-50 border-purple-300 text-purple-800'
-                }`}>
-                <p className="font-semibold mb-2 flex items-center">
-                    <span className="mr-2">🔧</span>
-                    Hardware Scanner Setup:
-                </p>
-                <ol className="text-sm space-y-1 list-decimal list-inside ml-4">
-                    <li>Connect your USB barcode scanner to computer</li>
-                    <li>Or pair Bluetooth scanner with your device</li>
-                    <li>Open this page in browser</li>
-                    <li>Click "Activate Scanner" button</li>
-                    <li>Point scanner at barcode and pull trigger</li>
-                    <li>Data will automatically fill the form</li>
-                </ol>
-            </div>
         </div>
     );
 };
