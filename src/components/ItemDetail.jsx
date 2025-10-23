@@ -66,7 +66,7 @@ const ItemDetail = () => {
 
       // Dismiss loading toast and show success
       toast.dismiss(loadingToastId);
-      toast.success(`Detail barang ${data.barang.nama} berhasil dimuat`, {
+      toast.success(t(`itemDetail ${data.barang.nama} successLoad`), {
         icon: '✅',
         duration: 3000
       });
@@ -77,18 +77,18 @@ const ItemDetail = () => {
       toast.dismiss(loadingToastId);
 
       if (error.message.includes('404')) {
-        toast.error('Barang tidak ditemukan', {
+        toast.error(t('itemNotFound'), {
           icon: '❌',
           duration: 5000
         });
       } else if (error.message.includes('401') || error.message.includes('403')) {
-        toast.error('Sesi Anda telah berakhir. Silakan login kembali.', {
+        toast.error(t('Sesi Anda telah berakhir. Silakan login kembali.'), {
           icon: '🔐',
           duration: 5000
         });
         setTimeout(() => navigate('/login'), 2000);
       } else {
-        toast.error('Gagal memuat detail barang. Coba lagi nanti.', {
+        toast.error(t('failedToLoad'), {
           icon: '⚠️',
           duration: 5000
         });
@@ -235,41 +235,6 @@ const ItemDetail = () => {
     }
 
     navigate('/dashboard');
-  };
-
-  // QR Code generation
-  const handleQRGeneration = () => {
-    if (!item) return;
-
-    toast.promise(
-      // Simulate QR generation
-      new Promise((resolve) => {
-        setTimeout(() => {
-          resolve(`QR Code untuk ${item.nama} berhasil dibuat`);
-        }, 2000);
-      }),
-      {
-        pending: {
-          render: 'Generating QR Code...',
-          icon: '🔄'
-        },
-        success: {
-          render: ({ data }) => data,
-          icon: '📱'
-        },
-        error: {
-          render: 'Gagal membuat QR Code',
-          icon: '❌'
-        }
-      }
-    );
-  };
-
-  const handleQRDownload = () => {
-    toast.success('QR Code berhasil didownload!', {
-      icon: '📥',
-      duration: 3000
-    });
   };
 
   const getStatusColor = (status) => {
@@ -420,7 +385,7 @@ const ItemDetail = () => {
                   { label: t('serialNumber'), value: item.serial_number, mono: true, icon: '' },
                   { label: t('condition'), value: item.kondisi, icon: '' },
                   { label: t('branch'), value: item.kota, icon: '' },
-                  { label: t('installationLocation'), value: item.lokasi, span: true, icon: '' },
+                  { label: t('location'), value: item.lokasi, span: true, icon: '' },
                   { label: t('description'), value: item.keterangan, span: true, icon: '' }
                 ].map((field, index) => (
                   <div key={index} className={`group ${field.span ? 'md:col-span-2' : ''}`}>
@@ -665,19 +630,19 @@ const ItemDetail = () => {
             {/* Device Info Card */}
             <div className={'backdrop-blur-md rounded-2xl border shadow-xl p-6 transition-all duration-300 ' + cardClass}>
               <h3 className={'text-lg font-bold mb-4 transition-colors duration-300 ' + textPrimaryClass}>
-                Network Info
+                {t('networkInfo')}
               </h3>
               <div className="space-y-3">
                 <div className={'flex justify-between items-center p-3 rounded-xl transition-all duration-300 ' + (isDarkMode ? 'bg-gray-700/50' : 'bg-gray-50')}>
-                  <span className={'text-sm font-semibold transition-colors duration-300 ' + textSecondaryClass}>Device ID</span>
+                  <span className={'text-sm font-semibold transition-colors duration-300 ' + textSecondaryClass}>{t('deviceId')}</span>
                   <span className={'text-sm font-mono font-bold transition-colors duration-300 ' + textMainClass}>#{item.id}</span>
                 </div>
                 <div className={'flex justify-between items-center p-3 rounded-xl transition-all duration-300 ' + (isDarkMode ? 'bg-gray-700/50' : 'bg-gray-50')}>
-                  <span className={'text-sm font-semibold transition-colors duration-300 ' + textSecondaryClass}>Created</span>
+                  <span className={'text-sm font-semibold transition-colors duration-300 ' + textSecondaryClass}>{t('created')}</span>
                   <span className={'text-sm font-mono transition-colors duration-300 ' + textMainClass}>{new Date(item.created_at).toLocaleString()}</span>
                 </div>
                 <div className={'flex justify-between items-center p-3 rounded-xl transition-all duration-300 ' + (isDarkMode ? 'bg-gray-700/50' : 'bg-gray-50')}>
-                  <span className={'text-sm font-semibold transition-colors duration-300 ' + textSecondaryClass}>Last Update</span>
+                  <span className={'text-sm font-semibold transition-colors duration-300 ' + textSecondaryClass}>{t('lastUpdate')}</span>
                   <span className={'text-sm font-mono transition-colors duration-300 ' + textMainClass}>{new Date(item.updated_at).toLocaleString()}</span>
                 </div>
               </div>

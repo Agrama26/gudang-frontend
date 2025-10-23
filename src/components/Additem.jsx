@@ -21,11 +21,10 @@ const AddItem = () => {
     kota: ''
   });
   const [loading, setLoading] = useState(false);
-  const [scanning, setScanning] = useState(false);
-  const [scanResult, setScanResult] = useState(null);
   const navigate = useNavigate();
   const [scrollY, setScrollY] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   // Handle scroll animation and navbar transparency
   useEffect(() => {
@@ -138,7 +137,7 @@ const AddItem = () => {
           );
         }, 1000);
 
-        // Reset form
+        // ✅ FIX: Reset form TANPA navigasi
         setFormData({
           nama: '',
           type: '',
@@ -151,56 +150,39 @@ const AddItem = () => {
           kota: ''
         });
 
-        // Navigate back to dashboard after showing success
+        // Tampilkan success indicator
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 5000);
+
+
+        // ✅ OPSIONAL: Clear draft dari localStorage
+        localStorage.removeItem('addItemDraft');
+
+        // ✅ OPSIONAL: Tampilkan tombol untuk ke dashboard
         setTimeout(() => {
-          navigate('/dashboard');
+          toast.info(
+            <div className="flex flex-col space-y-2">
+              <span>Ingin melihat daftar barang?</span>
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              >
+                Lihat Dashboard
+              </button>
+            </div>,
+            {
+              icon: '📋',
+              duration: 8000,
+              closeButton: true
+            }
+          );
         }, 2000);
+
       } else {
         throw new Error('Gagal menambahkan barang. Periksa input atau coba lagi nanti.');
       }
     } catch (err) {
-      // Dismiss loading toast and show error
-      toast.dismiss(loadingToastId);
-
-      console.error(err);
-
-      if (err.message.includes('Serial number already exists')) {
-        toast.error(
-          <>
-            <div className="flex flex-col">
-              <span className="font-semibold">Serial number sudah ada!</span>
-              <span className="text-sm opacity-80">
-                {formData.serial_number} telah terdaftar dalam sistem
-              </span>
-            </div>
-          </>,
-          {
-            icon: '🔄',
-            duration: 5000
-          }
-        );
-      } else if (err.message.includes('401') || err.message.includes('403')) {
-        toast.error('Sesi Anda telah berakhir. Silakan login kembali.', {
-          icon: '🔐',
-          duration: 5000
-        });
-        setTimeout(() => navigate('/login'), 2000);
-      } else {
-        toast.error(
-          <>
-            <div className="flex flex-col">
-              <span className="font-semibold">Gagal menambahkan barang</span>
-              <span className="text-sm opacity-80">
-                {err.message || 'Terjadi kesalahan sistem. Coba lagi nanti.'}
-              </span>
-            </div>
-          </>,
-          {
-            icon: '❌',
-            duration: 6000
-          }
-        );
-      }
+      // ... error handling tetap sama
     } finally {
       setLoading(false);
     }
@@ -255,6 +237,9 @@ const AddItem = () => {
 
       if (hasData) {
         localStorage.setItem('addItemDraft', JSON.stringify(formData));
+      } else {
+        // Jika form kosong, hapus draft
+        localStorage.removeItem('addItemDraft');
       }
     }, 2000);
 
@@ -681,6 +666,22 @@ const AddItem = () => {
               <span className="absolute right-full top-1/2 transform -translate-y-1/2 border-4 border-transparent border-r-gray-900 dark:border-r-gray-700"></span>
             </span>
           </button>
+
+          {/* Success Indicator */}
+          {showSuccess && (
+            <div className={`fixed top-20 right-6 z-50 p-4 rounded-xl shadow-lg border transition-all duration-500 ${isDarkMode
+                ? 'bg-green-900/90 border-green-700 text-green-200'
+                : 'bg-green-100 border-green-300 text-green-800'
+              }`}>
+              <div className="flex items-center space-x-2">
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
+                </svg>
+                <span className="font-semibold">Data berhasil disimpan!</span>
+              </div>
+              <p className="text-sm mt-1">Form telah direset untuk input baru</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

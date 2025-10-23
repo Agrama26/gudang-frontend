@@ -79,9 +79,9 @@ const translations = {
     // Item Management
     addItem: 'Tambah Barang',
     itemName: 'Nama Barang',
-    typeModel: 'Type/Model',
-    macAddress: 'MAC Address',
-    serialNumber: 'Serial Number',
+    typeModel: 'Tipe/Model',
+    macAddress: 'Alamat MAC',
+    serialNumber: 'Nomor Seri',
     condition: 'Kondisi',
     status: 'Status',
     location: 'Lokasi',
@@ -157,6 +157,7 @@ const translations = {
     itemNotFound: 'Barang tidak ditemukan',
     failedToLoad: 'Gagal memuat detail barang. Coba lagi nanti.',
     failedToUpdate: 'Gagal mengupdate status. Silakan coba lagi.',
+    successLoad: 'Berhasil memuat',
 
     // Company Info
     companyName: 'PT. Medianusa Permana',
@@ -206,10 +207,10 @@ const translations = {
     scannerTips: 'Pastikan barcode dalam kondisi bersih dan pencahayaan cukup untuk hasil scan yang optimal',
 
     // Time & Status
-    created: 'Dibuat',
+    created: 'Di buat',
     lastUpdate: 'Update Terakhir',
-    deviceId: 'Device ID',
-    networkInfo: 'Info Jaringan',
+    deviceId: 'ID Perangkat',
+    networkInfo: 'Info Perangkat',
     scanForAccess: 'SCAN UNTUK AKSES LANGSUNG',
     encoded: 'ENCODED',
     active: 'AKTIF',
@@ -370,6 +371,7 @@ const translations = {
     itemNotFound: 'Item not found',
     failedToLoad: 'Failed to load item details. Please try again later.',
     failedToUpdate: 'Failed to update status. Please try again.',
+    successLoad: 'Successfully loaded',
 
     // Company Info
     companyName: 'PT. Medianusa Permana',

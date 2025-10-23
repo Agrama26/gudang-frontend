@@ -43,6 +43,7 @@ ChartJS.register(
 
 const Dashboard = ({ user, onLogout }) => {
   const navigate = useNavigate();
+  const { t, isIndonesian } = useLanguage();
   const { isDarkMode } = useDarkMode();
   const [items, setItems] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
@@ -53,8 +54,6 @@ const Dashboard = ({ user, onLogout }) => {
   const [statusFilter, setStatusFilter] = useState('');
   const [kotaFilter, setKotaFilter] = useState('');
   const [showImportExportModal, setShowImportExportModal] = useState(false);
-
-  const { t, isIndonesian } = useLanguage();
 
   // Animation states
   const [isVisible, setIsVisible] = useState({});
@@ -71,6 +70,7 @@ const Dashboard = ({ user, onLogout }) => {
   const isFirstLoad = useRef(true);
 
   // ✅ FIX: Fetch data tanpa toast yang depend on 't'
+  // ✅ FIX: Fetch data tanpa dependensi translation
   useEffect(() => {
     const fetchItems = async () => {
       try {
@@ -79,7 +79,10 @@ const Dashboard = ({ user, onLogout }) => {
         setItems(data);
         setError(null);
       } catch (err) {
-        setError('Failed to load data. Please try again later.');
+        const errorMsg = isIndonesian
+          ? 'Gagal memuat data. Silakan coba lagi nanti.'
+          : 'Failed to load data. Please try again later.';
+        setError(errorMsg);
         console.error(err);
       } finally {
         setLoading(false);
@@ -87,10 +90,8 @@ const Dashboard = ({ user, onLogout }) => {
     };
 
     fetchItems();
-  }, []); // ✅ Empty dependency - hanya run sekali
+  }, []); // ✅ Empty dependency // ✅ Empty dependency - hanya run sekali
 
-  // ✅ FIX: Pisahkan logic yang butuh translation
-  // Jangan show toast di useEffect yang depend on 't'
   useEffect(() => {
     // Hanya untuk update ref, tidak ada side effect
     if (isFirstLoad.current) {
@@ -144,18 +145,21 @@ const Dashboard = ({ user, onLogout }) => {
     setDeleting(true);
     try {
       await barangAPI.delete(itemToDelete.id);
-
-      // Remove item from state
       setItems(prevItems => prevItems.filter(item => item.id !== itemToDelete.id));
-
-      // Close modal and reset states
       setShowDeleteModal(false);
       setItemToDelete(null);
 
-      alert(`Barang "${itemToDelete.nama}" berhasil dihapus!`);
+      // Gunakan translation yang aman
+      const successMsg = isIndonesian
+        ? `Barang "${itemToDelete.nama}" berhasil dihapus!`
+        : `Item "${itemToDelete.nama}" successfully deleted!`;
+      alert(successMsg);
     } catch (error) {
       console.error('Error deleting item:', error);
-      alert({ en: "Failed to delete item. Please try again.", id: "Gagal menghapus barang. Silakan coba lagi." }[isIndonesian ? 'id' : 'en']);
+      const errorMsg = isIndonesian
+        ? "Gagal menghapus barang. Silakan coba lagi."
+        : "Failed to delete item. Please try again.";
+      alert(errorMsg);
     } finally {
       setDeleting(false);
     }
@@ -253,6 +257,16 @@ const Dashboard = ({ user, onLogout }) => {
     setChartAnimated(true);
   }, [chartAnimated, searchQuery, statusFilter, kotaFilter, kondisiFilter, items]);
 
+  // Update error message when language changes
+  useEffect(() => {
+    if (error && (error.includes('Failed to load data') || error.includes('Gagal memuat data'))) {
+      const newError = isIndonesian
+        ? 'Gagal memuat data. Silakan coba lagi nanti.'
+        : 'Failed to load data. Please try again later.';
+      setError(newError);
+    }
+  }, [isIndonesian, error]);
+
   const StatusBadge = ({ status }) => {
     const { t } = useLanguage();
 
@@ -281,7 +295,7 @@ const Dashboard = ({ user, onLogout }) => {
     }
   };
 
-  // Data untuk PolarArea Chart
+  // Data untuk PolarArea Chart - DENGAN USE MEMO DAN DEPENDENCY t
   const statusCounts = useMemo(() => {
     return {
       READY: filteredItems.filter(item => item.status === 'READY').length,
@@ -290,7 +304,7 @@ const Dashboard = ({ user, onLogout }) => {
     };
   }, [filteredItems]);
 
-  // Data untuk kota (untuk radar chart)
+  // Data untuk kota
   const kotaCounts = useMemo(() => {
     const counts = {};
     filteredItems.forEach(item => {
@@ -310,30 +324,18 @@ const Dashboard = ({ user, onLogout }) => {
 
   // Chart.js Polar Area Chart Data
   const PolarAreaData = useMemo(() => ({
-    labels: ['READY', 'TERPAKAI', 'RUSAK'],
+    labels: [t('ready'), t('inUse'), t('broken')],
     datasets: [
       {
         data: [statusCounts.READY, statusCounts.TERPAKAI, statusCounts.RUSAK],
-        backgroundColor: [
-          '#22C55E',
-          '#3B82F6',
-          '#EF4444',
-        ],
-        borderColor: isDarkMode ? [
-          '#1f2937',
-          '#1f2937',
-          '#1f2937',
-        ] : [
-          '#ffffff',
-          '#ffffff',
-          '#ffffff',
-        ],
+        backgroundColor: ['#22C55E', '#3B82F6', '#EF4444'],
+        borderColor: isDarkMode ? ['#1f2937', '#1f2937', '#1f2937'] : ['#ffffff', '#ffffff', '#ffffff'],
         borderWidth: 2,
         hoverOffset: 4,
         hoverBorderWidth: 3,
       },
     ],
-  }), [statusCounts, isDarkMode]);
+  }), [statusCounts, isDarkMode, t]);
 
   const PolarOptions = {
     responsive: true,
@@ -402,11 +404,11 @@ const Dashboard = ({ user, onLogout }) => {
   };
 
   // Radar Chart Data
-  const radarChartData = {
-    labels: ['Medan', 'Batam', 'Pekan Baru', 'Jakarta', 'Tarutung'],
+  const radarChartData = useMemo(() => ({
+    labels: [t('medan'), t('batam'), t('pekanBaru'), t('jakarta'), t('tarutung')],
     datasets: [
       {
-        label: 'Items by City',
+        label: t('distributionByCity'),
         data: [
           kotaCounts['Medan'] || 0,
           kotaCounts['Batam'] || 0,
@@ -426,7 +428,7 @@ const Dashboard = ({ user, onLogout }) => {
         borderWidth: 3,
       },
     ],
-  };
+  }), [kotaCounts, t]);
 
   const radarChartOptions = {
     responsive: true,
