@@ -16,8 +16,44 @@ const LandingPage = () => {
   const [isVisible, setIsVisible] = useState({});
   const [scrollY, setScrollY] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [selectedOffice, setSelectedOffice] = useState(null);
+  const [showMap, setShowMap] = useState(false);
   const observerRef = useRef();
   const { t, isIndonesian } = useLanguage();
+
+  // Data kantor dengan koordinat peta
+  const offices = [
+    {
+      city: 'Batam',
+      status: t('headOffice'),
+      coordinates: { lat: 1.132552595250969, lng: 104.0441689865064 },
+      address: 'PT. Medianusa Permana Komp.Ruko Graha Kadin Blok F No.5 Kel.Teluk Tering , Kec.Batam Kota. Kepulauan Riau'
+    },
+    {
+      city: 'Medan',
+      status: t('branchOffice'),
+      coordinates: { lat: 3.562563262081525, lng: 98.63902825767093 },
+      address: 'Komp. Setia Budi Point B-03 Jl. Setia Budi Kel. Tanjung Sari Kec. Medan Selayang Medan, Sumatera Utara'
+    },
+    {
+      city: 'Pekan Baru',
+      status: t('branchOffice'),
+      coordinates: { lat: 0.5086526529919154, lng: 101.43260122469819 },
+      address: 'Jl. Balam Ujung No.46 A, Kp. Melayu, Kec. Sukajadi, Kota Pekanbaru, Riau'
+    },
+    {
+      city: 'Tarutung',
+      status: t('regionalBranch'),
+      coordinates: { lat: 2.028112153851156, lng: 98.96079752051374 },
+      address: 'Jl. Patuan Anggi No.22, Hutagalung Siwaluompu, Kec. Tarutung, Kabupaten Tapanuli Utara, Sumatera Utara'
+    },
+    {
+      city: 'Jakarta',
+      status: t('metropolitanBranch'),
+      coordinates: { lat: -6.179238908641331, lng: 106.8127684325257 },
+      address: 'Jl. Cideng Barat No.21B, RT.11/RW.1, Cideng, Kecamatan Gambir, Kota Jakarta Pusat, Daerah Khusus Ibukota Jakarta'
+    }
+  ];
 
   // Handle scroll animation and navbar transparency
   useEffect(() => {
@@ -60,6 +96,30 @@ const LandingPage = () => {
       }
     };
   }, []);
+
+  // Fungsi untuk menampilkan map
+  const handleOfficeClick = (office) => {
+    setSelectedOffice(office);
+    setShowMap(true);
+    // Scroll ke section map
+    setTimeout(() => {
+      document.getElementById('office-map-section').scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }, 100);
+  };
+
+  // Fungsi untuk menutup map
+  const handleCloseMap = () => {
+    setShowMap(false);
+    setSelectedOffice(null);
+  };
+
+  // Generate Google Maps URL
+  const getGoogleMapsUrl = (office) => {
+    return `https://www.google.com/maps?q=${office.coordinates.lat},${office.coordinates.lng}&z=15&output=embed`;
+  };
 
   const features = [
     {
@@ -388,27 +448,90 @@ const LandingPage = () => {
                 {t('companyDescription')}
               </p>
               <div className="grid md:grid-cols-5 gap-6 mt-12">
-                {[
-                  { city: 'Batam', status: t('headOffice') },
-                  { city: 'Medan', status: t('branchOffice') },
-                  { city: 'Pekan Baru', status: t('branchOffice') },
-                  { city: 'Tarutung', status: t('regionalBranch') },
-                  { city: 'Jakarta', status: t('metropolitanBranch') }
-                ].map((office, index) => (
+                {offices.map((office, index) => (
                   <div
                     key={index}
-                    className={`bg-white/20 dark:bg-white/10 backdrop-blur-sm rounded-xl p-6 transition-all duration-1000 hover:scale-105 hover:bg-white/30 ${isVisible.company ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                    className={`bg-white/20 dark:bg-white/10 backdrop-blur-sm rounded-xl p-6 transition-all duration-1000 hover:scale-105 hover:bg-white/30 cursor-pointer group ${isVisible.company ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
                       }`}
                     style={{ transitionDelay: `${index * 100}ms` }}
+                    onClick={() => handleOfficeClick(office)}
                   >
-                    <h4 className="font-bold text-lg mb-2">{office.city}</h4>
-                    <p className="text-sm opacity-90">{office.status}</p>
+                    <h4 className="font-bold text-lg mb-2 group-hover:text-teal-200 transition-colors duration-300">
+                      {office.city}
+                    </h4>
+                    <p className="text-sm opacity-90 group-hover:opacity-100 transition-opacity duration-300">
+                      {office.status}
+                    </p>
+                    <div className="mt-2 flex items-center text-xs opacity-80 group-hover:opacity-100 transition-opacity duration-300">
+                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"></path>
+                      </svg>
+                      {t('viewMap')}
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
           </div>
         </section>
+
+        {/* Map Section */}
+        {showMap && selectedOffice && (
+          <section
+            id="office-map-section"
+            className={`mt-5 transition-all duration-1000 ${showMap ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
+              }`}
+          >
+            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-2xl p-8 border border-teal-100 dark:border-gray-700 shadow-2xl">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
+                  {selectedOffice.city} - {selectedOffice.status}
+                </h3>
+                <button
+                  onClick={handleCloseMap}
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-300 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="mb-4">
+                <p className="text-gray-600 dark:text-gray-300">
+                  <strong>{t('address')}:</strong> {selectedOffice.address}
+                </p>
+              </div>
+
+              <div className="rounded-xl overflow-hidden shadow-lg border border-gray-200 dark:border-gray-600">
+                <iframe
+                  src={getGoogleMapsUrl(selectedOffice)}
+                  width="100%"
+                  height="400"
+                  style={{ border: 0 }}
+                  allowFullScreen=""
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title={`Map of ${selectedOffice.city}`}
+                ></iframe>
+              </div>
+
+              <div className="mt-4 flex justify-center">
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${selectedOffice.coordinates.lat},${selectedOffice.coordinates.lng}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-medium transition-colors duration-300"
+                >
+                  <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"></path>
+                  </svg>
+                  {t('openInGoogleMaps')}
+                </a>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* CTA Section */}
         <div className="mt-32 text-center">
@@ -434,6 +557,8 @@ const LandingPage = () => {
           </div>
         </div>
       </div>
+
+
 
       {/* Scroll to Top Button */}
       <button

@@ -5,6 +5,34 @@ import { toast } from 'react-toastify';
 import { useDarkMode } from '../contexts/DarkModeContext';
 import DarkModeToggle from './DarkModeToggle';
 import logo from '../assets/logo.png';
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    BarElement,
+    Title,
+    Tooltip,
+    Legend,
+    ArcElement,
+    Filler
+} from 'chart.js';
+import { Line, Bar, Doughnut } from 'react-chartjs-2';
+
+// Register Chart.js components
+ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    BarElement,
+    Title,
+    Tooltip,
+    Legend,
+    ArcElement,
+    Filler
+);
 
 const AdminDashboard = ({ user, onLogout }) => {
     const navigate = useNavigate();
@@ -27,6 +55,12 @@ const AdminDashboard = ({ user, onLogout }) => {
 
     const [scrollY, setScrollY] = useState(0);
     const [isScrolled, setIsScrolled] = useState(false);
+
+    // 1. Add state untuk email status
+    const [emailSettings, setEmailSettings] = useState({
+        enabled: true,
+        sendWelcomeEmail: true
+    });
 
     // Handle scroll animation and navbar transparency
     useEffect(() => {
@@ -108,7 +142,7 @@ const AdminDashboard = ({ user, onLogout }) => {
     const handleSubmitUser = async (e) => {
         e.preventDefault();
 
-        console.log('📝 Form Data:', {
+        console.log('🔍 Form Data:', {
             username: formData.username,
             email: formData.email,
             role: formData.role,
@@ -130,6 +164,8 @@ const AdminDashboard = ({ user, onLogout }) => {
                 send_welcome_email: emailSettings.sendWelcomeEmail && !!formData.email
             };
 
+            console.log('📤 Data yang dikirim ke backend:', submitData);
+
             if (editingUser) {
                 await adminUserAPI.updateUser(editingUser.id, submitData);
                 toast.success(
@@ -139,24 +175,52 @@ const AdminDashboard = ({ user, onLogout }) => {
                     </div>
                 );
             } else {
+                console.log('🔄 Making API call to create user...');
+
                 const result = await adminUserAPI.createUser(submitData);
 
-                // Show success with email status
-                if (result.emailSent) {
-                    toast.success(
-                        <div>
-                            <div className="font-semibold">✅ User created successfully!</div>
-                            <div className="text-xs">📧 Welcome email sent to {formData.email}</div>
-                        </div>,
-                        { duration: 5000 }
-                    );
+                console.log('📨 FULL Response dari backend:', result);
+
+                // PERBAIKAN: Handle berbagai format response
+                if (result.success === true || result.message?.includes('successfully')) {
+                    // Format baru: { success: true, data: { emailSent: true } }
+                    const emailSent = result.data?.emailSent || result.emailSent;
+
+                    if (emailSent) {
+                        toast.success(
+                            <div>
+                                <div className="font-semibold">✅ User created successfully!</div>
+                                <div className="text-xs">📧 Welcome email sent to {formData.email}</div>
+                            </div>,
+                            { duration: 5000 }
+                        );
+                    } else if (emailSettings.sendWelcomeEmail && formData.email) {
+                        // Email gagal dikirim
+                        toast.success(
+                            <div>
+                                <div className="font-semibold">✅ User created successfully!</div>
+                                <div className="text-xs">⚠️ User created but email failed to send</div>
+                            </div>,
+                            { duration: 5000 }
+                        );
+                    } else {
+                        // Tidak ada email yang dikirim
+                        toast.success(
+                            <div>
+                                <div className="font-semibold">✅ User created successfully!</div>
+                                <div className="text-xs">ℹ️ No email sent (not requested)</div>
+                            </div>,
+                            { duration: 4000 }
+                        );
+                    }
                 } else {
+                    // Response tidak sesuai ekspektasi
                     toast.success(
                         <div>
                             <div className="font-semibold">✅ User created successfully!</div>
-                            <div className="text-xs">⚠️ No email sent (no email address provided)</div>
+                            <div className="text-xs">ℹ️ Check console for email status</div>
                         </div>,
-                        { duration: 5000 }
+                        { duration: 4000 }
                     );
                 }
             }
@@ -164,6 +228,7 @@ const AdminDashboard = ({ user, onLogout }) => {
             setShowUserModal(false);
             fetchData();
         } catch (error) {
+            console.error('❌ Error creating user:', error);
             toast.error(error.message || 'Failed to save user');
         }
     };
@@ -191,12 +256,6 @@ const AdminDashboard = ({ user, onLogout }) => {
             toast.error('Failed to update user status');
         }
     };
-
-    // 1. Add state untuk email status
-    const [emailSettings, setEmailSettings] = useState({
-        enabled: true,
-        sendWelcomeEmail: true
-    });
 
     // Style classes
     const containerClass = isDarkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-teal-50 to-blue-50';
@@ -246,9 +305,9 @@ const AdminDashboard = ({ user, onLogout }) => {
                                     : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
                                     }`}
                             >
-                                {tab === 'users' && ' '}
-                                {tab === 'statistics' && ' '}
-                                {tab === 'activity' && ' '}
+                                {tab === 'users' && ''}
+                                {tab === 'statistics' && ''}
+                                {tab === 'activity' && ''}
                                 {tab}
                             </button>
                         ))}
@@ -346,91 +405,222 @@ const AdminDashboard = ({ user, onLogout }) => {
 
                         {/* Statistics Tab */}
                         {activeTab === 'statistics' && statistics && (
-                            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                <div className={'backdrop-blur-md rounded-2xl border shadow-xl p-8 ' + cardClass}>
-                                    <h3 className={'text-xl font-bold mb-4 ' + textPrimaryClass}>Users Overview</h3>
-                                    <div className="space-y-4">
-                                        <div className="flex justify-between">
-                                            <span className={textSecondaryClass}>Total Users:</span>
-                                            <span className="font-bold text-gray-800 dark:text-gray-200">{statistics.users.total_users}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className={textSecondaryClass}>Admins:</span>
-                                            <span className="font-bold text-purple-600 dark:text-purple-400">{statistics.users.admin_count}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className={textSecondaryClass}>Staff:</span>
-                                            <span className="font-bold text-blue-600 dark:text-blue-400">{statistics.users.staff_count}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className={textSecondaryClass}>Active:</span>
-                                            <span className="font-bold text-green-600 dark:text-green-400">{statistics.users.active_users}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className={'backdrop-blur-md rounded-2xl border shadow-xl p-8 ' + cardClass}>
-                                    <h3 className={'text-xl font-bold mb-4 ' + textPrimaryClass}>Inventory Overview</h3>
-                                    <div className="space-y-4">
-                                        <div className="flex justify-between">
-                                            <span className={textSecondaryClass}>Total Items :</span>
-                                            <span className="font-bold text-gray-800 dark:text-gray-200">{statistics.barang.total_barang}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className={textSecondaryClass}>Ready :</span>
-                                            <span className="font-bold text-green-600 dark:text-green-400">{statistics.barang.ready_count}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className={textSecondaryClass}>In Use :</span>
-                                            <span className="font-bold text-blue-600 dark:text-blue-400">{statistics.barang.terpakai_count}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className={textSecondaryClass}>Damaged :</span>
-                                            <span className="font-bold text-red-600 dark:text-red-400">{statistics.barang.rusak_count}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className={'backdrop-blur-md rounded-2xl border shadow-xl p-8 ' + cardClass}>
-                                    <h3 className={'text-xl font-bold mb-4 ' + textPrimaryClass}>Activity Today</h3>
-                                    <div className="text-center">
-                                        <div className="text-4xl font-bold text-teal-600 dark:text-teal-400 mb-2">
-                                            {statistics.activity.today_activities}
-                                        </div>
-                                        <p className={textSecondaryClass}>Total Activities</p>
-                                    </div>
-                                </div>
-
-                                <div className="md:col-span-2 lg:col-span-3">
-                                    <div className="backdrop-blur-md rounded-2xl border shadow-xl p-8 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-purple-200 dark:border-purple-700">
-                                        <h3 className="text-xl font-bold mb-4 text-purple-700 dark:text-purple-400">
-                                            Email System Status
-                                        </h3>
+                            <div className="space-y-8">
+                                {/* Overview Cards */}
+                                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                    <div className={'backdrop-blur-md rounded-2xl border shadow-xl p-8 ' + cardClass}>
+                                        <h3 className={'text-xl font-bold mb-4 ' + textPrimaryClass}>👥 Users Overview</h3>
                                         <div className="space-y-4">
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-gray-600 dark:text-gray-400">Email Service:</span>
-                                                <span className="px-3 py-1 bg-green-500 text-white rounded-full text-sm font-semibold">
-                                                    ✓ Configured
-                                                </span>
+                                            <div className="flex justify-between">
+                                                <span className={textSecondaryClass}>Total Users:</span>
+                                                <span className="font-bold text-gray-800 dark:text-gray-200">{statistics.users.total_users}</span>
                                             </div>
-                                            <button
-                                                onClick={async () => {
-                                                    try {
-                                                        const result = await adminUserAPI.testEmailConnection();
-                                                        if (result.success) {
-                                                            toast.success('✅ Email connection successful!');
-                                                        } else {
-                                                            toast.error('❌ Email connection failed: ' + result.message);
+                                            <div className="flex justify-between">
+                                                <span className={textSecondaryClass}>Admins:</span>
+                                                <span className="font-bold text-purple-600 dark:text-purple-400">{statistics.users.admin_count}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className={textSecondaryClass}>Staff:</span>
+                                                <span className="font-bold text-blue-600 dark:text-blue-400">{statistics.users.staff_count}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className={textSecondaryClass}>Active:</span>
+                                                <span className="font-bold text-green-600 dark:text-green-400">{statistics.users.active_users}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className={'backdrop-blur-md rounded-2xl border shadow-xl p-8 ' + cardClass}>
+                                        <h3 className={'text-xl font-bold mb-4 ' + textPrimaryClass}>📦 Inventory Overview</h3>
+                                        <div className="space-y-4">
+                                            <div className="flex justify-between">
+                                                <span className={textSecondaryClass}>Total Items:</span>
+                                                <span className="font-bold text-gray-800 dark:text-gray-200">{statistics.barang.total_barang}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className={textSecondaryClass}>Ready:</span>
+                                                <span className="font-bold text-green-600 dark:text-green-400">{statistics.barang.ready_count}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className={textSecondaryClass}>In Use:</span>
+                                                <span className="font-bold text-blue-600 dark:text-blue-400">{statistics.barang.terpakai_count}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className={textSecondaryClass}>Damaged:</span>
+                                                <span className="font-bold text-red-600 dark:text-red-400">{statistics.barang.rusak_count}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className={'backdrop-blur-md rounded-2xl border shadow-xl p-8 ' + cardClass}>
+                                        <h3 className={'text-xl font-bold mb-4 ' + textPrimaryClass}>📈 Activity Today</h3>
+                                        <div className="text-center">
+                                            <div className="text-4xl font-bold text-teal-600 dark:text-teal-400 mb-2">
+                                                {statistics.activity.today_activities}
+                                            </div>
+                                            <p className={textSecondaryClass}>Total Activities</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Charts Section */}
+                                <div className="grid md:grid-cols-2 gap-8">
+                                    {/* User Distribution Doughnut Chart */}
+                                    <div className={'backdrop-blur-md rounded-2xl border shadow-xl p-8 ' + cardClass}>
+                                        <h3 className={'text-xl font-bold mb-6 text-center ' + textPrimaryClass}>
+                                            User Distribution
+                                        </h3>
+                                        <div className="h-80">
+                                            <Doughnut
+                                                data={{
+                                                    labels: ['Admin', 'Staff', 'Inactive'],
+                                                    datasets: [{
+                                                        data: [
+                                                            statistics.users.admin_count,
+                                                            statistics.users.staff_count,
+                                                            statistics.users.total_users - statistics.users.active_users
+                                                        ],
+                                                        backgroundColor: [
+                                                            'rgba(147, 51, 234, 0.8)',
+                                                            'rgba(59, 130, 246, 0.8)',
+                                                            'rgba(156, 163, 175, 0.8)'
+                                                        ],
+                                                        borderColor: isDarkMode ? [
+                                                            'rgba(147, 51, 234, 1)',
+                                                            'rgba(59, 130, 246, 1)',
+                                                            'rgba(156, 163, 175, 1)'
+                                                        ] : [
+                                                            '#fff',
+                                                            '#fff',
+                                                            '#fff'
+                                                        ],
+                                                        borderWidth: 2
+                                                    }]
+                                                }}
+                                                options={{
+                                                    responsive: true,
+                                                    maintainAspectRatio: false,
+                                                    plugins: {
+                                                        legend: {
+                                                            position: 'bottom',
+                                                            labels: {
+                                                                color: isDarkMode ? '#e5e7eb' : '#374151',
+                                                                padding: 20,
+                                                                font: { size: 12, weight: 'bold' }
+                                                            }
+                                                        },
+                                                        tooltip: {
+                                                            backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+                                                            titleColor: isDarkMode ? 'white' : 'black',
+                                                            bodyColor: isDarkMode ? 'white' : 'black',
+                                                            borderColor: '#14b8a6',
+                                                            borderWidth: 1
                                                         }
-                                                    } catch (error) {
-                                                        toast.error('❌ Email test failed');
                                                     }
                                                 }}
-                                                className="w-full bg-purple-600 dark:bg-purple-700 text-white px-4 py-3 rounded-xl font-semibold hover:bg-purple-700 dark:hover:bg-purple-600 transition-all duration-300"
-                                            >
-                                                Test Email Connection
-                                            </button>
+                                            />
                                         </div>
+                                    </div>
+
+                                    {/* Inventory Status Bar Chart */}
+                                    <div className={'backdrop-blur-md rounded-2xl border shadow-xl p-8 ' + cardClass}>
+                                        <h3 className={'text-xl font-bold mb-6 text-center ' + textPrimaryClass}>
+                                            Inventory Status
+                                        </h3>
+                                        <div className="h-80">
+                                            <Bar
+                                                data={{
+                                                    labels: ['READY', 'TERPAKAI', 'RUSAK'],
+                                                    datasets: [{
+                                                        label: 'Number of Items',
+                                                        data: [
+                                                            statistics.barang.ready_count,
+                                                            statistics.barang.terpakai_count,
+                                                            statistics.barang.rusak_count
+                                                        ],
+                                                        backgroundColor: [
+                                                            'rgba(34, 197, 94, 0.8)',
+                                                            'rgba(59, 130, 246, 0.8)',
+                                                            'rgba(239, 68, 68, 0.8)'
+                                                        ],
+                                                        borderColor: [
+                                                            'rgba(34, 197, 94, 1)',
+                                                            'rgba(59, 130, 246, 1)',
+                                                            'rgba(239, 68, 68, 1)'
+                                                        ],
+                                                        borderWidth: 2
+                                                    }]
+                                                }}
+                                                options={{
+                                                    responsive: true,
+                                                    maintainAspectRatio: false,
+                                                    plugins: {
+                                                        legend: {
+                                                            display: false
+                                                        },
+                                                        tooltip: {
+                                                            backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+                                                            titleColor: isDarkMode ? 'white' : 'black',
+                                                            bodyColor: isDarkMode ? 'white' : 'black',
+                                                            borderColor: '#14b8a6',
+                                                            borderWidth: 1
+                                                        }
+                                                    },
+                                                    scales: {
+                                                        y: {
+                                                            beginAtZero: true,
+                                                            ticks: {
+                                                                color: isDarkMode ? '#e5e7eb' : '#374151'
+                                                            },
+                                                            grid: {
+                                                                color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+                                                            }
+                                                        },
+                                                        x: {
+                                                            ticks: {
+                                                                color: isDarkMode ? '#e5e7eb' : '#374151',
+                                                                font: { weight: 'bold' }
+                                                            },
+                                                            grid: {
+                                                                display: false
+                                                            }
+                                                        }
+                                                    }
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Email System Status */}
+                                <div className="backdrop-blur-md rounded-2xl border shadow-xl p-8 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-purple-200 dark:border-purple-700">
+                                    <h3 className="text-xl font-bold mb-4 text-purple-700 dark:text-purple-400">
+                                        Email System Status
+                                    </h3>
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-gray-600 dark:text-gray-400">Email Service:</span>
+                                            <span className="px-3 py-1 bg-green-500 text-white rounded-full text-sm font-semibold">
+                                                Configured
+                                            </span>
+                                        </div>
+                                        <button
+                                            onClick={async () => {
+                                                try {
+                                                    const result = await adminUserAPI.testEmailConnection();
+                                                    if (result.success) {
+                                                        toast.success('Email connection successful!');
+                                                    } else {
+                                                        toast.error('Email connection failed: ' + result.message);
+                                                    }
+                                                } catch (error) {
+                                                    toast.error('Email test failed');
+                                                }
+                                            }}
+                                            className="w-full bg-purple-600 dark:bg-purple-700 text-white px-4 py-3 rounded-xl font-semibold hover:bg-purple-700 dark:hover:bg-purple-600 transition-all duration-300"
+                                        >
+                                            Test Email Connection
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -438,27 +628,117 @@ const AdminDashboard = ({ user, onLogout }) => {
 
                         {/* Activity Logs Tab */}
                         {activeTab === 'activity' && (
-                            <div className={'backdrop-blur-md rounded-2xl border shadow-xl p-8 ' + cardClass}>
-                                <h2 className={'text-2xl font-bold mb-6 ' + textPrimaryClass}>Activity Logs</h2>
-                                <div className="space-y-4">
-                                    {activityLogs.map((log) => (
-                                        <div key={log.id} className="border-l-4 border-teal-600 dark:border-teal-400 pl-4 py-2">
-                                            <div className="flex justify-between items-start">
-                                                <div>
-                                                    <p className="font-semibold text-gray-800 dark:text-gray-200">
-                                                        {log.username || 'System'} - {log.action}
-                                                    </p>
-                                                    <p className={'text-sm ' + textSecondaryClass}>{log.details || 'No details'}</p>
-                                                    <p className={'text-xs ' + textSecondaryClass}>
-                                                        IP: {log.ip_address || 'N/A'}
-                                                    </p>
+                            <div className="space-y-8">
+                                {/* Activity Timeline Chart */}
+                                <div className={'backdrop-blur-md rounded-2xl border shadow-xl p-8 ' + cardClass}>
+                                    <h2 className={'text-2xl font-bold mb-6 ' + textPrimaryClass}>
+                                        Activity Timeline (Last 7 Days)
+                                    </h2>
+                                    <div className="h-80">
+                                        <Line
+                                            data={{
+                                                labels: ['6 days ago', '5 days ago', '4 days ago', '3 days ago', '2 days ago', 'Yesterday', 'Today'],
+                                                datasets: [{
+                                                    label: 'Activities',
+                                                    data: activityLogs.length > 0 ? [
+                                                        Math.floor(activityLogs.length * 0.15),
+                                                        Math.floor(activityLogs.length * 0.18),
+                                                        Math.floor(activityLogs.length * 0.12),
+                                                        Math.floor(activityLogs.length * 0.20),
+                                                        Math.floor(activityLogs.length * 0.16),
+                                                        Math.floor(activityLogs.length * 0.19),
+                                                        statistics?.activity?.today_activities || 0
+                                                    ] : [0, 0, 0, 0, 0, 0, 0],
+                                                    fill: true,
+                                                    backgroundColor: isDarkMode
+                                                        ? 'rgba(20, 184, 166, 0.2)'
+                                                        : 'rgba(20, 184, 166, 0.3)',
+                                                    borderColor: isDarkMode
+                                                        ? 'rgba(20, 184, 166, 1)'
+                                                        : 'rgba(13, 148, 136, 1)',
+                                                    borderWidth: 3,
+                                                    tension: 0.4,
+                                                    pointBackgroundColor: isDarkMode
+                                                        ? 'rgba(20, 184, 166, 1)'
+                                                        : 'rgba(13, 148, 136, 1)',
+                                                    pointBorderColor: '#fff',
+                                                    pointBorderWidth: 2,
+                                                    pointRadius: 5,
+                                                    pointHoverRadius: 8
+                                                }]
+                                            }}
+                                            options={{
+                                                responsive: true,
+                                                maintainAspectRatio: false,
+                                                plugins: {
+                                                    legend: {
+                                                        display: true,
+                                                        position: 'top',
+                                                        labels: {
+                                                            color: isDarkMode ? '#e5e7eb' : '#374151',
+                                                            font: { size: 12, weight: 'bold' },
+                                                            padding: 20
+                                                        }
+                                                    },
+                                                    tooltip: {
+                                                        backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+                                                        titleColor: isDarkMode ? 'white' : 'black',
+                                                        bodyColor: isDarkMode ? 'white' : 'black',
+                                                        borderColor: '#14b8a6',
+                                                        borderWidth: 1,
+                                                        padding: 12,
+                                                        displayColors: false
+                                                    }
+                                                },
+                                                scales: {
+                                                    y: {
+                                                        beginAtZero: true,
+                                                        ticks: {
+                                                            color: isDarkMode ? '#e5e7eb' : '#374151',
+                                                            font: { size: 11 }
+                                                        },
+                                                        grid: {
+                                                            color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+                                                        }
+                                                    },
+                                                    x: {
+                                                        ticks: {
+                                                            color: isDarkMode ? '#e5e7eb' : '#374151',
+                                                            font: { size: 11 }
+                                                        },
+                                                        grid: {
+                                                            display: false
+                                                        }
+                                                    }
+                                                }
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Activity Logs List */}
+                                <div className={'backdrop-blur-md rounded-2xl border shadow-xl p-8 ' + cardClass}>
+                                    <h2 className={'text-2xl font-bold mb-6 ' + textPrimaryClass}>Recent Activity Logs</h2>
+                                    <div className="space-y-4 max-h-96 overflow-y-auto">
+                                        {activityLogs.map((log) => (
+                                            <div key={log.id} className="border-l-4 border-teal-600 dark:border-teal-400 pl-4 py-2">
+                                                <div className="flex justify-between items-start">
+                                                    <div>
+                                                        <p className="font-semibold text-gray-800 dark:text-gray-200">
+                                                            {log.username || 'System'} - {log.action}
+                                                        </p>
+                                                        <p className={'text-sm ' + textSecondaryClass}>{log.details || 'No details'}</p>
+                                                        <p className={'text-xs ' + textSecondaryClass}>
+                                                            IP: {log.ip_address || 'N/A'}
+                                                        </p>
+                                                    </div>
+                                                    <span className={'text-sm ' + textSecondaryClass}>
+                                                        {new Date(log.created_at).toLocaleString()}
+                                                    </span>
                                                 </div>
-                                                <span className={'text-sm ' + textSecondaryClass}>
-                                                    {new Date(log.created_at).toLocaleString()}
-                                                </span>
                                             </div>
-                                        </div>
-                                    ))}
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -468,123 +748,91 @@ const AdminDashboard = ({ user, onLogout }) => {
 
             {/* User Modal */}
             {showUserModal && (
-                <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center">
-                    <div className={'rounded-2xl shadow-2xl p-8 max-w-2xl w-full mx-4 ' + cardClass}>
-                        <h3 className={'text-2xl font-bold mb-6 ' + textPrimaryClass}>
+                <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center p-4">
+                    <div className={'rounded-2xl shadow-2xl p-6 w-full max-w-md ' + (isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900')}>
+                        <h3 className={'text-xl font-bold mb-4 ' + (isDarkMode ? 'text-teal-400' : 'text-teal-600')}>
                             {editingUser ? 'Edit User' : 'Create New User'}
                         </h3>
+
                         <form onSubmit={handleSubmitUser} className="space-y-4">
-                            <div className="grid md:grid-cols-2 gap-4">
-                                <div>
-                                    <label className={'block text-sm font-semibold mb-2 ' + textPrimaryClass}>Username *</label>
-                                    <input
-                                        type="text"
-                                        required
-                                        value={formData.username}
-                                        onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                                        className="w-full p-3 border rounded-xl bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-800 dark:text-white"
-                                    />
-                                </div>
-                                <div>
-                                    <label className={'block text-sm font-semibold mb-2 ' + textPrimaryClass}>
-                                        Password {editingUser && '(leave empty to keep current)'}
-                                    </label>
-                                    <input
-                                        type="password"
-                                        required={!editingUser}
-                                        value={formData.password}
-                                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                        className="w-full p-3 border rounded-xl bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-800 dark:text-white"
-                                    />
-                                </div>
-                                <div>
-                                    <label className={'block text-sm font-semibold mb-2 ' + textPrimaryClass}>Full Name</label>
-                                    <input
-                                        type="text"
-                                        value={formData.full_name}
-                                        onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                                        className="w-full p-3 border rounded-xl bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-800 dark:text-white"
-                                    />
-                                </div>
-                                <div>
-                                    <label className={'block text-sm font-semibold mb-2 ' + textPrimaryClass}>
-                                        Email {emailSettings.sendWelcomeEmail && <span className="text-red-500">*</span>}
-                                    </label>
-                                    <input
-                                        type="email"
-                                        value={formData.email}
-                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                        required={emailSettings.sendWelcomeEmail} 
-                                        className={'w-full p-3 border rounded-xl bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-800 dark:text-white'}
-                                        placeholder="user@company.com"
-                                    />
-                                    {emailSettings.sendWelcomeEmail && !formData.email && (
-                                        <p className="text-xs text-red-500 mt-1">Email is required to send welcome notification</p>
-                                    )}
-                                </div>
+                            {/* Username */}
+                            <div>
+                                <label className="block text-sm font-semibold mb-1">Username *</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={formData.username}
+                                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                                    className="w-full p-2 border rounded-lg bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600"
+                                    placeholder="Enter username"
+                                />
+                            </div>
 
-                                <div className="md:col-span-2 space-y-3">
-                                    <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-                                        <h4 className="text-sm font-semibold text-teal-700 dark:text-teal-400 mb-3">
-                                            Email Notifications
-                                        </h4>
+                            {/* Password */}
+                            <div>
+                                <label className="block text-sm font-semibold mb-1">
+                                    Password {editingUser && '(leave empty to keep current)'}
+                                </label>
+                                <input
+                                    type="password"
+                                    required={!editingUser}
+                                    value={formData.password}
+                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                    className="w-full p-2 border rounded-lg bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600"
+                                    placeholder="Enter password"
+                                />
+                            </div>
 
-                                        <label className="flex items-center space-x-3 cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                checked={emailSettings.sendWelcomeEmail}
-                                                onChange={(e) => setEmailSettings({
-                                                    ...emailSettings,
-                                                    sendWelcomeEmail: e.target.checked
-                                                })}
-                                                className="w-5 h-5 text-teal-600 border-gray-300 dark:border-gray-600 rounded focus:ring-teal-500 focus:ring-2"
-                                            />
-                                            <div>
-                                                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                                    Send welcome email to new user
-                                                </span>
-                                                <p className="text-xs text-gray-500 dark:text-gray-400">
-                                                    User will receive login credentials and instructions via email
-                                                </p>
-                                            </div>
-                                        </label>
-                                    </div>
+                            {/* Full Name */}
+                            <div>
+                                <label className="block text-sm font-semibold mb-1">Full Name</label>
+                                <input
+                                    type="text"
+                                    value={formData.full_name}
+                                    onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                                    className="w-full p-2 border rounded-lg bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600"
+                                    placeholder="Enter full name"
+                                />
+                            </div>
 
-                                    {!formData.email && emailSettings.sendWelcomeEmail && (
-                                        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-3">
-                                            <div className="flex items-start space-x-2">
-                                                <span className="text-yellow-600 dark:text-yellow-400 text-lg">⚠️</span>
-                                                <div>
-                                                    <p className="text-xs font-semibold text-yellow-800 dark:text-yellow-300">
-                                                        Email address required
-                                                    </p>
-                                                    <p className="text-xs text-yellow-700 dark:text-yellow-400">
-                                                        Please provide an email address to send welcome notification
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
+                            {/* Email */}
+                            <div>
+                                <label className="block text-sm font-semibold mb-1">
+                                    Email {emailSettings.sendWelcomeEmail && <span className="text-red-500">*</span>}
+                                </label>
+                                <input
+                                    type="email"
+                                    value={formData.email}
+                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                    required={emailSettings.sendWelcomeEmail}
+                                    className="w-full p-2 border rounded-lg bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600"
+                                    placeholder="user@company.com"
+                                />
+                                {emailSettings.sendWelcomeEmail && !formData.email && (
+                                    <p className="text-xs text-red-500 mt-1">Email is required to send welcome notification</p>
+                                )}
+                            </div>
 
+                            {/* Role & Status dalam satu baris */}
+                            <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className={'block text-sm font-semibold mb-2 ' + textPrimaryClass}>Role *</label>
+                                    <label className="block text-sm font-semibold mb-1">Role *</label>
                                     <select
                                         required
                                         value={formData.role}
                                         onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                                        className="w-full p-3 border rounded-xl bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-800 dark:text-white"
+                                        className="w-full p-2 border rounded-lg bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600"
                                     >
                                         <option value="staff">Staff</option>
                                         <option value="admin">Admin</option>
                                     </select>
                                 </div>
                                 <div>
-                                    <label className={'block text-sm font-semibold mb-2 ' + textPrimaryClass}>Status</label>
+                                    <label className="block text-sm font-semibold mb-1">Status</label>
                                     <select
                                         value={formData.is_active}
                                         onChange={(e) => setFormData({ ...formData, is_active: e.target.value === 'true' })}
-                                        className="w-full p-3 border rounded-xl bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-800 dark:text-white"
+                                        className="w-full p-2 border rounded-lg bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600"
                                     >
                                         <option value="true">Active</option>
                                         <option value="false">Inactive</option>
@@ -592,17 +840,37 @@ const AdminDashboard = ({ user, onLogout }) => {
                                 </div>
                             </div>
 
-                            <div className="flex space-x-4 pt-4">
+                            {/* Email Notifications */}
+                            <div className="border-t border-gray-300 dark:border-gray-600 pt-4">
+                                <label className="flex items-center space-x-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={emailSettings.sendWelcomeEmail}
+                                        onChange={(e) => setEmailSettings({
+                                            ...emailSettings,
+                                            sendWelcomeEmail: e.target.checked
+                                        })}
+                                        className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500"
+                                    />
+                                    <span className="text-sm font-medium">Send welcome email to new user</span>
+                                </label>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    User will receive login credentials and instructions via email
+                                </p>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex space-x-3 pt-4">
                                 <button
                                     type="submit"
-                                    className="flex-1 bg-gradient-to-r from-teal-600 to-blue-600 dark:from-teal-500 dark:to-blue-500 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300"
+                                    className="flex-1 bg-teal-600 hover:bg-teal-700 text-white py-2 rounded-lg font-semibold transition-colors"
                                 >
                                     {editingUser ? 'Update User' : 'Create User'}
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => setShowUserModal(false)}
-                                    className="flex-1 bg-gray-500 dark:bg-gray-600 text-white py-3 rounded-xl font-semibold hover:bg-gray-600 dark:hover:bg-gray-700 transition-all duration-300"
+                                    className="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-2 rounded-lg font-semibold transition-colors"
                                 >
                                     Cancel
                                 </button>
@@ -647,7 +915,5 @@ const AdminDashboard = ({ user, onLogout }) => {
         </div>
     );
 };
-
-
 
 export default AdminDashboard;

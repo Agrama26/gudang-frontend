@@ -304,12 +304,12 @@ const ImportExportModal = ({ isOpen, onClose, onSuccess }) => {
       <div className={`relative ${modalBg} rounded-2xl shadow-2xl max-w-3xl w-full border ${borderColor} transition-colors duration-300`}>
 
         {/* Header */}
-        <div className={`px-8 py-6 border-b ${borderColor} flex justify-between items-center`}>
+        <div className={`px-8 py-6 border-b ${borderColor} flex justify-between`}>
           <div>
-            <h2 className={`text-2xl font-bold ${textPrimary}`}>
+            <h2 className={`text-2xl font-bold ${textPrimary} text-left`}>
               Import / Export Data
             </h2>
-            <p className={`text-sm ${textSecondary} mt-1`}>
+            <p className={`text-sm ${textSecondary} mt-1 text-left`}>
               Manage your inventory data with Excel files
             </p>
           </div>
@@ -349,19 +349,6 @@ const ImportExportModal = ({ isOpen, onClose, onSuccess }) => {
         <div className="p-8">
           {activeTab === 'import' ? (
             <div className="space-y-6">
-              {/* Instructions */}
-              <div className={`${bgSecondary} rounded-xl p-6 border ${borderColor}`}>
-                <h3 className={`font-bold ${textPrimary} mb-3 flex items-center`}>
-                  <span className="mr-2"></span>
-                  Import Instructions
-                </h3>
-                <ol className={`space-y-2 text-sm ${textSecondary} list-decimal list-inside`}>
-                  <li>Download the Excel template below</li>
-                  <li>Fill in the data according to the format</li>
-                  <li>Upload the completed file</li>
-                  <li>Review and confirm the import</li>
-                </ol>
-              </div>
 
               {/* Download Template Button */}
               <button
@@ -463,23 +450,6 @@ const ImportExportModal = ({ isOpen, onClose, onSuccess }) => {
             </div>
           ) : (
             <div className="space-y-6">
-              {/* Export Info */}
-              <div className={`${bgSecondary} rounded-xl p-6 border ${borderColor}`}>
-                <h3 className={`font-bold ${textPrimary} mb-3 flex items-center`}>
-                  <span className="mr-2"></span>
-                  Export Information
-                </h3>
-                <p className={`text-sm ${textSecondary}`}>
-                  This will export all inventory data to an Excel file. The file will include:
-                </p>
-                <ul className={`mt-3 space-y-2 text-sm ${textSecondary} list-disc list-inside`}>
-                  <li>Item name, type, and serial number</li>
-                  <li>MAC address and condition</li>
-                  <li>Status and location</li>
-                  <li>City and description</li>
-                  <li>Created and updated timestamps</li>
-                </ul>
-              </div>
 
               {/* Export Button */}
               <button

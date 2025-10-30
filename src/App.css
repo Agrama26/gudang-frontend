@@ -36,3 +36,15 @@
     transform: rotate(360deg);
   }
 }
+
+/* Ensure video elements display properly */
+video {
+  display: block;
+  background: black;
+  border-radius: 8px;
+}
+
+/* Fix for Safari video rendering */
+video::-webkit-media-controls {
+  display: none !important;
+}

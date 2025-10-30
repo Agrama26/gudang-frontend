@@ -16,7 +16,6 @@ const ItemDetail = () => {
   const [item, setItem] = useState(null);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showQRScanner, setShowQRScanner] = useState(false);
   const [newStatus, setNewStatus] = useState('');
   const [newLokasi, setNewLokasi] = useState('');
   const [newKondisi, setNewKondisi] = useState('');
@@ -66,7 +65,7 @@ const ItemDetail = () => {
 
       // Dismiss loading toast and show success
       toast.dismiss(loadingToastId);
-      toast.success(t(`itemDetail ${data.barang.nama} successLoad`), {
+      toast.success(t(`Detail ${data.barang.nama} Success Load`), {
         icon: '✅',
         duration: 3000
       });

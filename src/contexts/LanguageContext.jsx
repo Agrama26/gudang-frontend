@@ -32,6 +32,9 @@ const translations = {
     warning: 'Peringatan',
     info: 'Informasi',
     adminPanel: 'Panel Admin',
+    viewMap: 'Lihat Peta',
+    address: 'Alamat',
+    openInGoogleMaps: 'Buka di Google Maps',
 
     // Modal Hapus
     confirmDelete: 'Konfirmasi Hapus Barang',
@@ -246,6 +249,9 @@ const translations = {
     warning: 'Warning',
     info: 'Information',
     adminPanel: 'Admin Panel',
+    viewMap: 'View Map',
+    address: 'Address',
+    openInGoogleMaps: 'Open in Google Maps',
 
     // Modal Hapus
     confirmDelete: 'Confirm Delete Item',

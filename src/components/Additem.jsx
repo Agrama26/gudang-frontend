@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 import logo from '../assets/logo.png';
 import { useDarkMode } from '../contexts/DarkModeContext';
 import DarkModeToggle from './DarkModeToggle';
-import BarcodeScanner from '../contexts/BarcodeScanner';
+import BarcodeScanner from './BarcodeScanner';
 
 const AddItem = () => {
   const { isDarkMode } = useDarkMode();
@@ -25,6 +25,21 @@ const AddItem = () => {
   const [scrollY, setScrollY] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+
+  // ✅ TAMBAHKAN FUNGSI INI
+  const formatMacAddress = (mac) => {
+    if (!mac) return '';
+
+    // Hapus semua non-hex characters
+    const cleanMac = mac.replace(/[^0-9A-Fa-f]/g, '');
+
+    // Jika panjang 12 karakter, format dengan colon
+    if (cleanMac.length === 12) {
+      return cleanMac.toUpperCase().match(/.{1,2}/g).join(':');
+    }
+
+    return mac.toUpperCase();
+  };
 
   // Handle scroll animation and navbar transparency
   useEffect(() => {
@@ -55,21 +70,21 @@ const AddItem = () => {
     e.preventDefault();
 
     // Validate required fields
-    if (!formData.nama.trim()) {
-      toast.error('Nama barang tidak boleh kosong!', {
-        icon: '⚠️',
-        duration: 4000
-      });
-      return;
-    }
+    // if (!formData.nama.trim()) {
+    //   toast.error('Nama barang tidak boleh kosong!', {
+    //     icon: '⚠️',
+    //     duration: 4000
+    //   });
+    //   return;
+    // }
 
-    if (!formData.type.trim()) {
-      toast.error('Type/Model tidak boleh kosong!', {
-        icon: '⚠️',
-        duration: 4000
-      });
-      return;
-    }
+    // if (!formData.type.trim()) {
+    //   toast.error('Type/Model tidak boleh kosong!', {
+    //     icon: '⚠️',
+    //     duration: 4000
+    //   });
+    //   return;
+    // }
 
     if (!formData.serial_number.trim()) {
       toast.error('Serial number tidak boleh kosong!', {
@@ -79,21 +94,13 @@ const AddItem = () => {
       return;
     }
 
-    if (!formData.lokasi.trim()) {
-      toast.error('Lokasi tidak boleh kosong!', {
-        icon: '⚠️',
-        duration: 4000
-      });
-      return;
-    }
-
-    if (!formData.kota) {
-      toast.error('Silakan pilih cabang!', {
-        icon: '🏢',
-        duration: 4000
-      });
-      return;
-    }
+    // if (!formData.lokasi.trim()) {
+    //   toast.error('Lokasi tidak boleh kosong!', {
+    //     icon: '⚠️',
+    //     duration: 4000
+    //   });
+    //   return;
+    // }
 
     setLoading(true);
 
@@ -378,8 +385,9 @@ const AddItem = () => {
                       value={formData.mac_address}
                       onChange={handleChange}
                       className={'w-full p-4 border rounded-xl font-mono font-medium focus:ring-2 focus:ring-teal-400/20 transition-all duration-300 ' + inputClass + ' focus:border-teal-400'}
-                      placeholder="00:1B:44:11:3A:B7 (akan terisi otomatis dari scanner)"
+                      placeholder="00:1B:44:11:3A:B7"
                       pattern="([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})"
+                      title="Format MAC Address: 00:1A:2B:3C:4D:5E"
                     />
                   </div>
 
@@ -565,26 +573,52 @@ const AddItem = () => {
             <BarcodeScanner
               isDarkMode={isDarkMode}
               onScanSuccess={(scannedData) => {
-                // Auto-fill form
-                setFormData(prev => ({
-                  ...prev,
-                  nama: scannedData.nama || prev.nama,
-                  type: scannedData.model || prev.type,
-                  mac_address: scannedData.mac_address || prev.mac_address,
-                  serial_number: scannedData.serial_number || prev.serial_number
-                }));
+                console.log('Scanned data received:', scannedData);
 
-                toast.success(
-                  <>
-                    <div className="flex flex-col">
-                      <span className="font-semibold">✅ Barcode Scanned!</span>
-                      <span className="text-sm opacity-80">
-                        {scannedData.manufacturer} - {scannedData.serial_number}
-                      </span>
-                    </div>
-                  </>,
-                  { duration: 4000 }
-                );
+                setFormData(prev => {
+                  const newData = { ...prev };
+
+                  // ✅ Format MAC address langsung di sini tanpa fungsi terpisah
+                  if (scannedData.mac_address) {
+                    const mac = scannedData.mac_address.replace(/[^0-9A-Fa-f]/g, '');
+                    if (mac.length === 12) {
+                      newData.mac_address = mac.toUpperCase().match(/.{1,2}/g).join(':');
+                    } else {
+                      newData.mac_address = scannedData.mac_address.toUpperCase();
+                    }
+                  }
+
+                  // Hanya update field lain jika ada data baru
+                  if (scannedData.nama && scannedData.nama !== 'Unknown Device') {
+                    newData.nama = scannedData.nama;
+                  }
+
+                  if (scannedData.model && scannedData.model.trim()) {
+                    newData.type = scannedData.model;
+                  }
+
+                  if (scannedData.serial_number && scannedData.serial_number.trim()) {
+                    newData.serial_number = scannedData.serial_number;
+                  }
+
+                  return newData;
+                });
+
+                // Show appropriate success message
+                let successMessage = '✅ Barcode Scanned!';
+                if (scannedData.mac_address) {
+                  const formattedMac = scannedData.mac_address.replace(/[^0-9A-Fa-f]/g, '');
+                  if (formattedMac.length === 12) {
+                    successMessage += ` MAC: ${formattedMac.toUpperCase().match(/.{1,2}/g).join(':')}`;
+                  } else {
+                    successMessage += ` MAC: ${scannedData.mac_address}`;
+                  }
+                }
+                if (scannedData.serial_number) {
+                  successMessage += ` SN: ${scannedData.serial_number}`;
+                }
+
+                toast.success(successMessage, { duration: 4000 });
               }}
             />
 
@@ -670,8 +704,8 @@ const AddItem = () => {
           {/* Success Indicator */}
           {showSuccess && (
             <div className={`fixed top-20 right-6 z-50 p-4 rounded-xl shadow-lg border transition-all duration-500 ${isDarkMode
-                ? 'bg-green-900/90 border-green-700 text-green-200'
-                : 'bg-green-100 border-green-300 text-green-800'
+              ? 'bg-green-900/90 border-green-700 text-green-200'
+              : 'bg-green-100 border-green-300 text-green-800'
               }`}>
               <div className="flex items-center space-x-2">
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
