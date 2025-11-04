@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 
 const BarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
-    const [scannerMode, setScannerMode] = useState('hardware'); // 'hardware', 'manual', atau 'camera'
+    const [scannerMode, setScannerMode] = useState('hardware'); 
     const [scannedData, setScannedData] = useState(null);
     const [isListening, setIsListening] = useState(false);
     const [scanBuffer, setScanBuffer] = useState('');
@@ -18,8 +18,7 @@ const BarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
     const timeoutRef = useRef(null);
     const scanIntervalRef = useRef(null);
 
-    // Parse barcode data untuk network equipment - IMPROVED VERSION
-    // Parse barcode data untuk network equipment - FIXED VERSION
+    // Parse barcode data untuk network equipment
     const parseNetworkEquipmentBarcode = (rawData) => {
         const parsed = {
             raw: rawData,
@@ -30,7 +29,7 @@ const BarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
             nama: ''
         };
 
-        console.log('🔍 Parsing barcode:', rawData);
+        console.log('Parsing barcode:', rawData);
 
         // Clean the input data
         const cleanData = rawData.trim();
@@ -94,7 +93,7 @@ const BarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
             return parsed;
         }
 
-        // 5. ✅ NEW: Cek jika data HANYA berisi MAC address TANPA colon (12 karakter hex)
+        // 5. Cek jika data HANYA berisi MAC address TANPA colon 
         const macWithoutColonPattern = /^[0-9A-Fa-f]{12}$/;
         const macWithoutColonMatch = cleanData.match(macWithoutColonPattern);
 
@@ -109,7 +108,7 @@ const BarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
             return parsed;
         }
 
-        // 6. ✅ NEW: Cek jika data mengandung MAC address tanpa colon dalam teks
+        // 6. Cek jika data mengandung MAC address tanpa colon dalam teks
         const macInTextWithoutColonPattern = /MAC:?\s*([0-9A-Fa-f]{12})/i;
         const macInTextWithoutColonMatch = cleanData.match(macInTextWithoutColonPattern);
 
@@ -138,7 +137,7 @@ const BarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
             return parsed;
         }
 
-        // 7. ✅ NEW: Deteksi MAC address tanpa colon secara general dalam teks
+        // 7. Deteksi MAC address tanpa colon secara general dalam teks
         const generalMacWithoutColonPattern = /\b([0-9A-Fa-f]{12})\b/;
         const generalMacWithoutColonMatch = cleanData.match(generalMacWithoutColonPattern);
 
@@ -154,7 +153,7 @@ const BarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
             return parsed;
         }
 
-        // 8. Cek jika data HANYA berisi serial number (tidak ada MAC)
+        // 8. Cek jika data HANYA berisi serial number 
         const serialOnlyPattern = /^[A-Z0-9]{6,20}$/i;
         const isHexOnly = /^[0-9A-F]+$/i.test(cleanData); // Jangan anggap hex murni sebagai serial
 
@@ -303,7 +302,7 @@ const BarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
 
             toast.info('Camera activated! Point at barcode...', {
                 duration: 3000,
-                icon: '📷'
+                icon: ''
             });
 
         } catch (error) {
@@ -341,21 +340,7 @@ const BarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
         }
 
         setCameraActive(false);
-        toast.info('📷 Camera stopped', { duration: 2000 });
-    };
-
-    // Manual barcode input for camera mode (simulated)
-    const simulateCameraScan = () => {
-        const simulatedBarcodes = [
-            "SN:MTK123456 MAC:AA:BB:CC:DD:EE:FF",
-            "Model:TL-R480 SN:789012 MAC:11:22:33:44:55:66",
-            "PID:C2960X SN:FOC1234XYZ789",
-            "SN:TP987654 MAC:AA:11:BB:22:CC:33"
-        ];
-
-        const randomBarcode = simulatedBarcodes[Math.floor(Math.random() * simulatedBarcodes.length)];
-        handleBarcodeScanned(randomBarcode);
-        stopCameraScan();
+        toast.info('Camera stopped', { duration: 2000 });
     };
 
     // Listen for hardware scanner input
@@ -396,7 +381,7 @@ const BarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
             bufferRef.current += e.key;
             setScanBuffer(bufferRef.current);
 
-            // Auto-submit after 100ms of no input (scanner finished)
+            // Auto-submit after 100ms of no input 
             timeoutRef.current = setTimeout(() => {
                 if (bufferRef.current.length > 3) {
                     handleBarcodeScanned(bufferRef.current);
@@ -460,7 +445,7 @@ const BarcodeScanner = ({ onScanSuccess, isDarkMode = false }) => {
         bufferRef.current = '';
         setScanBuffer('');
 
-        toast.info('🔒 Scanner stopped', {
+        toast.info('Scanner stopped', {
             duration: 2000
         });
     };

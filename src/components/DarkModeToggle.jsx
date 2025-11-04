@@ -1,4 +1,3 @@
-// src/components/DarkModeToggle.jsx
 import { useDarkMode } from '../contexts/DarkModeContext';
 
 const DarkModeToggle = ({ className = "" }) => {

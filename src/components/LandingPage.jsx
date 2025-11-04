@@ -9,6 +9,8 @@ import { useDarkMode } from '../contexts/DarkModeContext';
 import DarkModeToggle from './DarkModeToggle';
 import { useLanguage } from '../contexts/LanguageContext';
 import LanguageToggle from './LanguageToggle';
+import { barangAPI } from '../utils/api';
+import Footer from './Footer';
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -20,6 +22,84 @@ const LandingPage = () => {
   const [showMap, setShowMap] = useState(false);
   const observerRef = useRef();
   const { t, isIndonesian } = useLanguage();
+
+  // ✅ State untuk stats
+  const [stats, setStats] = useState({
+    totalBarang: 0,
+    branches: 5,
+    monitoring: '24/7',
+    accuracy: 99.9
+  });
+
+  // ✅ State untuk animasi counter
+  const [animatedStats, setAnimatedStats] = useState({
+    totalBarang: 0,
+    branches: 0,
+    accuracy: 0
+  });
+
+  const [statsLoaded, setStatsLoaded] = useState(false);
+
+  // ✅ Fetch data dari database
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const data = await barangAPI.getAll();
+        setStats(prev => ({
+          ...prev,
+          totalBarang: data.length
+        }));
+        setStatsLoaded(true);
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+        // Fallback ke data default jika error
+        setStats(prev => ({
+          ...prev,
+          totalBarang: 1000
+        }));
+        setStatsLoaded(true);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  // ✅ Animasi counter dengan easing
+  useEffect(() => {
+    if (!statsLoaded || !isVisible.stats) return;
+
+    const duration = 2000; // 2 detik
+    const frameRate = 1000 / 60; // 60 FPS
+    const totalFrames = Math.round(duration / frameRate);
+
+    let frame = 0;
+
+    const counter = setInterval(() => {
+      frame++;
+      const progress = frame / totalFrames;
+
+      // Easing function (easeOutQuart untuk smooth finish)
+      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+
+      setAnimatedStats({
+        totalBarang: Math.round(easeOutQuart * stats.totalBarang),
+        branches: Math.round(easeOutQuart * stats.branches),
+        accuracy: +(easeOutQuart * stats.accuracy).toFixed(1)
+      });
+
+      if (frame === totalFrames) {
+        clearInterval(counter);
+        // Set nilai final untuk memastikan presisi
+        setAnimatedStats({
+          totalBarang: stats.totalBarang,
+          branches: stats.branches,
+          accuracy: stats.accuracy
+        });
+      }
+    }, frameRate);
+
+    return () => clearInterval(counter);
+  }, [statsLoaded, isVisible.stats, stats]);
 
   // Data kantor dengan koordinat peta
   const offices = [
@@ -394,7 +474,7 @@ const LandingPage = () => {
           </div>
         </section>
 
-        {/* Stats Section */}
+        {/*  Stats Section  */}
         <section
           className={`mt-32 transition-all duration-1000 ${isVisible.stats ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
             }`}
@@ -411,10 +491,31 @@ const LandingPage = () => {
             </div>
             <div className="grid md:grid-cols-4 gap-8 text-center">
               {[
-                { number: '1000+', label: t('registeredItems'), gradient: 'from-teal-600 to-blue-600 dark:from-teal-400 dark:to-blue-400' },
-                { number: '5', label: t('branches'), gradient: 'from-blue-600 to-emerald-600 dark:from-blue-400 dark:to-emerald-400' },
-                { number: '24/7', label: t('monitoring'), gradient: 'from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400' },
-                { number: '99.9%', label: t('dataAccuracy'), gradient: 'from-teal-600 to-blue-600 dark:from-teal-400 dark:to-blue-400' }
+                {
+                  number: animatedStats.totalBarang,
+                  label: t('registeredItems'),
+                  gradient: 'from-teal-600 to-blue-600 dark:from-teal-400 dark:to-blue-400',
+                  suffix: '+'
+                },
+                {
+                  number: animatedStats.branches,
+                  label: t('branches'),
+                  gradient: 'from-blue-600 to-emerald-600 dark:from-blue-400 dark:to-emerald-400',
+                  suffix: ''
+                },
+                {
+                  number: '24/7',
+                  label: t('monitoring'),
+                  gradient: 'from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400',
+                  suffix: '',
+                  isText: true
+                },
+                {
+                  number: animatedStats.accuracy,
+                  label: t('dataAccuracy'),
+                  gradient: 'from-teal-600 to-blue-600 dark:from-teal-400 dark:to-blue-400',
+                  suffix: '%'
+                }
               ].map((stat, index) => (
                 <div
                   key={index}
@@ -423,7 +524,7 @@ const LandingPage = () => {
                   style={{ transitionDelay: `${index * 200}ms` }}
                 >
                   <div className={`text-4xl font-bold bg-gradient-to-r ${stat.gradient} bg-clip-text text-transparent`}>
-                    {stat.number}
+                    {stat.isText ? stat.number : `${stat.number}${stat.suffix}`}
                   </div>
                   <div className="text-gray-600 dark:text-gray-300">{stat.label}</div>
                 </div>
@@ -558,8 +659,6 @@ const LandingPage = () => {
         </div>
       </div>
 
-
-
       {/* Scroll to Top Button */}
       <button
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
@@ -594,7 +693,8 @@ const LandingPage = () => {
       </button>
 
       {/* Footer */}
-      <footer className="relative mt-20 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-t border-teal-200 dark:border-gray-700">
+      <Footer></Footer>
+      {/* <footer className="relative mt-20 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-t border-teal-200 dark:border-gray-700">
         <div className="container mx-auto px-6 py-12">
           <div className="text-center">
             <div className="flex items-center justify-center space-x-3 mb-4">
@@ -614,11 +714,11 @@ const LandingPage = () => {
             <div className="flex justify-center space-x-6">
               <a href="#" className="text-gray-600 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-300">{t('privacyPolicy')}</a>
               <a href="#" className="text-gray-600 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-300">{t('termsOfService')}</a>
-              <a href="#" className="text-gray-600 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-300">{t('contact')}</a>
+              <a href="./about" className="text-gray-600 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-300">{t('contact')}</a>
             </div>
           </div>
         </div>
-      </footer>
+      </footer> */}
     </div>
   );
 };

@@ -7,9 +7,11 @@ import Dashboard from './components/Dashboard';
 import AdminDashboard from './components/AdminDashboard';
 import ItemDetail from './components/ItemDetail';
 import AddItem from './components/Additem';
+import About from './components/AboutUs';
 import Login from './components/Login';
 import { DarkModeProvider, useDarkMode } from './contexts/DarkModeContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
+import SessionManager from './utils/SessionManager';
 
 // Toast Container Wrapper to apply dark mode and language
 const ToastContainerWrapper = () => {
@@ -50,7 +52,7 @@ const ToastContainerWrapper = () => {
   );
 };
 
-// Loading Component yang tidak depend on translation
+// Loading Component
 const LoadingSpinner = () => (
   <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center transition-colors duration-300">
     <div className="text-center">
@@ -60,14 +62,13 @@ const LoadingSpinner = () => (
   </div>
 );
 
-// Protected Route Component yang tidak depend on translation
+// Protected Route Component - TANPA SessionManager di sini
 const ProtectedRoute = ({ children, adminOnly = false, user, loading }) => {
   if (loading) {
     return <LoadingSpinner />;
   }
 
   if (!user) {
-    // Gunakan string langsung untuk menghindari dependency
     toast.error('Please login to access this page', {
       icon: '🔒',
       duration: 4000
@@ -93,47 +94,38 @@ const AppContent = () => {
   const [loading, setLoading] = useState(true);
   const { t, isIndonesian } = useLanguage();
 
-  // ✅ FIX: useEffect hanya dijalankan saat mount
+  // Check if user is logged in on mount - HANYA CEK, TIDAK REDIRECT
   useEffect(() => {
-    // Check if user is logged in
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       try {
         const userData = JSON.parse(storedUser);
         setUser(userData);
-        
-        // ✅ FIX: Hanya show welcome toast saat pertama kali load
-        // Tidak show saat language toggle
-        const welcomeMsg = isIndonesian 
-          ? `Selamat datang kembali, ${userData.username}!` 
-          : `Welcome back, ${userData.username}!`;
-        
-        toast.success(welcomeMsg, {
-          icon: '👋',
-          duration: 3000
-        });
+
+        toast.success(
+          isIndonesian
+            ? `Selamat datang kembali, ${userData.username}!`
+            : `Welcome back, ${userData.username}!`,
+          {
+            icon: '👋',
+            duration: 3000
+          }
+        );
       } catch (error) {
         console.error('Error parsing stored user data:', error);
         localStorage.removeItem('user');
       }
     }
     setLoading(false);
-  }, []); // ✅ Empty dependency array - hanya run sekali saat mount
-
-  // ✅ FIX: Update toast messages when language changes
-  useEffect(() => {
-    // Effect ini hanya untuk handle perubahan language
-    // Tidak melakukan toast baru, hanya update state jika diperlukan
-  }, [isIndonesian]);
+  }, []);
 
   const handleLogin = (userData) => {
     setUser(userData);
-    
-    // ✅ FIX: Gunakan string langsung berdasarkan current language state
-    const loginMsg = isIndonesian 
+
+    const loginMsg = isIndonesian
       ? `Login berhasil! Selamat datang, ${userData.username}`
       : `Login successful! Welcome, ${userData.username}`;
-    
+
     toast.success(loginMsg, {
       icon: '✅',
       duration: 4000
@@ -144,12 +136,11 @@ const AppContent = () => {
     localStorage.removeItem('user');
     localStorage.removeItem('token');
     setUser(null);
-    
-    // ✅ FIX: Gunakan string langsung berdasarkan current language state
-    const logoutMsg = isIndonesian 
+
+    const logoutMsg = isIndonesian
       ? 'Anda telah berhasil logout'
       : 'You have been logged out successfully';
-    
+
     toast.info(logoutMsg, {
       icon: '👋',
       duration: 3000
@@ -194,38 +185,54 @@ const AppContent = () => {
         )}
 
         <Routes>
-          {/* Public Routes */}
+          {/* ========================================
+              PUBLIC ROUTES - TIDAK PAKAI SessionManager
+              ======================================== */}
           <Route path="/" element={<LandingPage />} />
+          <Route path="/about" element={<About />} />
           <Route
             path="/login"
             element={
-              user ? <Navigate to={user.role === 'admin' ? "/admin" : "/dashboard"} />
-                : <Login onLogin={handleLogin} />
+              user ? (
+                <Navigate to={user.role === 'admin' ? "/admin" : "/dashboard"} />
+              ) : (
+                <Login onLogin={handleLogin} />
+              )
             }
           />
 
-          {/* Protected Routes */}
+          {/* ========================================
+              PROTECTED ROUTES - PAKAI SessionManager
+              ======================================== */}
           <Route
             path="/dashboard"
             element={
               <ProtectedRoute user={user} loading={loading}>
-                <Dashboard user={user} onLogout={handleLogout} />
+                <SessionManager onLogout={handleLogout}>
+                  <Dashboard user={user} onLogout={handleLogout} />
+                </SessionManager>
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/item/:id"
             element={
               <ProtectedRoute user={user} loading={loading}>
-                <ItemDetail />
+                <SessionManager onLogout={handleLogout}>
+                  <ItemDetail />
+                </SessionManager>
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/add-item"
             element={
               <ProtectedRoute user={user} loading={loading}>
-                <AddItem />
+                <SessionManager onLogout={handleLogout}>
+                  <AddItem />
+                </SessionManager>
               </ProtectedRoute>
             }
           />
@@ -234,7 +241,9 @@ const AppContent = () => {
             path="/admin"
             element={
               <ProtectedRoute user={user} loading={loading} adminOnly={true}>
-                <AdminDashboard user={user} onLogout={handleLogout} />
+                <SessionManager onLogout={handleLogout}>
+                  <AdminDashboard user={user} onLogout={handleLogout} />
+                </SessionManager>
               </ProtectedRoute>
             }
           />

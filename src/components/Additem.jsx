@@ -1,8 +1,7 @@
 import { useNavigate } from 'react-router-dom';
-import { barangAPI } from '../utils/api'; // sesuaikan path
+import { barangAPI } from '../utils/api';
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import logo from '../assets/logo.png';
 import { useDarkMode } from '../contexts/DarkModeContext';
 import DarkModeToggle from './DarkModeToggle';
 import BarcodeScanner from './BarcodeScanner';
@@ -22,24 +21,9 @@ const AddItem = () => {
   });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const [scrollY, setScrollY] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
   const [showSuccess, setShowSuccess] = useState(false);
-
-  // ✅ TAMBAHKAN FUNGSI INI
-  const formatMacAddress = (mac) => {
-    if (!mac) return '';
-
-    // Hapus semua non-hex characters
-    const cleanMac = mac.replace(/[^0-9A-Fa-f]/g, '');
-
-    // Jika panjang 12 karakter, format dengan colon
-    if (cleanMac.length === 12) {
-      return cleanMac.toUpperCase().match(/.{1,2}/g).join(':');
-    }
-
-    return mac.toUpperCase();
-  };
 
   // Handle scroll animation and navbar transparency
   useEffect(() => {
@@ -59,6 +43,19 @@ const AddItem = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const formatMacAddress = (mac) => {
+    if (!mac) return '';
+
+    const cleanMac = mac.replace(/[^0-9A-Fa-f]/g, '');
+
+    // Jika panjang 12 karakter, format dengan colon
+    if (cleanMac.length === 12) {
+      return cleanMac.toUpperCase().match(/.{1,2}/g).join(':');
+    }
+
+    return mac.toUpperCase();
+  };
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -69,23 +66,6 @@ const AddItem = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate required fields
-    // if (!formData.nama.trim()) {
-    //   toast.error('Nama barang tidak boleh kosong!', {
-    //     icon: '⚠️',
-    //     duration: 4000
-    //   });
-    //   return;
-    // }
-
-    // if (!formData.type.trim()) {
-    //   toast.error('Type/Model tidak boleh kosong!', {
-    //     icon: '⚠️',
-    //     duration: 4000
-    //   });
-    //   return;
-    // }
-
     if (!formData.serial_number.trim()) {
       toast.error('Serial number tidak boleh kosong!', {
         icon: '⚠️',
@@ -93,15 +73,6 @@ const AddItem = () => {
       });
       return;
     }
-
-    // if (!formData.lokasi.trim()) {
-    //   toast.error('Lokasi tidak boleh kosong!', {
-    //     icon: '⚠️',
-    //     duration: 4000
-    //   });
-    //   return;
-    // }
-
     setLoading(true);
 
     // Show loading toast
@@ -144,7 +115,7 @@ const AddItem = () => {
           );
         }, 1000);
 
-        // ✅ FIX: Reset form TANPA navigasi
+        // Reset form TANPA navigasi
         setFormData({
           nama: '',
           type: '',
@@ -161,11 +132,10 @@ const AddItem = () => {
         setShowSuccess(true);
         setTimeout(() => setShowSuccess(false), 5000);
 
-
-        // ✅ OPSIONAL: Clear draft dari localStorage
+        // Clear draft dari localStorage
         localStorage.removeItem('addItemDraft');
 
-        // ✅ OPSIONAL: Tampilkan tombol untuk ke dashboard
+        // Tampilkan tombol untuk ke dashboard
         setTimeout(() => {
           toast.info(
             <div className="flex flex-col space-y-2">
@@ -189,7 +159,6 @@ const AddItem = () => {
         throw new Error('Gagal menambahkan barang. Periksa input atau coba lagi nanti.');
       }
     } catch (err) {
-      // ... error handling tetap sama
     } finally {
       setLoading(false);
     }
@@ -218,7 +187,7 @@ const AddItem = () => {
     navigate('/dashboard');
   };
 
-  // Auto-save draft (optional feature)
+  // Auto-save draft 
   useEffect(() => {
     const draftData = localStorage.getItem('addItemDraft');
     if (draftData) {
@@ -245,7 +214,6 @@ const AddItem = () => {
       if (hasData) {
         localStorage.setItem('addItemDraft', JSON.stringify(formData));
       } else {
-        // Jika form kosong, hapus draft
         localStorage.removeItem('addItemDraft');
       }
     }, 2000);
@@ -274,15 +242,7 @@ const AddItem = () => {
         <div className="container mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
-              <div className="group relative">
-                <img
-                  src={logo}
-                  alt="Logo"
-                  width="150"
-                  height="150"
-                  className="w-32 md:w-30 lg:w-40 object-contain drop-shadow-lg filter invert dark:invert-0"
-                />
-              </div>
+
               <h1 className={'text-2xl font-bold transition-colors duration-300 ' + textPrimaryClass}>
                 Add Item
               </h1>
@@ -578,7 +538,7 @@ const AddItem = () => {
                 setFormData(prev => {
                   const newData = { ...prev };
 
-                  // ✅ Format MAC address langsung di sini tanpa fungsi terpisah
+                  // Format MAC address langsung di sini tanpa fungsi terpisah
                   if (scannedData.mac_address) {
                     const mac = scannedData.mac_address.replace(/[^0-9A-Fa-f]/g, '');
                     if (mac.length === 12) {

@@ -55,22 +55,39 @@ const Dashboard = ({ user, onLogout }) => {
   const [kotaFilter, setKotaFilter] = useState('');
   const [showImportExportModal, setShowImportExportModal] = useState(false);
 
-  // Animation states
-  const [isVisible, setIsVisible] = useState({});
+  // Animation states - menggunakan ref untuk animasi sekali saja
+  const [hasAnimated, setHasAnimated] = useState(false);
   const [chartAnimated, setChartAnimated] = useState(false);
   const observerRef = useRef();
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
-
   const [scrollY, setScrollY] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
-
   const isFirstLoad = useRef(true);
 
-  // ✅ FIX: Fetch data tanpa toast yang depend on 't'
-  // ✅ FIX: Fetch data tanpa dependensi translation
+  // Flag untuk menandai apakah animasi sudah dijalankan
+  const animationCompleted = useRef(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      setScrollY(currentScrollY);
+
+      // Change navbar style when scrolled more than 50px
+      if (currentScrollY > 50) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Fetch data tanpa dependensi translation
   useEffect(() => {
     const fetchItems = async () => {
       try {
@@ -90,7 +107,7 @@ const Dashboard = ({ user, onLogout }) => {
     };
 
     fetchItems();
-  }, []); // ✅ Empty dependency // ✅ Empty dependency - hanya run sekali
+  }, []);
 
   useEffect(() => {
     // Hanya untuk update ref, tidak ada side effect
@@ -99,23 +116,47 @@ const Dashboard = ({ user, onLogout }) => {
     }
   }, []);
 
-  // Handle scroll animation and navbar transparency
+  // Intersection Observer untuk animasi sekali saja
   useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      setScrollY(currentScrollY);
+    // Jika animasi sudah selesai, tidak perlu setup observer lagi
+    if (animationCompleted.current) return;
 
-      // Change navbar style when scrolled more than 50px
-      if (currentScrollY > 50) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const id = entry.target.getAttribute('data-animate');
+          if (entry.isIntersecting && !animationCompleted.current) {
+            setHasAnimated(prev => ({ ...prev, [id]: true }));
+          }
+        });
+      },
+      { 
+        threshold: 0.1,
+        // Hanya trigger sekali
+        rootMargin: '0px 0px -50px 0px'
+      }
+    );
+
+    const elements = document.querySelectorAll('[data-animate]');
+    elements.forEach(el => observerRef.current.observe(el));
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
       }
     };
+  }, [filteredItems]);
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  // Set flag animasi selesai setelah semua elemen ter-animasi
+  useEffect(() => {
+    if (hasAnimated && Object.keys(hasAnimated).length > 0 && !animationCompleted.current) {
+      const timer = setTimeout(() => {
+        animationCompleted.current = true;
+      }, 2000); // Beri waktu untuk semua animasi selesai
+      
+      return () => clearTimeout(timer);
+    }
+  }, [hasAnimated]);
 
   const handleDeleteClick = (item) => {
     setItemToDelete(item);
@@ -183,32 +224,6 @@ const Dashboard = ({ user, onLogout }) => {
   const handleKondisiFilterChange = (e) => {
     setKondisiFilter(e.target.value);
   };
-
-  // Intersection Observer for scroll animations
-  useEffect(() => {
-    observerRef.current = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          const id = entry.target.getAttribute('data-animate');
-          if (entry.isIntersecting) {
-            setIsVisible(prev => ({ ...prev, [id]: true }));
-          } else {
-            setIsVisible(prev => ({ ...prev, [id]: false }));
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-
-    const elements = document.querySelectorAll('[data-animate]');
-    elements.forEach(el => observerRef.current.observe(el));
-
-    return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-      }
-    };
-  }, [filteredItems]);
 
   // Fetch data barang
   useEffect(() => {
@@ -293,7 +308,45 @@ const Dashboard = ({ user, onLogout }) => {
     }
   };
 
-  // Data untuk PolarArea Chart - DENGAN USE MEMO DAN DEPENDENCY t
+  const getAnimationClass = (elementId) => {
+    // Jika animasi sudah selesai, tetap di state visible
+    if (animationCompleted.current) {
+      return 'opacity-100 translate-x-0 translate-y-0';
+    }
+    
+    // Jika belum selesai, check state animasi
+    return hasAnimated[elementId] 
+      ? 'opacity-100 translate-x-0 translate-y-0' 
+      : getInitialAnimationState(elementId);
+  };
+
+  // Tentukan state awal berdasarkan element type
+  const getInitialAnimationState = (elementId) => {
+    if (elementId.includes('radar-chart')) {
+      return 'opacity-0 translate-x-28';
+    }
+    if (elementId.includes('pie-chart')) {
+      return 'opacity-0 -translate-x-28';
+    }
+    if (elementId.includes('stat')) {
+      return 'opacity-0 translate-y-8';
+    }
+    if (elementId === 'filters') {
+      return 'opacity-0 -translate-x-96';
+    }
+    if (elementId === 'table') {
+      return 'opacity-0 translate-y-8';
+    }
+    if (elementId === 'header') {
+      return 'opacity-0 -translate-y-8';
+    }
+    if (elementId === 'footer') {
+      return 'opacity-0 translate-y-8';
+    }
+    return 'opacity-0 translate-y-8';
+  };
+
+  // Data untuk PolarArea Chart 
   const statusCounts = useMemo(() => {
     return {
       READY: filteredItems.filter(item => item.status === 'READY').length,
@@ -396,7 +449,7 @@ const Dashboard = ({ user, onLogout }) => {
     animation: {
       animateRotate: true,
       animateScale: true,
-      duration: 1000,
+      duration: 1500,
       easing: 'easeOutQuart',
     },
   };
@@ -478,7 +531,7 @@ const Dashboard = ({ user, onLogout }) => {
       },
     },
     animation: {
-      duration: 1000,
+      duration: 1500,
       easing: 'easeOutQuart',
     },
   };
@@ -530,8 +583,7 @@ const Dashboard = ({ user, onLogout }) => {
 
       {/* Header */}
       <div
-        className={`relative backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 border-b border-teal-200 dark:border-gray-700 shadow-lg transition-all duration-1000 ${isVisible.header ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-8'
-          }`}
+        className={`relative backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 border-b border-teal-200 dark:border-gray-700 shadow-lg transition-all duration-1000 ${getAnimationClass('header')}`}
         data-animate="header"
       >
         <div className="container mx-auto px-6 py-6">
@@ -604,8 +656,7 @@ const Dashboard = ({ user, onLogout }) => {
         <div className="grid lg:grid-cols-3 md:grid-cols-1 sm:grid-cols-1 gap-8 mb-8">
           {/* Polar Area Chart */}
           <div
-            className={`transition-all duration-1000 ${isVisible['pie-chart'] ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-12'
-              }`}
+            className={`transition-all duration-1000 ${getAnimationClass('pie-chart')}`}
             data-animate="pie-chart"
           >
             <div className="group bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border border-teal-100 dark:border-gray-700 h-full hover:bg-teal-50 dark:hover:bg-gray-750 transition-all duration-300 transform hover:scale-105 hover:-translate-y-2">
@@ -618,8 +669,7 @@ const Dashboard = ({ user, onLogout }) => {
 
           {/* Radar Chart */}
           <div
-            className={`transition-all duration-1000 ${isVisible['radar-chart'] ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-12'
-              }`}
+            className={`transition-all duration-1000 ${getAnimationClass('radar-chart')}`}
             data-animate="radar-chart"
           >
             <div className="group bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border border-teal-100 dark:border-gray-700 h-full hover:bg-teal-50 dark:hover:bg-gray-750 transition-all duration-300 transform hover:scale-105 hover:-translate-y-2">
@@ -634,8 +684,7 @@ const Dashboard = ({ user, onLogout }) => {
           <div className="grid md:grid-cols-2 sm:grid-cols-2 lg:grid-cols-2 gap-6 mb-8">
             {/* Total Items Card */}
             <div
-              className={`group bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border border-teal-100 dark:border-gray-700 hover:bg-teal-50 dark:hover:bg-gray-750 transition-all duration-1000 transform hover:scale-105 hover:-translate-y-2 ${isVisible['stat-total'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-                }`}
+              className={`group bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border border-teal-100 dark:border-gray-700 hover:bg-teal-50 dark:hover:bg-gray-750 transition-all duration-1000 transform hover:scale-105 hover:-translate-y-2 ${getAnimationClass('stat-total')}`}
               data-animate="stat-total"
             >
               <div className="flex items-center">
@@ -653,10 +702,8 @@ const Dashboard = ({ user, onLogout }) => {
 
             {/* Ready Card */}
             <div
-              className={`group bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border border-teal-100 dark:border-gray-700 hover:bg-teal-50 dark:hover:bg-gray-750 transition-all duration-1000 transform hover:scale-105 hover:-translate-y-2 ${isVisible['stat-ready'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-                }`}
+              className={`group bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border border-teal-100 dark:border-gray-700 hover:bg-teal-50 dark:hover:bg-gray-750 transition-all duration-1000 transform hover:scale-105 hover:-translate-y-2 ${getAnimationClass('stat-ready')}`}
               data-animate="stat-ready"
-              style={{ transitionDelay: '100ms' }}
             >
               <div className="flex items-center">
                 <div className="transform hover:rotate-12 hover:-translate-y-1 p-3 rounded-xl bg-emerald-500 shadow-lg transition-all duration-300">
@@ -673,10 +720,8 @@ const Dashboard = ({ user, onLogout }) => {
 
             {/* Terpakai Card */}
             <div
-              className={`group bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border border-teal-100 dark:border-gray-700 hover:bg-teal-50 dark:hover:bg-gray-750 transition-all duration-1000 transform hover:scale-105 hover:-translate-y-2 ${isVisible['stat-terpakai'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-                }`}
+              className={`group bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border border-teal-100 dark:border-gray-700 hover:bg-teal-50 dark:hover:bg-gray-750 transition-all duration-1000 transform hover:scale-105 hover:-translate-y-2 ${getAnimationClass('stat-terpakai')}`}
               data-animate="stat-terpakai"
-              style={{ transitionDelay: '100ms' }}
             >
               <div className="flex items-center">
                 <div className="transform hover:rotate-12 hover:-translate-y-1 p-3 rounded-xl bg-blue-500 shadow-lg transition-all duration-300">
@@ -693,10 +738,8 @@ const Dashboard = ({ user, onLogout }) => {
 
             {/* Rusak Card */}
             <div
-              className={`group bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border border-teal-100 dark:border-gray-700 hover:bg-teal-50 dark:hover:bg-gray-750 transition-all duration-1000 transform hover:scale-105 hover:-translate-y-2 ${isVisible['stat-rusak'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-                }`}
+              className={`group bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border border-teal-100 dark:border-gray-700 hover:bg-teal-50 dark:hover:bg-gray-750 transition-all duration-1000 transform hover:scale-105 hover:-translate-y-2 ${getAnimationClass('stat-rusak')}`}
               data-animate="stat-rusak"
-              style={{ transitionDelay: '100ms' }}
             >
               <div className="flex items-center">
                 <div className="transform hover:rotate-12 hover:-translate-y-1 p-3 rounded-xl bg-red-500 shadow-lg transition-all duration-300">
@@ -715,8 +758,7 @@ const Dashboard = ({ user, onLogout }) => {
 
         {/* Search and Filter */}
         <div
-          className={`bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border border-teal-100 dark:border-gray-700 mb-8 transition-all duration-1000 ${isVisible.filters ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16'
-            }`}
+          className={`bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border border-teal-100 dark:border-gray-700 mb-8 transition-all duration-1000 ${getAnimationClass('filters')}`}
           data-animate="filters"
         >
           <div className="flex flex-col md:flex-row gap-4">
@@ -785,8 +827,7 @@ const Dashboard = ({ user, onLogout }) => {
 
         {/* Items Table */}
         <div
-          className={`bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-teal-100 dark:border-gray-700 overflow-hidden transition-all duration-1000 ${isVisible.table ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-            }`}
+          className={`bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-teal-100 dark:border-gray-700 overflow-hidden transition-all duration-1000 ${getAnimationClass('table')}`}
           data-animate="table"
         >
           <div className="px-8 py-6 border-b border-gray-100 dark:border-gray-700">
@@ -829,8 +870,7 @@ const Dashboard = ({ user, onLogout }) => {
                   filteredItems.map((item, index) => (
                     <tr
                       key={item.id}
-                      className={`hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 group ${isVisible.table ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'
-                        }`}
+                      className={`hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 group ${getAnimationClass('table')}`}
                       style={{ transitionDelay: `${index * 100}ms` }}
                     >
                       <td className="px-6 py-4 text-left whitespace-nowrap text-sm font-medium text-gray-800 dark:text-gray-200">
@@ -1008,8 +1048,7 @@ const Dashboard = ({ user, onLogout }) => {
 
       {/* Footer */}
       <footer
-        className={`relative mt-20 backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 border-t border-teal-200 dark:border-gray-700 transition-all duration-1000 ${isVisible.footer ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-          }`}
+        className={`relative mt-20 backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 border-t border-teal-200 dark:border-gray-700 transition-all duration-1000 ${getAnimationClass('footer')}`}
         data-animate="footer"
       >
         <div className="container mx-auto px-6 py-12">

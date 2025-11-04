@@ -56,12 +56,6 @@ const AdminDashboard = ({ user, onLogout }) => {
     const [scrollY, setScrollY] = useState(0);
     const [isScrolled, setIsScrolled] = useState(false);
 
-    // 1. Add state untuk email status
-    const [emailSettings, setEmailSettings] = useState({
-        enabled: true,
-        sendWelcomeEmail: true
-    });
-
     // Handle scroll animation and navbar transparency
     useEffect(() => {
         const handleScroll = () => {
@@ -79,6 +73,12 @@ const AdminDashboard = ({ user, onLogout }) => {
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
+
+    // 1. Add state untuk email status
+    const [emailSettings, setEmailSettings] = useState({
+        enabled: true,
+        sendWelcomeEmail: true
+    });
 
     // Check if user is admin
     useEffect(() => {
@@ -142,7 +142,7 @@ const AdminDashboard = ({ user, onLogout }) => {
     const handleSubmitUser = async (e) => {
         e.preventDefault();
 
-        console.log('🔍 Form Data:', {
+        console.log('Form Data:', {
             username: formData.username,
             email: formData.email,
             role: formData.role,
@@ -164,7 +164,7 @@ const AdminDashboard = ({ user, onLogout }) => {
                 send_welcome_email: emailSettings.sendWelcomeEmail && !!formData.email
             };
 
-            console.log('📤 Data yang dikirim ke backend:', submitData);
+            console.log('Data yang dikirim ke backend:', submitData);
 
             if (editingUser) {
                 await adminUserAPI.updateUser(editingUser.id, submitData);
@@ -175,22 +175,22 @@ const AdminDashboard = ({ user, onLogout }) => {
                     </div>
                 );
             } else {
-                console.log('🔄 Making API call to create user...');
+                console.log('Making API call to create user...');
 
                 const result = await adminUserAPI.createUser(submitData);
 
-                console.log('📨 FULL Response dari backend:', result);
+                console.log('FULL Response dari backend:', result);
 
-                // PERBAIKAN: Handle berbagai format response
+                // Handle berbagai format response
                 if (result.success === true || result.message?.includes('successfully')) {
-                    // Format baru: { success: true, data: { emailSent: true } }
+                    // { success: true, data: { emailSent: true } }
                     const emailSent = result.data?.emailSent || result.emailSent;
 
                     if (emailSent) {
                         toast.success(
                             <div>
                                 <div className="font-semibold">✅ User created successfully!</div>
-                                <div className="text-xs">📧 Welcome email sent to {formData.email}</div>
+                                <div className="text-xs">Welcome email sent to {formData.email}</div>
                             </div>,
                             { duration: 5000 }
                         );
@@ -208,7 +208,7 @@ const AdminDashboard = ({ user, onLogout }) => {
                         toast.success(
                             <div>
                                 <div className="font-semibold">✅ User created successfully!</div>
-                                <div className="text-xs">ℹ️ No email sent (not requested)</div>
+                                <div className="text-xs">No email sent (not requested)</div>
                             </div>,
                             { duration: 4000 }
                         );
@@ -218,7 +218,7 @@ const AdminDashboard = ({ user, onLogout }) => {
                     toast.success(
                         <div>
                             <div className="font-semibold">✅ User created successfully!</div>
-                            <div className="text-xs">ℹ️ Check console for email status</div>
+                            <div className="text-xs">Check console for email status</div>
                         </div>,
                         { duration: 4000 }
                     );
@@ -409,7 +409,7 @@ const AdminDashboard = ({ user, onLogout }) => {
                                 {/* Overview Cards */}
                                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                                     <div className={'backdrop-blur-md rounded-2xl border shadow-xl p-8 ' + cardClass}>
-                                        <h3 className={'text-xl font-bold mb-4 ' + textPrimaryClass}>👥 Users Overview</h3>
+                                        <h3 className={'text-xl font-bold mb-4 ' + textPrimaryClass}>Users Overview</h3>
                                         <div className="space-y-4">
                                             <div className="flex justify-between">
                                                 <span className={textSecondaryClass}>Total Users:</span>
@@ -431,7 +431,7 @@ const AdminDashboard = ({ user, onLogout }) => {
                                     </div>
 
                                     <div className={'backdrop-blur-md rounded-2xl border shadow-xl p-8 ' + cardClass}>
-                                        <h3 className={'text-xl font-bold mb-4 ' + textPrimaryClass}>📦 Inventory Overview</h3>
+                                        <h3 className={'text-xl font-bold mb-4 ' + textPrimaryClass}>Inventory Overview</h3>
                                         <div className="space-y-4">
                                             <div className="flex justify-between">
                                                 <span className={textSecondaryClass}>Total Items:</span>
@@ -453,7 +453,7 @@ const AdminDashboard = ({ user, onLogout }) => {
                                     </div>
 
                                     <div className={'backdrop-blur-md rounded-2xl border shadow-xl p-8 ' + cardClass}>
-                                        <h3 className={'text-xl font-bold mb-4 ' + textPrimaryClass}>📈 Activity Today</h3>
+                                        <h3 className={'text-xl font-bold mb-4 ' + textPrimaryClass}>Activity Today</h3>
                                         <div className="text-center">
                                             <div className="text-4xl font-bold text-teal-600 dark:text-teal-400 mb-2">
                                                 {statistics.activity.today_activities}

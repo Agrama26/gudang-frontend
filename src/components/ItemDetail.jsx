@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useDarkMode } from '../contexts/DarkModeContext';
 import DarkModeToggle from './DarkModeToggle';
 import { toast } from 'react-toastify';
-import logo from '../assets/logo.png';
 import { useLanguage } from '../contexts/LanguageContext';
 import LanguageToggle from './LanguageToggle';
 
@@ -20,11 +19,9 @@ const ItemDetail = () => {
   const [newLokasi, setNewLokasi] = useState('');
   const [newKondisi, setNewKondisi] = useState('');
   const [newKeterangan, setNewKeterangan] = useState('');
-
-  const [scrollY, setScrollY] = useState(0);
-  const [isScrolled, setIsScrolled] = useState(false);
-
   const { t, isIndonesian } = useLanguage();
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
 
   // Handle scroll animation and navbar transparency
   useEffect(() => {
@@ -97,11 +94,11 @@ const ItemDetail = () => {
     } finally {
       setLoading(false);
     }
-  }, [id, navigate]); // Add id and navigate as dependencies
+  }, [id, navigate]);
 
   useEffect(() => {
     fetchItemDetails();
-  }, [fetchItemDetails]); // Use the memoized fetchItemDetails here
+  }, [fetchItemDetails]);
 
   const handleStatusUpdate = async () => {
     const hasChanges = newStatus !== item.status ||
