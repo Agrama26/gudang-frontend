@@ -39,7 +39,7 @@ const apiRequest = async (endpoint, options = {}) => {
     response = await fetch(`${API_BASE_URL}${endpoint}`, config);
   } catch (error) {
     clearTimeout(timeoutId);
-    console.error("❌ Network error:", error);
+    console.error("Network error:", error);
 
     if (error.name === "AbortError") {
       throw new Error(
@@ -55,23 +55,20 @@ const apiRequest = async (endpoint, options = {}) => {
   try {
     responseText = await response.text();
   } catch (error) {
-    console.error("❌ Error reading response:", error);
+    console.error("Error reading response:", error);
     throw new Error("Failed to read server response");
   }
 
-  console.log(`📡 Response Status: ${response.status} ${response.statusText}`);
+  console.log(`Response Status: ${response.status} ${response.statusText}`);
 
   if (!response.ok) {
     if (response.status === 401 || response.status === 403) {
-      console.warn("🔒 Authentication error - clearing local storage");
+      console.warn("Authentication error - clearing local storage");
       localStorage.removeItem("user");
       localStorage.removeItem("token");
 
-      if (
-        typeof window !== "undefined" &&
-        window.location.pathname !== "/login"
-      ) {
-        window.location.href = "/login";
+      if (typeof window !== "undefined" && window.location.pathname !== "/") {
+        window.location.href = "/";
       }
     }
 
@@ -184,7 +181,8 @@ export const barangAPI = {
   },
 
   getById: (id) => {
-    console.log("Fetching barang by ID:", id);
+    console.log("🔍 Fetching barang by ID:", id);
+    console.log("🔗 Full URL will be:", `${API_BASE_URL}/barang/${id}`);
     return apiRequest(`/barang/${id}`);
   },
 
@@ -291,15 +289,13 @@ export const statsAPI = {
 // Health check function
 export const healthCheck = async () => {
   try {
-    console.log("🏥 Performing health check...");
-    const response = await fetch(
-      `${API_BASE_URL.replace("/api", "")}/api/health`
-    );
+    console.log("Performing health check...");
+    const response = await fetch(`${API_BASE_URL}/health`);
     const data = await response.json();
-    console.log("✅ Health check successful:", data);
+    console.log("Health check successful:", data);
     return data;
   } catch (error) {
-    console.error("❌ Health check failed:", error);
+    console.error("Health check failed:", error);
     throw error;
   }
 };

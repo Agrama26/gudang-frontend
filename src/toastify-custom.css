@@ -1,5 +1,3 @@
-/* Custom Toast Styles - Add to your main CSS file or create a separate toastify-custom.css */
-
 /* Override default toast container styles */
 .Toastify__toast-container {
   z-index: 9999;

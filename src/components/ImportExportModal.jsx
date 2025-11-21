@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 
 const ImportExportModal = ({ isOpen, onClose, onSuccess }) => {
   const { isDarkMode } = useDarkMode();
-  const [activeTab, setActiveTab] = useState('import'); 
+  const [activeTab, setActiveTab] = useState('import');
   const [importing, setImporting] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -95,7 +95,7 @@ const ImportExportModal = ({ isOpen, onClose, onSuccess }) => {
 
       setSelectedFile(file);
       setValidationErrors([]);
-      toast.success(`📎 File selected: ${file.name}`, {
+      toast.success(`File selected: ${file.name}`, {
         icon: '✅',
         duration: 2000
       });

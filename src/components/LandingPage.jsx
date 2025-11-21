@@ -23,7 +23,7 @@ const LandingPage = () => {
   const observerRef = useRef();
   const { t, isIndonesian } = useLanguage();
 
-  // ✅ State untuk stats
+  // State untuk stats
   const [stats, setStats] = useState({
     totalBarang: 0,
     branches: 5,
@@ -31,7 +31,7 @@ const LandingPage = () => {
     accuracy: 99.9
   });
 
-  // ✅ State untuk animasi counter
+  // State untuk animasi counter
   const [animatedStats, setAnimatedStats] = useState({
     totalBarang: 0,
     branches: 0,
@@ -40,7 +40,7 @@ const LandingPage = () => {
 
   const [statsLoaded, setStatsLoaded] = useState(false);
 
-  // ✅ Fetch data dari database
+  // Fetch data dari database
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -64,7 +64,7 @@ const LandingPage = () => {
     fetchStats();
   }, []);
 
-  // ✅ Animasi counter dengan easing
+  // Animasi counter dengan easing
   useEffect(() => {
     if (!statsLoaded || !isVisible.stats) return;
 
@@ -330,10 +330,10 @@ const LandingPage = () => {
       </nav>
 
       {/* Hero Section */}
-      <section id="beranda" className="relative min-h-screen flex items-center pt-16 overflow-hidden">
+      <section id="beranda" className="bg-fix relative min-h-screen flex items-center pt-16 overflow-hidden">
         {/* Background with parallax effect */}
         <div
-          className="absolute inset-0 z-0"
+          className="bg-fix absolute inset-0 z-0"
           style={{
             transform: `translateY(${scrollY * 0.5}px)`,
             background: `linear-gradient(135deg, 
@@ -693,32 +693,7 @@ const LandingPage = () => {
       </button>
 
       {/* Footer */}
-      <Footer></Footer>
-      {/* <footer className="relative mt-20 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-t border-teal-200 dark:border-gray-700">
-        <div className="container mx-auto px-6 py-12">
-          <div className="text-center">
-            <div className="flex items-center justify-center space-x-3 mb-4">
-              <div className="group relative">
-                <img
-                  src={logo}
-                  alt="Logo"
-                  width="150"
-                  height="150"
-                  className="w-32 md:w-30 lg:w-40 object-contain drop-shadow-lg filter invert dark:invert-0"
-                />
-              </div>
-            </div>
-            <p className="text-gray-600 dark:text-gray-300 mb-6">
-              © 2025 PT. Medianusa Permana. {t('allRightsReserved')}
-            </p>
-            <div className="flex justify-center space-x-6">
-              <a href="#" className="text-gray-600 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-300">{t('privacyPolicy')}</a>
-              <a href="#" className="text-gray-600 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-300">{t('termsOfService')}</a>
-              <a href="./about" className="text-gray-600 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-300">{t('contact')}</a>
-            </div>
-          </div>
-        </div>
-      </footer> */}
+      <Footer />
     </div>
   );
 };

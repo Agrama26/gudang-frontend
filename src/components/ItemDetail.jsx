@@ -23,13 +23,11 @@ const ItemDetail = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [scrollY, setScrollY] = useState(0);
 
-  // Handle scroll animation and navbar transparency
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       setScrollY(currentScrollY);
 
-      // Change navbar style when scrolled more than 50px
       if (currentScrollY > 50) {
         setIsScrolled(true);
       } else {
@@ -45,46 +43,44 @@ const ItemDetail = () => {
   const fetchItemDetails = useCallback(async () => {
     setLoading(true);
 
-    // Show loading toast
     const loadingToastId = toast.loading('Memuat detail barang...', {
       icon: '📦'
     });
 
     try {
       const { barangAPI } = await import('../utils/api');
-      const data = await barangAPI.getById(id);
-      setItem(data.barang);
-      setHistory(data.riwayat);
-      setNewStatus(data.barang.status);
-      setNewLokasi(data.barang.lokasi);
-      setNewKondisi(data.barang.kondisi);
-      setNewKeterangan(data.barang.keterangan);
+      const response = await barangAPI.getById(id);
+      const { barang, riwayat } = response.data;
 
-      // Dismiss loading toast and show success
+      setItem(barang);
+      setHistory(riwayat);
+      setNewStatus(barang.status);
+      setNewLokasi(barang.lokasi);
+      setNewKondisi(barang.kondisi);
+      setNewKeterangan(barang.keterangan);
+
       toast.dismiss(loadingToastId);
-      toast.success(t(`Detail ${data.barang.nama} Success Load`), {
+      toast.success(`Detail ${barang.nama} Berhasil Dimuat`, {
         icon: '✅',
         duration: 3000
       });
     } catch (error) {
       console.error('Error fetching item details:', error);
-
-      // Dismiss loading toast and show error
       toast.dismiss(loadingToastId);
 
       if (error.message.includes('404')) {
-        toast.error(t('itemNotFound'), {
+        toast.error('Barang tidak ditemukan', {
           icon: '❌',
           duration: 5000
         });
       } else if (error.message.includes('401') || error.message.includes('403')) {
-        toast.error(t('Sesi Anda telah berakhir. Silakan login kembali.'), {
+        toast.error('Sesi Anda telah berakhir. Silakan login kembali.', {
           icon: '🔐',
           duration: 5000
         });
         setTimeout(() => navigate('/login'), 2000);
       } else {
-        toast.error(t('failedToLoad'), {
+        toast.error('Gagal memuat detail barang', {
           icon: '⚠️',
           duration: 5000
         });
@@ -94,7 +90,7 @@ const ItemDetail = () => {
     } finally {
       setLoading(false);
     }
-  }, [id, navigate]);
+  }, [id, navigate, t]);
 
   useEffect(() => {
     fetchItemDetails();
@@ -154,7 +150,7 @@ const ItemDetail = () => {
           </div>
         </>,
         {
-          icon: '✅',
+          icon: '',
           duration: 5000
         }
       );
@@ -172,7 +168,7 @@ const ItemDetail = () => {
               </div>
             </>,
             {
-              icon: '📝',
+              icon: '',
               duration: 6000,
               style: {
                 minHeight: '80px'
@@ -190,18 +186,18 @@ const ItemDetail = () => {
 
       if (error.message.includes('404')) {
         toast.error('Barang tidak ditemukan', {
-          icon: '❌',
+          icon: '',
           duration: 5000
         });
       } else if (error.message.includes('401') || error.message.includes('403')) {
         toast.error('Sesi Anda telah berakhir. Silakan login kembali.', {
-          icon: '🔐',
+          icon: '',
           duration: 5000
         });
         setTimeout(() => navigate('/login'), 2000);
       } else {
         toast.error('Gagal mengupdate status. Silakan coba lagi.', {
-          icon: '⚠️',
+          icon: '',
           duration: 5000
         });
       }
@@ -225,7 +221,7 @@ const ItemDetail = () => {
       }
 
       toast.info({ en: 'Unsaved changes were discarded', id: 'Perubahan yang belum disimpan dibatalkan' }[isIndonesian ? 'id' : 'en'], {
-        icon: '🗑️',
+        icon: '',
         duration: 3000
       });
     }

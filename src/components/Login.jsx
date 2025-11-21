@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDarkMode } from '../contexts/DarkModeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import DarkModeToggle from './DarkModeToggle';
 import LanguageToggle from './LanguageToggle';
+import '../App.css';
 
 const Login = ({ onLogin }) => {
   const navigate = useNavigate();
@@ -17,6 +18,10 @@ const Login = ({ onLogin }) => {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
+  // Refs untuk mengontrol fokus input
+  const usernameRef = useRef(null);
+  const passwordRef = useRef(null);
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -26,8 +31,17 @@ const Login = ({ onLogin }) => {
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
-      handleSubmit(e);
+      if (e.target.name === "username" && formData.username.trim() !== "") {
+        // Jika di username dan sudah terisi, pindah ke password
+        e.preventDefault();
+        passwordRef.current?.focus();
+      } else if (e.target.name === "password" && formData.username.trim() !== "" && formData.password.trim() !== "") {
+        // Jika di password dan kedua field sudah terisi, submit form
+        e.preventDefault();
+        handleSubmit(e);
+      }
     }
+
     if (e.key === "Delete") {
       setFormData((prev) => ({
         ...prev,
@@ -38,6 +52,13 @@ const Login = ({ onLogin }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validasi form
+    if (!formData.username.trim() || !formData.password.trim()) {
+      setError(t('fillAllFields'));
+      return;
+    }
+
     setLoading(true);
     setError('');
 
@@ -67,7 +88,7 @@ const Login = ({ onLogin }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 text-black relative overflow-hidden flex items-center justify-center transition-colors duration-300">
-      {/* Dark Mode & Language Toggle - Fixed Position */}
+      {/* Dark Mode & Language Toggle */}
       <div className="fixed top-6 right-6 z-50 flex items-center space-x-3">
         <LanguageToggle />
         <DarkModeToggle />
@@ -210,6 +231,7 @@ const Login = ({ onLogin }) => {
                 </label>
                 <div className="relative">
                   <input
+                    ref={usernameRef}
                     type="text"
                     name="username"
                     required
@@ -221,6 +243,7 @@ const Login = ({ onLogin }) => {
                       : 'bg-white/50 border-gray-500 text-black'
                       } border p-4 rounded-sm font-mono focus:border-cyan-400 dark:focus:border-cyan-300 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 hover:border-gray-400 dark:hover:border-gray-400`}
                     placeholder={isIndonesian ? "Masukkan username..." : "Enter username..."}
+                    autoComplete="username"
                   />
                   <div className="absolute inset-0 border border-cyan-400/20 dark:border-cyan-300/20 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                   <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
@@ -239,6 +262,7 @@ const Login = ({ onLogin }) => {
                 </label>
                 <div className="relative">
                   <input
+                    ref={passwordRef}
                     type={showPassword ? "text" : "password"}
                     name="password"
                     required
@@ -250,6 +274,7 @@ const Login = ({ onLogin }) => {
                       : 'bg-white/50 border-gray-600 text-black'
                       } border p-4 rounded-sm font-mono focus:border-cyan-400 dark:focus:border-cyan-300 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 hover:border-gray-400 dark:hover:border-gray-400`}
                     placeholder={isIndonesian ? "Masukkan security key..." : "Enter security key..."}
+                    autoComplete="current-password"
                   />
 
                   {/* Toggle Show/Hide Password */}
@@ -307,26 +332,6 @@ const Login = ({ onLogin }) => {
               </button>
             </div>
 
-            {/* Demo Accounts Section */}
-            <div className={`mt-8 p-4 ${isDarkMode
-              ? 'bg-gray-700/30 border-gray-500/50'
-              : 'bg-white/30 border-gray-600/50'
-              } border rounded-sm`}>
-              <p className="text-teal-700 dark:text-cyan-300 font-mono text-xs uppercase tracking-wider mb-3">
-                {t('demoAccessCredentials')}
-              </p>
-              <div className="space-y-1 text-gray-400 dark:text-gray-400 font-mono text-xs">
-                <p className="flex justify-between">
-                  <span>ADMIN:</span>
-                  <span className="text-teal-700 dark:text-cyan-300">admin / admin123</span>
-                </p>
-                <p className="flex justify-between">
-                  <span>STAFF:</span>
-                  <span className="text-teal-700 dark:text-cyan-300">staff / staff123</span>
-                </p>
-              </div>
-            </div>
-
             {/* Back to Home */}
             <div className="mt-6 text-center">
               <button
@@ -339,101 +344,6 @@ const Login = ({ onLogin }) => {
           </div>
         </div>
       </div>
-
-      {/* CSS Animations */}
-      <style jsx>{`
-        @keyframes dataStream {
-          0% { transform: translateY(-100vh); }
-          100% { transform: translateY(100vh); }
-        }
-        
-        @keyframes matrixRain {
-          0% { transform: translateY(-100vh); opacity: 0; }
-          10% { opacity: 1; }
-          90% { opacity: 1; }
-          100% { transform: translateY(100vh); opacity: 0; }
-        }
-        
-        @keyframes gridFlow {
-          0% { transform: translate(0, 0); }
-          100% { transform: translate(40px, 40px); }
-        }
-        
-        @keyframes scanHorizontal {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100vw); }
-        }
-        
-        @keyframes scanVertical {
-          0% { transform: translateY(-100%); }
-          100% { transform: translateY(100vh); }
-        }
-        
-        @keyframes scanInternal {
-          0% { transform: translateX(-100%); opacity: 0; }
-          50% { opacity: 1; }
-          100% { transform: translateX(100%); opacity: 0; }
-        }
-        
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-10px) rotate(5deg); }
-        }
-        
-        @keyframes shimmer {
-          0% { background-position: -200% center; }
-          100% { background-position: 200% center; }
-        }
-        
-        @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          25% { transform: translateX(-5px); }
-          75% { transform: translateX(5px); }
-        }
-        
-        .animate-scanHorizontal {
-          animation: scanHorizontal 4s ease-in-out infinite;
-        }
-        
-        .animate-scanVertical {
-          animation: scanVertical 6s ease-in-out infinite;
-          animation-delay: 2s;
-        }
-        
-        .animate-scanInternal {
-          animation: scanInternal 3s ease-in-out infinite;
-        }
-        
-        .animate-float {
-          animation: float 3s ease-in-out infinite;
-        }
-        
-        .animate-shimmer {
-          background-size: 200% auto;
-          animation: shimmer 3s linear infinite;
-        }
-        
-        .animate-shake {
-          animation: shake 0.5s ease-in-out;
-        }
-        
-        ::-webkit-scrollbar {
-          width: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-          background: rgba(0, 0, 0, 0.3);
-        }
-        
-        ::-webkit-scrollbar-thumb {
-          background: rgba(0, 255, 255, 0.5);
-          border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-          background: rgba(0, 255, 255, 0.8);
-        }
-      `}</style>
     </div>
   );
 };

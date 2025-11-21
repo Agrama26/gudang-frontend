@@ -25,13 +25,10 @@ const AddItem = () => {
   const [scrollY, setScrollY] = useState(0);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // Handle scroll animation and navbar transparency
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       setScrollY(currentScrollY);
-
-      // Change navbar style when scrolled more than 50px
       if (currentScrollY > 50) {
         setIsScrolled(true);
       } else {
@@ -121,7 +118,7 @@ const AddItem = () => {
           type: '',
           mac_address: '',
           serial_number: '',
-          kondisi: 'Baik',
+          kondisi: '',
           status: 'READY',
           keterangan: '',
           lokasi: '',
@@ -379,19 +376,16 @@ const AddItem = () => {
                         Item Condition *
                       </span>
                     </label>
-                    <select
+                    <input
                       id="kondisi"
                       name="kondisi"
                       required
                       value={formData.kondisi}
                       onChange={handleChange}
                       className={'w-full p-4 border rounded-xl font-medium focus:ring-2 focus:ring-teal-400/20 transition-all duration-300 cursor-pointer ' + inputClass + ' focus:border-teal-400'}
+                      placeholder='Masukan Kondisi'
                     >
-                      <option value="Baru">New</option>
-                      <option value="Baik">Good</option>
-                      <option value="Rusak Ringan">Slightly Damaged</option>
-                      <option value="Rusak Berat">Heavily Damaged</option>
-                    </select>
+                    </input>
                   </div>
 
                   {/* Status */}

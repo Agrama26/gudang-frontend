@@ -11,20 +11,16 @@ const SessionManager = ({ children, onLogout }) => {
     const lastActivityRef = useRef(Date.now());
     const warningShownRef = useRef(false);
 
-    // ==========================================
     // CONFIGURATION CONSTANTS
-    // ==========================================
-    const SESSION_TIMEOUT = 5 * 60 * 60 * 1000; 
-    const WARNING_TIME = 5 * 60 * 1000; 
-    const IDLE_TIMEOUT = SESSION_TIMEOUT; 
-    const CHECK_INTERVAL = 60 * 1000; 
+    const SESSION_TIMEOUT = 5 * 60 * 60 * 1000;
+    const WARNING_TIME = 5 * 60 * 1000;
+    const IDLE_TIMEOUT = SESSION_TIMEOUT;
+    const CHECK_INTERVAL = 60 * 1000;
 
-    // API Base URL - adjust sesuai environment
+    // API Base URL
     const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-    // ==========================================
     // UTILITY: Parse JWT Token
-    // ==========================================
     const parseJwt = (token) => {
         try {
             const base64Url = token.split('.')[1];
@@ -42,9 +38,7 @@ const SessionManager = ({ children, onLogout }) => {
         }
     };
 
-    // ==========================================
     // GET TOKEN & USER
-    // ==========================================
     const getToken = () => {
         try {
             const user = JSON.parse(localStorage.getItem('user') || 'null');
@@ -64,9 +58,7 @@ const SessionManager = ({ children, onLogout }) => {
         }
     };
 
-    // ==========================================
     // GET TOKEN EXPIRY TIME
-    // ==========================================
     const getTokenExpiryTime = () => {
         const token = getToken();
         if (!token) return null;
@@ -77,9 +69,7 @@ const SessionManager = ({ children, onLogout }) => {
         return payload.exp * 1000; // Convert to milliseconds
     };
 
-    // ==========================================
     // FORMAT TIME REMAINING
-    // ==========================================
     const formatTimeRemaining = (milliseconds) => {
         const totalSeconds = Math.floor(milliseconds / 1000);
         const hours = Math.floor(totalSeconds / 3600);
@@ -95,26 +85,26 @@ const SessionManager = ({ children, onLogout }) => {
         }
     };
 
-    // ==========================================
     // CHECK SESSION STATUS
-    // ==========================================
     const checkSession = () => {
         const user = getUser();
         const token = getToken();
 
-        // No user or token - skip check
+        // Jangan lakukan apa-apa jika tidak ada user/token
         if (!user || !token) {
+            console.log('SessionManager: No user/token found, skipping check');
             return;
         }
 
-        // Skip check on login page
-        if (location.pathname === '/login') {
+        // Skip check pada halaman login
+        if (location.pathname === '/') {
+            console.log('SessionManager: On login page, skipping check');
             return;
         }
 
         const expiryTime = getTokenExpiryTime();
         if (!expiryTime) {
-            console.warn('Unable to get token expiry time');
+            console.warn('SessionManager: Unable to get token expiry time');
             handleLogout('NO_EXPIRY');
             return;
         }
@@ -122,17 +112,17 @@ const SessionManager = ({ children, onLogout }) => {
         const currentTime = Date.now();
         const timeRemaining = expiryTime - currentTime;
 
-        // Log session status
-        console.log('Session Status:', {
+        console.log('SessionManager: Session Status:', {
             user: user.username,
             expiryTime: new Date(expiryTime).toLocaleString(),
             timeRemaining: formatTimeRemaining(timeRemaining),
-            isExpired: timeRemaining <= 0
+            isExpired: timeRemaining <= 0,
+            currentPath: location.pathname
         });
 
         // Token expired - auto logout
         if (timeRemaining <= 0) {
-            console.log('Token expired - auto logout');
+            console.log('SessionManager: Token expired - auto logout');
             handleLogout('EXPIRED');
             return;
         }
@@ -151,32 +141,36 @@ const SessionManager = ({ children, onLogout }) => {
         }
     };
 
-    // ==========================================
     // CHECK IDLE TIME
-    // ==========================================
     const checkIdleTime = () => {
         const user = getUser();
-        if (!user || location.pathname === '/login') return;
+
+        // Jangan check idle jika tidak ada user
+        if (!user) {
+            return;
+        }
+
+        // Skip pada halaman login
+        if (location.pathname === '/') {
+            return;
+        }
 
         const lastActivity = lastActivityRef.current;
         const idleTime = Date.now() - lastActivity;
 
-        // Log idle status every check
-        console.log('Idle Status:', {
+        console.log('SessionManager: Idle Status:', {
             idleTime: formatTimeRemaining(idleTime),
             threshold: formatTimeRemaining(IDLE_TIMEOUT)
         });
 
         // User idle too long - auto logout
         if (idleTime >= IDLE_TIMEOUT) {
-            console.log('User idle timeout - auto logout');
+            console.log('SessionManager: User idle timeout - auto logout');
             handleLogout('IDLE_TIMEOUT');
         }
     };
 
-    // ==========================================
     // SHOW EXPIRY WARNING
-    // ==========================================
     const showExpiryWarning = (timeRemaining) => {
         setShowWarning(true);
         const minutes = Math.floor(timeRemaining / 1000 / 60);
@@ -185,7 +179,7 @@ const SessionManager = ({ children, onLogout }) => {
         toast.warning(
             <div className="flex flex-col space-y-2">
                 <div className="flex items-center space-x-2">
-                    <span className="text-2xl"></span>
+                    <span className="text-2xl">⏰</span>
                     <div>
                         <div className="font-bold text-base">Session Expiring Soon!</div>
                         <div className="text-sm opacity-90">
@@ -211,9 +205,7 @@ const SessionManager = ({ children, onLogout }) => {
         );
     };
 
-    // ==========================================
     // EXTEND SESSION (REFRESH TOKEN)
-    // ==========================================
     const handleExtendSession = async () => {
         try {
             const token = getToken();
@@ -221,7 +213,7 @@ const SessionManager = ({ children, onLogout }) => {
                 throw new Error('No token found');
             }
 
-            console.log('Refreshing token...');
+            console.log('SessionManager: Refreshing token...');
 
             const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
                 method: 'POST',
@@ -260,15 +252,15 @@ const SessionManager = ({ children, onLogout }) => {
                     </span>
                 </div>,
                 {
-                    icon: '',
+                    icon: '🔄',
                     duration: 3000
                 }
             );
 
-            console.log('Token refreshed successfully');
+            console.log('SessionManager: Token refreshed successfully');
 
         } catch (error) {
-            console.error('Failed to extend session:', error);
+            console.error('SessionManager: Failed to extend session:', error);
 
             toast.error(
                 <div className="flex flex-col">
@@ -289,11 +281,9 @@ const SessionManager = ({ children, onLogout }) => {
         }
     };
 
-    // ==========================================
     // HANDLE LOGOUT
-    // ==========================================
     const handleLogout = (reason) => {
-        console.log('Auto logout triggered:', reason);
+        console.log('SessionManager: Auto logout triggered:', reason);
 
         // Clear all timers
         if (warningTimerRef.current) {
@@ -316,29 +306,29 @@ const SessionManager = ({ children, onLogout }) => {
 
         // Show appropriate message based on reason
         let message = '';
-        let icon = '';
+        let icon = '🔒';
 
         switch (reason) {
             case 'EXPIRED':
                 message = 'Your session has expired after 5 hours. Please login again.';
-                icon = '';
+                icon = '⏰';
                 break;
             case 'IDLE_TIMEOUT':
                 message = 'You have been logged out due to inactivity (5 hours).';
-                icon = '';
+                icon = '💤';
                 break;
             case 'NO_TOKEN':
             case 'NO_EXPIRY':
                 message = 'Session not found. Please login again.';
-                icon = '';
+                icon = '🔒';
                 break;
             case 'REFRESH_FAILED':
                 message = 'Failed to extend session. Please login again.';
-                icon = '';
+                icon = '❌';
                 break;
             default:
                 message = 'Your session has ended. Please login again.';
-                icon = '';
+                icon = '🔒';
         }
 
         toast.info(
@@ -357,45 +347,42 @@ const SessionManager = ({ children, onLogout }) => {
             onLogout();
         }
 
-        // Redirect to login page
-        if (location.pathname !== '/login') {
+        if (location.pathname !== '/' && location.pathname !== '/') {
             navigate('/login', { replace: true });
         }
     };
 
-    // ==========================================
     // TRACK USER ACTIVITY
-    // ==========================================
     const updateActivity = () => {
         const previousActivity = lastActivityRef.current;
         lastActivityRef.current = Date.now();
 
         // Log significant activity (more than 1 minute since last activity)
         if (Date.now() - previousActivity > 60000) {
-            console.log('👆 User activity detected - resetting idle timer');
+            console.log('SessionManager: User activity detected - resetting idle timer');
         }
     };
 
-    // ==========================================
     // SETUP EVENT LISTENERS & TIMERS
-    // ==========================================
     useEffect(() => {
         const user = getUser();
 
-        // Only run if user is logged in and not on login page
-        if (!user || location.pathname === '/login') {
-            // Clear any existing timers
-            if (checkIntervalRef.current) {
-                clearInterval(checkIntervalRef.current);
-                checkIntervalRef.current = null;
-            }
+        // Jangan setup SessionManager jika tidak ada user
+        if (!user) {
+            console.log('SessionManager: No user found, not initializing');
             return;
         }
 
-        console.log('Session Manager initialized for user:', user.username);
-        console.log('Session timeout: 5 hours');
-        console.log('Idle timeout: 5 hours');
-        console.log('Warning time: 5 minutes before expiry');
+        // Jangan setup SessionManager di halaman login
+        if (location.pathname === '/') {
+            console.log('SessionManager: On login page, not initializing');
+            return;
+        }
+
+        console.log('SessionManager: Initialized for user:', user.username);
+        console.log('SessionManager: Session timeout: 5 hours');
+        console.log('SessionManager: Idle timeout: 5 hours');
+        console.log('SessionManager: Warning time: 5 minutes before expiry');
 
         // Activity events to track
         const activityEvents = [
@@ -426,7 +413,7 @@ const SessionManager = ({ children, onLogout }) => {
 
         // Cleanup function
         return () => {
-            console.log('Session Manager cleanup');
+            console.log('SessionManager: Cleanup');
 
             // Remove event listeners
             activityEvents.forEach(event => {
@@ -442,17 +429,15 @@ const SessionManager = ({ children, onLogout }) => {
             // Dismiss warning toast
             toast.dismiss('session-warning');
         };
-    }, [location.pathname]); // Re-run when route changes
+    }, [location.pathname]);
 
-    // ==========================================
     // HANDLE VISIBILITY CHANGE
-    // ==========================================
     useEffect(() => {
         const handleVisibilityChange = () => {
             if (document.visibilityState === 'visible') {
                 const user = getUser();
-                if (user && location.pathname !== '/login') {
-                    console.log('Page visible - checking session');
+                if (user && location.pathname !== '/') {
+                    console.log('SessionManager: Page visible - checking session');
                     checkSession();
                     checkIdleTime();
                 }
@@ -466,9 +451,7 @@ const SessionManager = ({ children, onLogout }) => {
         };
     }, [location.pathname]);
 
-    // ==========================================
     // RENDER
-    // ==========================================
     return (
         <>
             {children}

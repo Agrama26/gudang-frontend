@@ -13,7 +13,7 @@ import { DarkModeProvider, useDarkMode } from './contexts/DarkModeContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import SessionManager from './utils/SessionManager';
 
-// Toast Container Wrapper to apply dark mode and language
+// Toast Container Wrapper 
 const ToastContainerWrapper = () => {
   const { isDarkMode } = useDarkMode();
 
@@ -62,7 +62,7 @@ const LoadingSpinner = () => (
   </div>
 );
 
-// Protected Route Component - TANPA SessionManager di sini
+// Protected Route Component
 const ProtectedRoute = ({ children, adminOnly = false, user, loading }) => {
   if (loading) {
     return <LoadingSpinner />;
@@ -73,7 +73,7 @@ const ProtectedRoute = ({ children, adminOnly = false, user, loading }) => {
       icon: '🔒',
       duration: 4000
     });
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" replace />;
   }
 
   // Check admin access
@@ -82,44 +82,42 @@ const ProtectedRoute = ({ children, adminOnly = false, user, loading }) => {
       icon: '⛔',
       duration: 4000
     });
-    return <Navigate to="/dashboard" />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return children;
 };
 
-// Main App Component with Language Support
+// Main App Component
 const AppContent = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { t, isIndonesian } = useLanguage();
+  const { isIndonesian } = useLanguage();
 
-  // Check if user is logged in on mount - HANYA CEK, TIDAK REDIRECT
+  // Check if user is logged in on mount
   useEffect(() => {
+    console.log('App: Checking for stored user...');
     const storedUser = localStorage.getItem('user');
+
     if (storedUser) {
       try {
         const userData = JSON.parse(storedUser);
         setUser(userData);
-
-        toast.success(
-          isIndonesian
-            ? `Selamat datang kembali, ${userData.username}!`
-            : `Welcome back, ${userData.username}!`,
-          {
-            icon: '👋',
-            duration: 3000
-          }
-        );
+        console.log('App: User found:', userData.username);
       } catch (error) {
-        console.error('Error parsing stored user data:', error);
+        console.error('App: Error parsing stored user data:', error);
         localStorage.removeItem('user');
+        localStorage.removeItem('token');
       }
+    } else {
+      console.log('App: No stored user found');
     }
+
     setLoading(false);
   }, []);
 
   const handleLogin = (userData) => {
+    console.log('App: User logged in:', userData.username);
     setUser(userData);
 
     const loginMsg = isIndonesian
@@ -133,6 +131,7 @@ const AppContent = () => {
   };
 
   const handleLogout = () => {
+    console.log('App: User logged out');
     localStorage.removeItem('user');
     localStorage.removeItem('token');
     setUser(null);
@@ -145,6 +144,7 @@ const AppContent = () => {
       icon: '👋',
       duration: 3000
     });
+    window.location.href = '/login';
   };
 
   if (loading) {
@@ -154,19 +154,23 @@ const AppContent = () => {
   return (
     <Router>
       <div className="App">
-        {/* User info bar for authenticated users */}
+        {/* User info badge for authenticated users */}
         {user && (
           <div className="fixed bottom-4 right-4 z-50">
             <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-3 flex items-center space-x-3 transition-all duration-300">
               <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                 <span className="text-sm text-gray-600 dark:text-gray-300">
                   {isIndonesian ? 'Selamat datang,' : 'Welcome back,'}{' '}
-                  <span className="font-semibold text-teal-600 dark:text-teal-400">{user.username}</span>
-                  <span className={`ml-2 px-2 py-1 rounded-full text-xs border ${user.role === 'admin'
-                    ? 'bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-200 border-purple-200 dark:border-purple-700'
-                    : 'bg-teal-100 dark:bg-teal-900/50 text-teal-800 dark:text-teal-200 border-teal-200 dark:border-teal-700'
-                    }`}>
+                  <span className="font-semibold text-teal-600 dark:text-teal-400">
+                    {user.username}
+                  </span>
+                  <span
+                    className={`ml-2 px-2 py-1 rounded-full text-xs border ${user.role === 'admin'
+                        ? 'bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-200 border-purple-200 dark:border-purple-700'
+                        : 'bg-teal-100 dark:bg-teal-900/50 text-teal-800 dark:text-teal-200 border-teal-200 dark:border-teal-700'
+                      }`}
+                  >
                     {user.role}
                   </span>
                 </span>
@@ -175,9 +179,14 @@ const AppContent = () => {
                 onClick={handleLogout}
                 className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm font-medium transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg"
                 title={isIndonesian ? 'Keluar' : 'Logout'}
+                aria-label="Logout"
               >
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd"></path>
+                  <path
+                    fillRule="evenodd"
+                    d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </button>
             </div>
@@ -185,25 +194,21 @@ const AppContent = () => {
         )}
 
         <Routes>
-          {/* ========================================
-              PUBLIC ROUTES - TIDAK PAKAI SessionManager
-              ======================================== */}
+          {/* PUBLIC ROUTES - NO SessionManager */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/about" element={<About />} />
           <Route
             path="/login"
             element={
               user ? (
-                <Navigate to={user.role === 'admin' ? "/admin" : "/dashboard"} />
+                <Navigate to={user.role === 'admin' ? '/admin' : '/dashboard'} replace />
               ) : (
                 <Login onLogin={handleLogin} />
               )
             }
           />
 
-          {/* ========================================
-              PROTECTED ROUTES - PAKAI SessionManager
-              ======================================== */}
+          {/* PROTECTED ROUTES - WITH SessionManager */}
           <Route
             path="/dashboard"
             element={
@@ -240,7 +245,7 @@ const AppContent = () => {
           <Route
             path="/admin"
             element={
-              <ProtectedRoute user={user} loading={loading} adminOnly={true}>
+              <ProtectedRoute user={user} loading={loading} adminOnly>
                 <SessionManager onLogout={handleLogout}>
                   <AdminDashboard user={user} onLogout={handleLogout} />
                 </SessionManager>
@@ -248,8 +253,8 @@ const AppContent = () => {
             }
           />
 
-          {/* Catch all route */}
-          <Route path="*" element={<Navigate to="/" />} />
+          {/* Catch all - redirect to landing */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
 
         {/* Toast Container */}
@@ -259,6 +264,7 @@ const AppContent = () => {
   );
 };
 
+// Root App Component
 function App() {
   return (
     <DarkModeProvider>

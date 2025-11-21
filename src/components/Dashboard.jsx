@@ -10,6 +10,7 @@ import '../index.css';
 import '../App.css';
 import { useLanguage } from '../contexts/LanguageContext';
 import LanguageToggle from './LanguageToggle';
+import Footer from './Footer';
 
 import {
   Chart as ChartJS,
@@ -41,6 +42,18 @@ ChartJS.register(
   Filler
 );
 
+// Safe data access function
+const getSafeValue = (item, key, defaultValue = '') => {
+  try {
+    if (!item || typeof item !== 'object') return defaultValue;
+    const value = item[key];
+    return value != null ? value.toString() : defaultValue;
+  } catch (err) {
+    console.warn(`Error accessing ${key} from item:`, err);
+    return defaultValue;
+  }
+};
+
 const Dashboard = ({ user, onLogout }) => {
   const navigate = useNavigate();
   const { t, isIndonesian } = useLanguage();
@@ -55,7 +68,11 @@ const Dashboard = ({ user, onLogout }) => {
   const [kotaFilter, setKotaFilter] = useState('');
   const [showImportExportModal, setShowImportExportModal] = useState(false);
 
-  // Animation states - menggunakan ref untuk animasi sekali saja
+  // TAMBAHKAN STATE PAGINATION DI SINI
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(25); // Maksimal 25 data per halaman
+
+  // Animation states
   const [hasAnimated, setHasAnimated] = useState(false);
   const [chartAnimated, setChartAnimated] = useState(false);
   const observerRef = useRef();
@@ -110,7 +127,6 @@ const Dashboard = ({ user, onLogout }) => {
   }, []);
 
   useEffect(() => {
-    // Hanya untuk update ref, tidak ada side effect
     if (isFirstLoad.current) {
       isFirstLoad.current = false;
     }
@@ -118,9 +134,7 @@ const Dashboard = ({ user, onLogout }) => {
 
   // Intersection Observer untuk animasi sekali saja
   useEffect(() => {
-    // Jika animasi sudah selesai, tidak perlu setup observer lagi
     if (animationCompleted.current) return;
-
     observerRef.current = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -130,9 +144,8 @@ const Dashboard = ({ user, onLogout }) => {
           }
         });
       },
-      { 
+      {
         threshold: 0.1,
-        // Hanya trigger sekali
         rootMargin: '0px 0px -50px 0px'
       }
     );
@@ -152,8 +165,8 @@ const Dashboard = ({ user, onLogout }) => {
     if (hasAnimated && Object.keys(hasAnimated).length > 0 && !animationCompleted.current) {
       const timer = setTimeout(() => {
         animationCompleted.current = true;
-      }, 2000); // Beri waktu untuk semua animasi selesai
-      
+      }, 2000);
+
       return () => clearTimeout(timer);
     }
   }, [hasAnimated]);
@@ -164,12 +177,10 @@ const Dashboard = ({ user, onLogout }) => {
   };
 
   const handleImportExportSuccess = () => {
-    // Refresh data after successful import
     const fetchItems = async () => {
       try {
         const data = await barangAPI.getAll();
         setItems(data);
-        // Gunakan alert biasa untuk menghindari dependency translation
         alert('Data refreshed successfully!');
       } catch (err) {
         console.error(err);
@@ -188,7 +199,6 @@ const Dashboard = ({ user, onLogout }) => {
       setShowDeleteModal(false);
       setItemToDelete(null);
 
-      // Gunakan translation yang aman
       const successMsg = isIndonesian
         ? `Barang "${itemToDelete.nama}" berhasil dihapus!`
         : `Item "${itemToDelete.nama}" successfully deleted!`;
@@ -242,33 +252,105 @@ const Dashboard = ({ user, onLogout }) => {
     fetchItems();
   }, []);
 
-  // Filter berdasarkan pencarian, status, dan kota
+  // Filter dengan error handling yang aman
   useEffect(() => {
-    let result = items;
+    try {
+      let result = items;
 
-    if (searchQuery) {
-      result = result.filter((item) =>
-        item.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.serial_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.lokasi.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase().trim();
+        result = result.filter((item) => {
+          try {
+            const nama = getSafeValue(item, 'nama', '').toLowerCase();
+            const serialNumber = getSafeValue(item, 'serial_number', '').toLowerCase();
+            const lokasi = getSafeValue(item, 'lokasi', '').toLowerCase();
+            const macAddress = getSafeValue(item, 'mac_address', '').toLowerCase();
+
+            return (
+              nama.includes(query) ||
+              serialNumber.includes(query) ||
+              lokasi.includes(query) ||
+              macAddress.includes(query)
+            );
+          } catch (itemError) {
+            console.warn('Error filtering item:', itemError, item);
+            return false;
+          }
+        });
+      }
+
+      if (statusFilter) {
+        result = result.filter((item) => {
+          try {
+            return getSafeValue(item, 'status', '').toLowerCase() === statusFilter.toLowerCase();
+          } catch (err) {
+            console.warn('Error filtering by status:', err, item);
+            return false;
+          }
+        });
+      }
+
+      if (kotaFilter) {
+        result = result.filter((item) => {
+          try {
+            return getSafeValue(item, 'kota', '').toLowerCase() === kotaFilter.toLowerCase();
+          } catch (err) {
+            console.warn('Error filtering by kota:', err, item);
+            return false;
+          }
+        });
+      }
+
+      if (kondisiFilter) {
+        result = result.filter((item) => {
+          try {
+            return getSafeValue(item, 'kondisi', '').toLowerCase() === kondisiFilter.toLowerCase();
+          } catch (err) {
+            console.warn('Error filtering by kondisi:', err, item);
+            return false;
+          }
+        });
+      }
+
+      setFilteredItems(result);
+      setChartAnimated(true);
+    } catch (filterError) {
+      console.error('Error in filter logic:', filterError);
+      setFilteredItems([]);
     }
+  }, [searchQuery, statusFilter, kotaFilter, kondisiFilter, items]);
 
-    if (statusFilter) {
-      result = result.filter((item) => item.status === statusFilter);
+  // Pagination logic
+  const paginatedItems = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredItems.slice(startIndex, endIndex);
+  }, [filteredItems, currentPage, itemsPerPage]);
+
+  // Calculate total pages
+  const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, statusFilter, kotaFilter, kondisiFilter]);
+
+  // Pagination handlers
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
     }
+  };
 
-    if (kotaFilter) {
-      result = result.filter((item) => item.kota === kotaFilter);
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
     }
+  };
 
-    if (kondisiFilter) {
-      result = result.filter((item) => item.kondisi === kondisiFilter);
-    }
-
-    setFilteredItems(result);
-    setChartAnimated(true);
-  }, [chartAnimated, searchQuery, statusFilter, kotaFilter, kondisiFilter, items]);
+  const handlePageClick = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
 
   // Update error message when language changes
   useEffect(() => {
@@ -280,11 +362,11 @@ const Dashboard = ({ user, onLogout }) => {
     }
   }, [isIndonesian, error]);
 
+  // Komponen StatusBadge yang diperbaiki
   const StatusBadge = ({ status }) => {
-    const { t } = useLanguage();
-
     const getStatusText = () => {
-      switch (status) {
+      if (!status) return 'Unknown';
+      switch (status.toUpperCase()) {
         case 'READY': return t('ready');
         case 'TERPAKAI': return t('inUse');
         case 'RUSAK': return t('broken');
@@ -296,7 +378,9 @@ const Dashboard = ({ user, onLogout }) => {
   };
 
   const getStatusColor = (status) => {
-    switch (status) {
+    if (!status) return 'bg-gray-500 text-white shadow-gray-500/30';
+
+    switch (status.toUpperCase()) {
       case 'READY':
         return 'bg-emerald-500 text-white shadow-emerald-500/30';
       case 'TERPAKAI':
@@ -309,27 +393,33 @@ const Dashboard = ({ user, onLogout }) => {
   };
 
   const getAnimationClass = (elementId) => {
-    // Jika animasi sudah selesai, tetap di state visible
     if (animationCompleted.current) {
       return 'opacity-100 translate-x-0 translate-y-0';
     }
-    
-    // Jika belum selesai, check state animasi
-    return hasAnimated[elementId] 
-      ? 'opacity-100 translate-x-0 translate-y-0' 
+
+    return hasAnimated[elementId]
+      ? 'opacity-100 translate-x-0 translate-y-0'
       : getInitialAnimationState(elementId);
   };
 
-  // Tentukan state awal berdasarkan element type
   const getInitialAnimationState = (elementId) => {
     if (elementId.includes('radar-chart')) {
-      return 'opacity-0 translate-x-28';
+      return 'opacity-0 -translate-y-32';
     }
     if (elementId.includes('pie-chart')) {
-      return 'opacity-0 -translate-x-28';
+      return 'opacity-0 -translate-x-32';
     }
-    if (elementId.includes('stat')) {
-      return 'opacity-0 translate-y-8';
+    if (elementId.includes('stat-total')) {
+      return 'opacity-0 -translate-y-28';
+    }
+    if (elementId.includes('stat-ready')) {
+      return 'opacity-0 translate-x-28';
+    }
+    if (elementId.includes('stat-terpakai')) {
+      return 'opacity-0 translate-y-28';
+    }
+    if (elementId.includes('stat-rusak')) {
+      return 'opacity-0 translate-x-28';
     }
     if (elementId === 'filters') {
       return 'opacity-0 -translate-x-96';
@@ -349,9 +439,9 @@ const Dashboard = ({ user, onLogout }) => {
   // Data untuk PolarArea Chart 
   const statusCounts = useMemo(() => {
     return {
-      READY: filteredItems.filter(item => item.status === 'READY').length,
-      TERPAKAI: filteredItems.filter(item => item.status === 'TERPAKAI').length,
-      RUSAK: filteredItems.filter(item => item.status === 'RUSAK').length,
+      READY: filteredItems.filter(item => getSafeValue(item, 'status', '').toUpperCase() === 'READY').length,
+      TERPAKAI: filteredItems.filter(item => getSafeValue(item, 'status', '').toUpperCase() === 'TERPAKAI').length,
+      RUSAK: filteredItems.filter(item => getSafeValue(item, 'status', '').toUpperCase() === 'RUSAK').length,
     };
   }, [filteredItems]);
 
@@ -359,7 +449,8 @@ const Dashboard = ({ user, onLogout }) => {
   const kotaCounts = useMemo(() => {
     const counts = {};
     filteredItems.forEach(item => {
-      counts[item.kota] = (counts[item.kota] || 0) + 1;
+      const kota = getSafeValue(item, 'kota', 'Unknown');
+      counts[kota] = (counts[kota] || 0) + 1;
     });
     return counts;
   }, [filteredItems]);
@@ -368,7 +459,8 @@ const Dashboard = ({ user, onLogout }) => {
   const kondisiCounts = useMemo(() => {
     const counts = {};
     filteredItems.forEach(item => {
-      counts[item.kondisi] = (counts[item.kondisi] || 0) + 1;
+      const kondisi = getSafeValue(item, 'kondisi', 'Unknown');
+      counts[kondisi] = (counts[kondisi] || 0) + 1;
     });
     return counts;
   }, [filteredItems]);
@@ -772,7 +864,7 @@ const Dashboard = ({ user, onLogout }) => {
               <input
                 type="text"
                 className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-300"
-                placeholder={isIndonesian ? "Cari Barang ..." : "Search Items ..."}
+                placeholder={isIndonesian ? "Cari berdasarkan nama, serial number, lokasi, atau MAC address..." : "Search by name, serial number, location, or MAC address..."}
                 value={searchQuery}
                 onChange={handleSearchChange}
               />
@@ -832,7 +924,9 @@ const Dashboard = ({ user, onLogout }) => {
         >
           <div className="px-8 py-6 border-b border-gray-100 dark:border-gray-700">
             <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">{t('totalItems')}</h2>
-            <p className="text-gray-500 dark:text-gray-400 mt-1">{t('showing')} {filteredItems.length} {t('of')} {items.length} {t('items')}</p>
+            <p className="text-gray-500 dark:text-gray-400 mt-1">
+              {t('showing')} {paginatedItems.length} {t('of')} {filteredItems.length} {t('filteredItems')} • {t('page')} {currentPage} {t('of')} {totalPages}
+            </p>
           </div>
 
           <div className="overflow-x-auto">
@@ -866,39 +960,39 @@ const Dashboard = ({ user, onLogout }) => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {filteredItems.length > 0 ? (
-                  filteredItems.map((item, index) => (
+                {paginatedItems.length > 0 ? (
+                  paginatedItems.map((item, index) => (
                     <tr
                       key={item.id}
                       className={`hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 group ${getAnimationClass('table')}`}
                       style={{ transitionDelay: `${index * 100}ms` }}
                     >
                       <td className="px-6 py-4 text-left whitespace-nowrap text-sm font-medium text-gray-800 dark:text-gray-200">
-                        {item.nama}
+                        {getSafeValue(item, 'nama', 'N/A')}
                       </td>
                       <td className="px-6 py-4 text-left whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
-                        {item.type}
+                        {getSafeValue(item, 'type', '')}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400 font-mono">
                         <span className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-lg border border-gray-200 dark:border-gray-600">
-                          {item.mac_address}
+                          {getSafeValue(item, 'mac_address', 'N/A')}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400 font-mono">
                         <span className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-lg border border-gray-200 dark:border-gray-600">
-                          {item.serial_number}
+                          {getSafeValue(item, 'serial_number', 'N/A')}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
-                        {item.kondisi}
+                        {getSafeValue(item, 'kondisi', 'Baik')}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-3 py-2 text-xs font-bold rounded-xl ${getStatusColor(item.status)} ${StatusBadge(item.status)} transform transition-all duration-300 hover:scale-110 shadow-lg`}>
-                          {item.status}
+                        <span className={`inline-flex px-3 py-2 text-xs font-bold rounded-xl ${getStatusColor(getSafeValue(item, 'status', ''))} transform transition-all duration-300 hover:scale-110 shadow-lg`}>
+                          <StatusBadge status={getSafeValue(item, 'status', '')} />
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
-                        {item.lokasi}
+                        {getSafeValue(item, 'lokasi', '')}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center space-x-2">
@@ -939,72 +1033,146 @@ const Dashboard = ({ user, onLogout }) => {
               </tbody>
             </table>
           </div>
+
+          {filteredItems.length > itemsPerPage && (
+            <div className="bg-white dark:bg-gray-800 px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+              <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
+                {/* Page Info */}
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  {t('showing')} {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, filteredItems.length)} {t('of')} {filteredItems.length} {t('items')}
+                </div>
+
+                {/* Pagination Controls */}
+                <div className="flex items-center space-x-2">
+                  {/* Previous Button */}
+                  <button
+                    onClick={handlePrevPage}
+                    disabled={currentPage === 1}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${currentPage === 1
+                      ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                      : 'bg-teal-500 text-white hover:bg-teal-600 dark:bg-teal-600 dark:hover:bg-teal-500 transform hover:scale-105'
+                      }`}
+                  >
+                    {t('previous')}
+                  </button>
+
+                  {/* Page Numbers */}
+                  <div className="flex items-center space-x-1">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNumber;
+                      if (totalPages <= 5) {
+                        pageNumber = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNumber = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNumber = totalPages - 4 + i;
+                      } else {
+                        pageNumber = currentPage - 2 + i;
+                      }
+
+                      return (
+                        <button
+                          key={pageNumber}
+                          onClick={() => handlePageClick(pageNumber)}
+                          className={`w-10 h-10 rounded-lg text-sm font-medium transition-all duration-300 ${currentPage === pageNumber
+                            ? 'bg-teal-500 text-white shadow-lg transform scale-105'
+                            : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+                            }`}
+                        >
+                          {pageNumber}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Next Button */}
+                  <button
+                    onClick={handleNextPage}
+                    disabled={currentPage === totalPages}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${currentPage === totalPages
+                      ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                      : 'bg-teal-500 text-white hover:bg-teal-600 dark:bg-teal-600 dark:hover:bg-teal-500 transform hover:scale-105'
+                      }`}
+                  >
+                    {t('next')}
+                  </button>
+                </div>
+
+                {/* Items Per Page Info */}
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  {itemsPerPage} {t('itemsPerPage')}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Delete Confirmation Modal - Hanya untuk admin */}
-      {isAdmin && showDeleteModal && itemToDelete && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            {/* Background overlay */}
-            <div className="fixed inset-0 bg-gray-500 dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-75 transition-opacity"></div>
+      {
+        isAdmin && showDeleteModal && itemToDelete && (
+          <div className="fixed inset-0 z-50 overflow-y-auto">
+            <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+              {/* Background overlay */}
+              <div className="fixed inset-0 bg-gray-500 dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-75 transition-opacity"></div>
 
-            {/* Modal */}
-            <div className="inline-block align-bottom bg-white dark:bg-gray-800 rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-              <div className="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                <div className="sm:flex sm:items-start">
-                  <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/30 sm:mx-0 sm:h-10 sm:w-10">
-                    <svg className="h-6 w-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                    </svg>
-                  </div>
-                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
-                      {t('confirmDelete')}
-                    </h3>
-                    <div className="mt-2">
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {t('deleteMessage')} <span className="font-semibold text-gray-900 dark:text-gray-100">"{itemToDelete.nama}"</span>?
-                      </p>
-                      <p className="text-sm text-red-600 dark:text-red-400 mt-2">
-                        {t('deleteWarning')}
-                      </p>
+              {/* Modal */}
+              <div className="inline-block align-bottom bg-white dark:bg-gray-800 rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div className="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                  <div className="sm:flex sm:items-start">
+                    <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/30 sm:mx-0 sm:h-10 sm:w-10">
+                      <svg className="h-6 w-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                      </svg>
+                    </div>
+                    <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                      <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
+                        {t('confirmDelete')}
+                      </h3>
+                      <div className="mt-2">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {t('deleteMessage')} <span className="font-semibold text-gray-900 dark:text-gray-100">"{itemToDelete.nama}"</span>?
+                        </p>
+                        <p className="text-sm text-red-600 dark:text-red-400 mt-2">
+                          {t('deleteWarning')}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-              <div className="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                <button
-                  type="button"
-                  onClick={handleDeleteConfirm}
-                  disabled={deleting}
-                  className={`w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white sm:ml-3 sm:w-auto sm:text-sm transition-all duration-300 ${deleting
-                    ? 'bg-red-400 cursor-not-allowed'
-                    : 'bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600'
-                    }`}
-                >
-                  {deleting ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                      {t('deleting')}
-                    </>
-                  ) : (
-                    'Hapus Barang'
-                  )}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleDeleteCancel}
-                  disabled={deleting}
-                  className="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition-all duration-300"
-                >
-                  {t('deleteCancelButton')}
-                </button>
+                <div className="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                  <button
+                    type="button"
+                    onClick={handleDeleteConfirm}
+                    disabled={deleting}
+                    className={`w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white sm:ml-3 sm:w-auto sm:text-sm transition-all duration-300 ${deleting
+                      ? 'bg-red-400 cursor-not-allowed'
+                      : 'bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600'
+                      }`}
+                  >
+                    {deleting ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                        {t('deleting')}
+                      </>
+                    ) : (
+                      'Hapus Barang'
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDeleteCancel}
+                    disabled={deleting}
+                    className="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition-all duration-300"
+                  >
+                    {t('deleteCancelButton')}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* Import/Export Modal */}
       <ImportExportModal
@@ -1047,30 +1215,8 @@ const Dashboard = ({ user, onLogout }) => {
       </button>
 
       {/* Footer */}
-      <footer
-        className={`relative mt-20 backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 border-t border-teal-200 dark:border-gray-700 transition-all duration-1000 ${getAnimationClass('footer')}`}
-        data-animate="footer"
-      >
-        <div className="container mx-auto px-6 py-12">
-          <div className="text-center">
-            <div className="flex items-center justify-center space-x-3 mb-4">
-              <div className="group relative">
-                <img
-                  src={logo}
-                  alt="Logo"
-                  width="150"
-                  height="150"
-                  className="w-32 md:w-30 lg:w-40 object-contain drop-shadow-lg filter invert dark:invert-0"
-                />
-              </div>
-            </div>
-            <p className="text-gray-600 dark:text-gray-400">
-              &copy; 2025 PT. Medianusa Permana. {t('allRightsReserved')}
-            </p>
-          </div>
-        </div>
-      </footer>
-    </div>
+      <Footer />
+    </div >
   );
 };
 

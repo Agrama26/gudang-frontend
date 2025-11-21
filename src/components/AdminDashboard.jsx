@@ -4,7 +4,6 @@ import { adminUserAPI } from '../utils/api';
 import { toast } from 'react-toastify';
 import { useDarkMode } from '../contexts/DarkModeContext';
 import DarkModeToggle from './DarkModeToggle';
-import logo from '../assets/logo.png';
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -41,6 +40,7 @@ const AdminDashboard = ({ user, onLogout }) => {
     const [users, setUsers] = useState([]);
     const [statistics, setStatistics] = useState(null);
     const [activityLogs, setActivityLogs] = useState([]);
+    const [activityChartData, setActivityChartData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showUserModal, setShowUserModal] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
@@ -56,13 +56,10 @@ const AdminDashboard = ({ user, onLogout }) => {
     const [scrollY, setScrollY] = useState(0);
     const [isScrolled, setIsScrolled] = useState(false);
 
-    // Handle scroll animation and navbar transparency
     useEffect(() => {
         const handleScroll = () => {
             const currentScrollY = window.scrollY;
             setScrollY(currentScrollY);
-
-            // Change navbar style when scrolled more than 50px
             if (currentScrollY > 50) {
                 setIsScrolled(true);
             } else {
@@ -93,6 +90,52 @@ const AdminDashboard = ({ user, onLogout }) => {
         fetchData();
     }, [activeTab]);
 
+    // Fungsi untuk memproses data activity logs menjadi data chart
+    const processActivityChartData = (logs) => {
+        // Buat array untuk 7 hari terakhir
+        const last7Days = [];
+        for (let i = 6; i >= 0; i--) {
+            const date = new Date();
+            date.setDate(date.getDate() - i);
+            last7Days.push(date.toISOString().split('T')[0]); // Format: YYYY-MM-DD
+        }
+
+        // Hitung aktivitas per hari
+        const activityCount = last7Days.map(date => {
+            const count = logs.filter(log => {
+                const logDate = new Date(log.created_at).toISOString().split('T')[0];
+                return logDate === date;
+            }).length;
+            return count;
+        });
+
+        return activityCount;
+    };
+
+    // Fungsi untuk mendapatkan label tanggal yang lebih user-friendly
+    const getChartLabels = () => {
+        const labels = [];
+        const today = new Date();
+
+        for (let i = 6; i >= 0; i--) {
+            const date = new Date();
+            date.setDate(today.getDate() - i);
+
+            if (i === 0) {
+                labels.push('Today');
+            } else if (i === 1) {
+                labels.push('Yesterday');
+            } else {
+                labels.push(date.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric'
+                }));
+            }
+        }
+
+        return labels;
+    };
+
     const fetchData = async () => {
         setLoading(true);
         try {
@@ -103,8 +146,16 @@ const AdminDashboard = ({ user, onLogout }) => {
                 const statsData = await adminUserAPI.getStatistics();
                 setStatistics(statsData);
             } else if (activeTab === 'activity') {
-                const logsData = await adminUserAPI.getActivityLogs(50, 0);
+                const logsData = await adminUserAPI.getActivityLogs(1000, 0); // Ambil lebih banyak data untuk chart
                 setActivityLogs(logsData.logs);
+
+                // Process data untuk chart
+                if (logsData.logs && logsData.logs.length > 0) {
+                    const chartData = processActivityChartData(logsData.logs);
+                    setActivityChartData(chartData);
+                } else {
+                    setActivityChartData([0, 0, 0, 0, 0, 0, 0]);
+                }
             }
         } catch (error) {
             toast.error(`Failed to load ${activeTab} data`);
@@ -112,6 +163,8 @@ const AdminDashboard = ({ user, onLogout }) => {
             setLoading(false);
         }
     };
+
+    // ... (fungsi lainnya tetap sama: handleCreateUser, handleEditUser, handleSubmitUser, dll.)
 
     const handleCreateUser = () => {
         setEditingUser(null);
@@ -271,7 +324,6 @@ const AdminDashboard = ({ user, onLogout }) => {
                 <div className="container mx-auto px-6 py-4">
                     <div className="flex justify-between items-center">
                         <div className="flex items-center space-x-4">
-                            <img src={logo} alt="Logo" className="w-32 md:w-30 lg:w-40 object-contain drop-shadow-lg filter invert dark:invert-0" />
                             <div>
                                 <h1 className={'text-2xl font-bold ' + textPrimaryClass}>Admin Dashboard</h1>
                                 <p className={'text-sm ' + textSecondaryClass}>System Management Panel</p>
@@ -305,9 +357,6 @@ const AdminDashboard = ({ user, onLogout }) => {
                                     : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
                                     }`}
                             >
-                                {tab === 'users' && ''}
-                                {tab === 'statistics' && ''}
-                                {tab === 'activity' && ''}
                                 {tab}
                             </button>
                         ))}
@@ -637,18 +686,10 @@ const AdminDashboard = ({ user, onLogout }) => {
                                     <div className="h-80">
                                         <Line
                                             data={{
-                                                labels: ['6 days ago', '5 days ago', '4 days ago', '3 days ago', '2 days ago', 'Yesterday', 'Today'],
+                                                labels: getChartLabels(),
                                                 datasets: [{
                                                     label: 'Activities',
-                                                    data: activityLogs.length > 0 ? [
-                                                        Math.floor(activityLogs.length * 0.15),
-                                                        Math.floor(activityLogs.length * 0.18),
-                                                        Math.floor(activityLogs.length * 0.12),
-                                                        Math.floor(activityLogs.length * 0.20),
-                                                        Math.floor(activityLogs.length * 0.16),
-                                                        Math.floor(activityLogs.length * 0.19),
-                                                        statistics?.activity?.today_activities || 0
-                                                    ] : [0, 0, 0, 0, 0, 0, 0],
+                                                    data: activityChartData,
                                                     fill: true,
                                                     backgroundColor: isDarkMode
                                                         ? 'rgba(20, 184, 166, 0.2)'
@@ -687,7 +728,12 @@ const AdminDashboard = ({ user, onLogout }) => {
                                                         borderColor: '#14b8a6',
                                                         borderWidth: 1,
                                                         padding: 12,
-                                                        displayColors: false
+                                                        displayColors: false,
+                                                        callbacks: {
+                                                            label: function (context) {
+                                                                return `Activities: ${context.parsed.y}`;
+                                                            }
+                                                        }
                                                     }
                                                 },
                                                 scales: {
@@ -695,7 +741,9 @@ const AdminDashboard = ({ user, onLogout }) => {
                                                         beginAtZero: true,
                                                         ticks: {
                                                             color: isDarkMode ? '#e5e7eb' : '#374151',
-                                                            font: { size: 11 }
+                                                            font: { size: 11 },
+                                                            stepSize: 1,
+                                                            precision: 0
                                                         },
                                                         grid: {
                                                             color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
@@ -714,30 +762,39 @@ const AdminDashboard = ({ user, onLogout }) => {
                                             }}
                                         />
                                     </div>
+                                    <div className="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                                        Total activities in the last 7 days: {activityChartData.reduce((a, b) => a + b, 0)}
+                                    </div>
                                 </div>
 
                                 {/* Activity Logs List */}
                                 <div className={'backdrop-blur-md rounded-2xl border shadow-xl p-8 ' + cardClass}>
                                     <h2 className={'text-2xl font-bold mb-6 ' + textPrimaryClass}>Recent Activity Logs</h2>
                                     <div className="space-y-4 max-h-96 overflow-y-auto">
-                                        {activityLogs.map((log) => (
-                                            <div key={log.id} className="border-l-4 border-teal-600 dark:border-teal-400 pl-4 py-2">
-                                                <div className="flex justify-between items-start">
-                                                    <div>
-                                                        <p className="font-semibold text-gray-800 dark:text-gray-200">
-                                                            {log.username || 'System'} - {log.action}
-                                                        </p>
-                                                        <p className={'text-sm ' + textSecondaryClass}>{log.details || 'No details'}</p>
-                                                        <p className={'text-xs ' + textSecondaryClass}>
-                                                            IP: {log.ip_address || 'N/A'}
-                                                        </p>
+                                        {activityLogs.length > 0 ? (
+                                            activityLogs.slice(0, 50).map((log) => (
+                                                <div key={log.id} className="border-l-4 border-teal-600 dark:border-teal-400 pl-4 py-2">
+                                                    <div className="flex justify-between items-start">
+                                                        <div>
+                                                            <p className="font-semibold text-gray-800 dark:text-gray-200">
+                                                                {log.username || 'System'} - {log.action}
+                                                            </p>
+                                                            <p className={'text-sm ' + textSecondaryClass}>{log.details || 'No details'}</p>
+                                                            <p className={'text-xs ' + textSecondaryClass}>
+                                                                IP: {log.ip_address || 'N/A'}
+                                                            </p>
+                                                        </div>
+                                                        <span className={'text-sm ' + textSecondaryClass}>
+                                                            {new Date(log.created_at).toLocaleString()}
+                                                        </span>
                                                     </div>
-                                                    <span className={'text-sm ' + textSecondaryClass}>
-                                                        {new Date(log.created_at).toLocaleString()}
-                                                    </span>
                                                 </div>
+                                            ))
+                                        ) : (
+                                            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                                                No activity logs found
                                             </div>
-                                        ))}
+                                        )}
                                     </div>
                                 </div>
                             </div>

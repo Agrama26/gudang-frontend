@@ -77,6 +77,7 @@ const translations = {
     allStatus: 'Semua Status',
     allCities: 'Semua Kota',
     allConditions: 'Semua Kondisi',
+    secondCondition: 'Bekas',
 
     // Item Management
     addItem: 'Tambah Barang',
@@ -294,6 +295,7 @@ const translations = {
     allStatus: 'All Status',
     allCities: 'All Cities',
     allConditions: 'All Conditions',
+    secondCondition: 'Second',
 
     // Item Management
     addItem: 'Add Item',
